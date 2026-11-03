@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-03.12">
+<meta name="app-version" content="2026-11-03.13">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -520,6 +520,38 @@ img.gi{padding:0;object-fit:cover}
 label.qa{cursor:pointer}
 @media (prefers-reduced-motion: no-preference){.btn.pulse{animation:pulse 1.6s ease-in-out 2}@keyframes pulse{50%{box-shadow:0 0 0 6px var(--ai-soft)}}}
 
+/* check-in extras */
+.pflow.five{grid-template-columns:repeat(5,minmax(0,1fr))}
+.pflow.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pflow:not(.four):not(.five){grid-template-columns:repeat(3,minmax(0,1fr))}
+#ciFlow.pflow{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pf.en{font-size:.74rem}
+.pflow.sm .pf{min-height:34px;font-size:.76rem}
+.pf[aria-pressed="true"]{background:#FFFFFF;color:#16302A}
+#ciFlow .pf[aria-pressed="true"]:not(:first-child){color:#A3305F}
+.ci-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ci-edit{background:none;border:0;color:inherit;opacity:.85;font-size:.8rem;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px 0}
+.ci-chip.on{background:#FFFFFF;color:#16302A;border-color:#FFFFFF;font-weight:700}
+.ci-expand{display:flex;align-items:center;gap:10px;width:100%;background:var(--glass);border:0;border-radius:14px;padding:11px 14px;color:inherit;cursor:pointer;text-align:left;font-weight:700;font-size:.9rem}
+.ci-xsum{font-weight:400;font-size:.8rem;opacity:.85;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.ci-chev{transition:transform .15s ease;font-size:1.2rem;line-height:1}
+.ci-expand[aria-expanded="true"] .ci-chev{transform:rotate(90deg)}
+.ci-x{display:flex;flex-direction:column;gap:14px}
+.ci-x[hidden]{display:none}
+
+/* saved indicator */
+.save-pill{position:fixed;z-index:40;top:calc(env(safe-area-inset-top,0px) + 10px);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:7px;padding:7px 14px 7px 10px;border-radius:99px;font-weight:700;font-size:.88rem;box-shadow:0 6px 20px rgba(0,0,0,.18);background:var(--surface);color:var(--ink);border:1px solid var(--line);transition:opacity .25s ease,transform .25s ease}
+.save-pill.out{opacity:0;transform:translate(-50%,-6px)}
+.sp-i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;flex:none}
+.save-pill.busy .sp-i{border:2.5px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite}
+.save-pill.ok{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.save-pill.ok .sp-i{background:var(--accent-ink)}
+.save-pill.ok .sp-i::after{content:"";width:9px;height:5px;border-left:2.5px solid var(--accent);border-bottom:2.5px solid var(--accent);transform:translateY(-1px) rotate(-45deg)}
+.save-pill.bad{background:var(--alert);color:#FFFFFF;border-color:var(--alert)}
+.save-pill.bad .sp-i::after{content:"!";font-weight:800}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: no-preference){.save-pill.ok .sp-i{animation:pop .3s ease-out}@keyframes pop{0%{transform:scale(.4)}70%{transform:scale(1.15)}}}
+
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
 .tab svg{width:54px;height:30px;padding:4px 16px;border-radius:99px;transition:background .15s ease}
@@ -528,6 +560,7 @@ label.qa{cursor:pointer}
 </head>
 <body>
 
+<div id="savePill" class="save-pill" role="status" aria-live="polite" hidden><span class="sp-i" aria-hidden="true"></span><span class="sp-t">Saved</span></div>
 <header class="top">
   <div class="wrap top-in">
     <div>
@@ -551,7 +584,11 @@ label.qa{cursor:pointer}
       </div>
       <div class="faces" id="ciFaces" role="group" aria-label="How you feel today"></div>
       <div class="ci-block">
-        <p class="ci-lab">Any symptoms today?</p>
+        <p class="ci-lab">Energy today?</p>
+        <div class="pflow five" id="ciEnergy" role="group" aria-label="Energy today"></div>
+      </div>
+      <div class="ci-block">
+        <div class="ci-row"><p class="ci-lab">Any symptoms today?</p><button class="ci-edit" id="ciSymEdit" type="button">Edit list</button></div>
         <div class="ci-chips" id="ciChips"></div>
         <div class="ci-logged" id="ciLogged" hidden></div>
       </div>
@@ -559,6 +596,13 @@ label.qa{cursor:pointer}
         <p class="ci-lab">Period today?</p>
         <div class="pflow" id="ciFlow" role="group" aria-label="Period flow today"></div>
         <p class="ci-pstat" id="ciPstat"></p>
+      </div>
+      <button class="ci-expand" id="ciXBtn" type="button" aria-expanded="false" aria-controls="ciX"><span>More about today</span><span class="ci-xsum" id="ciXSum">Sleep, eating, medicines, stress</span><span class="ci-chev" aria-hidden="true">›</span></button>
+      <div class="ci-x" id="ciX" hidden>
+        <div class="ci-block"><p class="ci-lab">How did you sleep?</p><div class="pflow" id="ciSleepQ" role="group" aria-label="Sleep quality"></div><div class="pflow four sm" id="ciSleepH" role="group" aria-label="Hours of sleep"></div></div>
+        <div class="ci-block"><p class="ci-lab">How much have you eaten?</p><div class="pflow four" id="ciEat" role="group" aria-label="How much you ate"></div></div>
+        <div class="ci-block" id="ciMedsB"><p class="ci-lab">Medicines taken today</p><div class="ci-chips" id="ciMeds"></div></div>
+        <div class="ci-block"><p class="ci-lab">Stress or anxiety?</p><div class="pflow" id="ciStress" role="group" aria-label="Stress or anxiety today"></div></div>
       </div>
       <div class="ci-foot">
         <div class="week" id="ciWeek" aria-label="The last 7 days"></div>
@@ -1161,11 +1205,15 @@ function buildContext(){
   }
   const dd=Object.values(S.days||{}).filter(d=>d.date).sort((a,b)=>a.date.localeCompare(b.date)).slice(-150);
   if(dd.length){
-    lines.push("\nDAILY DIARY (feeling and energy out of 5, where 1 is worst; period flow; weight):");
+    lines.push("\nDAILY DIARY (feeling and energy out of 5, where 1 is worst; sleep; how much they ate; medicines ticked as taken; stress; period flow; weight):");
     for(const d of dd){
       const b=[fmtDate(d.date)];
       if(d.feel) b.push("feeling "+d.feel+"/5 ("+FEEL[d.feel-1]+")");
       if(d.energy) b.push("energy "+d.energy+"/5");
+      if(d.sleepQ||d.sleepH) b.push("slept "+[d.sleepQ?SLEEPQ[d.sleepQ-1].toLowerCase():"", d.sleepH?"about "+d.sleepH+"h":""].filter(Boolean).join(", "));
+      if(d.eat) b.push("ate: "+EAT[d.eat-1].toLowerCase());
+      if(Array.isArray(d.medsTaken)&&d.medsTaken.length) b.push("took "+d.medsTaken.join(", "));
+      if(d.stress) b.push("stress "+STRESS[d.stress-1].toLowerCase());
       if(Array.isArray(d.bp)&&d.bp.length) b.push("BP "+d.bp.map(r=>r.sys+"/"+r.dia+(r.pulse?" pulse "+r.pulse:"")+(r.time?" at "+r.time:"")).join(", "));
       if(d.period) b.push("period: "+d.period);
       if(typeof d.weight==="number") b.push("weight "+d.weight+" kg");
@@ -1185,20 +1233,34 @@ function setReadOnly(){
   S.canWrite=false; $("#roNote").hidden=false;
   document.querySelectorAll('[data-act="add"],[data-act="import"],#editProfile,#bpAdd,#dayNotesSave,#recCam,#recFiles').forEach(b=>b.disabled=true);
 }
+let savePending=0, saveT=null;
+function savePill(state){
+  const el=$("#savePill"); if(!el) return; clearTimeout(saveT);
+  el.className="save-pill "+state; el.hidden=false;
+  el.querySelector(".sp-t").textContent= state==="busy"? "Saving…" : state==="ok"? "Saved" : "Not saved";
+  if(state!=="busy") saveT=setTimeout(()=>{ el.classList.add("out"); saveT=setTimeout(()=>{ el.hidden=true; },250); }, state==="ok"?1600:4000);
+}
 async function write(fn){
   if(!S.col){ toast("Sign in to save your records."); return false; }
-  for(let attempt=0; attempt<2; attempt++){
-    try{ await fn(); return true; }
-    catch(e){
-      const c=e&&e.code;
-      if(c==="unavailable" && attempt===0){ await new Promise(r=>setTimeout(r,600+Math.random()*900)); continue; }
-      if(c==="invalid_argument"){ setReadOnly(); toast("This login can't save here."); }
-      else if(c==="quota_exceeded") toast("Your logbook is full. Delete some old entries to add more.");
-      else toast("Couldn't save. Check your connection and try again.");
-      return false;
+  savePending++; savePill("busy");
+  let ok=false;
+  try{
+    for(let attempt=0; attempt<2; attempt++){
+      try{ await fn(); ok=true; return true; }
+      catch(e){
+        const c=e&&e.code;
+        if(c==="unavailable" && attempt===0){ await new Promise(r=>setTimeout(r,600+Math.random()*900)); continue; }
+        if(c==="invalid_argument"){ setReadOnly(); toast("This login can't save here."); }
+        else if(c==="quota_exceeded") toast("Your logbook is full. Delete some old entries to add more.");
+        else toast("Couldn't save. Check your connection and try again.");
+        return false;
+      }
     }
+    return false;
+  } finally {
+    savePending=Math.max(0,savePending-1);
+    if(!ok) savePill("bad"); else if(!savePending) savePill("ok");
   }
-  return false;
 }
 function cleanBody(o){ const b={}; for(const [k,v] of Object.entries(o)){ if(v!==""&&v!=null&&!(typeof v==="number"&&isNaN(v))) b[k]=v; } return b; }
 async function saveEntry(body, id){
@@ -1337,6 +1399,63 @@ function renderCycle(){
   }));
   $("#cycNote").textContent= (c.avg? "Based on your last "+c.cycles+" cycle"+(c.cycles===1?"":"s")+"." : "Using a 28-day cycle until two periods are logged.")+" The fertile window is a rough estimate, not contraception.";
 }
+const SLEEPQ=["Badly","OK","Well"], SLEEPH=[["Under 5h",4],["5–6h",5.5],["7–8h",7.5],["9h+",9]], EAT=["Barely","Less than usual","Normal","More"], STRESS=["Low","Some","High"];
+function symptomChips(max){
+  const p=S.profile||{}, hidden=new Set((p.symHidden||[]).map(x=>x.toLowerCase()));
+  const freq={}; for(const e of ofKind("symptom")){ const k=(e.title||"").trim(); if(k) freq[k]=(freq[k]||0)+1; }
+  const mine=[...(p.symChips||[])].sort((a,b)=>(freq[b]||0)-(freq[a]||0));
+  const often=Object.entries(freq).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+  const seen=new Set(), out=[];
+  for(const t of [...mine,...often,...QUICK]){ const k=t.toLowerCase(); if(seen.has(k)||hidden.has(k)) continue; seen.add(k); out.push(t); if(out.length>=max) break; }
+  return out;
+}
+function saveProfilePatch(patch){ return write(()=>S.col.doc("profile").set(cleanBody({...S.profile,...patch,updatedAt:Date.now()}))); }
+function rememberSymptom(title){
+  const t=String(title||"").trim(); if(!t) return;
+  const p=S.profile||{}, k=t.toLowerCase();
+  const chips=p.symChips||[], hidden=(p.symHidden||[]).filter(x=>x.toLowerCase()!==k);
+  if(chips.some(x=>x.toLowerCase()===k) && hidden.length===(p.symHidden||[]).length) return;
+  const isDefault=QUICK.some(x=>x.toLowerCase()===k);
+  saveProfilePatch({symChips: isDefault||chips.some(x=>x.toLowerCase()===k)? chips : [...chips,t], symHidden:hidden});
+}
+function openSymEdit(){
+  const draw=()=>{
+    const list=symptomChips(40);
+    body.replaceChildren(
+      h("p",{class:"none"},"These buttons show in your daily check-in, the ones you use most first. Anything you log with \"Something else\" is added here."),
+      h("ul",{class:"list"}, ...list.map(t=>h("li",{}, h("div",{class:"bp-row"}, h("span",{},t),
+        h("button",{class:"btn ghost",type:"button",onclick:async()=>{ const p=S.profile||{}, k=t.toLowerCase();
+          await saveProfilePatch({symChips:(p.symChips||[]).filter(x=>x.toLowerCase()!==k), symHidden:[...(p.symHidden||[]).filter(x=>x.toLowerCase()!==k), t]}); draw(); }},"Remove"))))),
+      h("div",{class:"row"}, inp, h("button",{class:"btn",type:"button",onclick:add},"Add")),
+      h("button",{class:"btn primary",type:"button",onclick:closeSheet},"Done"));
+  };
+  const inp=h("input",{type:"text",placeholder:"e.g. Night sweats",style:"flex:1;min-width:0","aria-label":"New symptom button"});
+  const add=async()=>{ const t=inp.value.trim(); if(!t) return; const p=S.profile||{}, k=t.toLowerCase();
+    await saveProfilePatch({symChips:[...(p.symChips||[]).filter(x=>x.toLowerCase()!==k), t], symHidden:(p.symHidden||[]).filter(x=>x.toLowerCase()!==k)}); inp.value=""; draw(); };
+  inp.addEventListener("keydown",e=>{ if(e.key==="Enter") add(); });
+  const body=h("div",{style:"display:flex;flex-direction:column;gap:12px"});
+  openSheet("Your symptom buttons",[body]); draw();
+}
+function segButtons(el, labels, cur, onPick, cls){
+  el.replaceChildren(...labels.map((l,i)=>{ const v=i+1; return h("button",{type:"button",class:"pf"+(cls?" "+cls:""),"aria-pressed":String(cur===v),disabled:!S.canWrite||null,onclick:()=>onPick(cur===v?null:v)}, h("span",{},l)); }));
+}
+function shortMed(t){ return String(t||"").split(/\s+\d|\s*\(|\s+tablets|\s+capsules|\s+injection|\s+chewable|\s+modified/i)[0].trim(); }
+function renderCheckinMore(iso, day){
+  const ro=!S.canWrite||null;
+  segButtons($("#ciEnergy"), ENERGY, day.energy, v=>saveDay(iso,{energy:v}), "en");
+  segButtons($("#ciSleepQ"), SLEEPQ, day.sleepQ, v=>saveDay(iso,{sleepQ:v}));
+  $("#ciSleepH").replaceChildren(...SLEEPH.map(([l,v])=>h("button",{type:"button",class:"pf","aria-pressed":String(day.sleepH===v),disabled:ro,onclick:()=>saveDay(iso,{sleepH:day.sleepH===v?null:v})}, h("span",{},l))));
+  segButtons($("#ciEat"), EAT, day.eat, v=>saveDay(iso,{eat:v}));
+  segButtons($("#ciStress"), STRESS, day.stress, v=>saveDay(iso,{stress:v}));
+  const meds=ofKind("medication").filter(m=>m.status==="current").map(m=>shortMed(m.title)).filter((v,i,a)=>v&&a.indexOf(v)===i);
+  const taken=new Set(Array.isArray(day.medsTaken)?day.medsTaken:[]);
+  $("#ciMedsB").hidden=!meds.length;
+  $("#ciMeds").replaceChildren(...meds.map(m=>h("button",{class:"ci-chip"+(taken.has(m)?" on":""),type:"button","aria-pressed":String(taken.has(m)),disabled:ro,onclick:()=>{ const t=new Set(taken); t.has(m)?t.delete(m):t.add(m); saveDay(iso,{medsTaken:t.size?[...t]:null}); }}, (taken.has(m)?"✓ ":"")+m)));
+  const bits=[]; if(day.sleepQ) bits.push("slept "+SLEEPQ[day.sleepQ-1].toLowerCase()); if(day.eat) bits.push("ate "+EAT[day.eat-1].toLowerCase()); if(taken.size) bits.push(taken.size+" medicine"+(taken.size>1?"s":"")); if(day.stress) bits.push(STRESS[day.stress-1].toLowerCase()+" stress");
+  $("#ciXSum").textContent= bits.length? bits.join(" · ") : "Sleep, eating, medicines, stress";
+  let open=false; try{ open=localStorage.getItem("hl-ci-more")==="1"; }catch{}
+  $("#ciX").hidden=!open; $("#ciXBtn").setAttribute("aria-expanded",String(open));
+}
 function greeting(){ const hr=new Date().getHours(); return hr<12?"Good morning":hr<18?"Good afternoon":"Good evening"; }
 function renderCheckin(){
   const p=S.profile||{}, iso=todayISO(), day=(S.days||{})[iso]||{}, ro=!S.canWrite||null;
@@ -1344,9 +1463,7 @@ function renderCheckin(){
   $("#ciFaces").replaceChildren(...FEEL.map((l,i)=>h("button",{type:"button",class:"face","data-v":String(i+1),"aria-pressed":String(day.feel===i+1),disabled:ro,
     onclick:()=>{ const v=day.feel===i+1?null:i+1; saveDay(iso,{feel:v}); if(v) toast("Saved: "+l.toLowerCase()+" today"); }},
     h("span",{class:"emo","aria-hidden":"true"},FACE[i]), h("span",{class:"fl"},l))));
-  const freq={}; for(const e of ofKind("symptom")){ const k=(e.title||"").trim(); if(k) freq[k]=(freq[k]||0)+1; }
-  const seen=new Set(), chips=[];
-  for(const t of [...Object.entries(freq).sort((a,b)=>b[1]-a[1]).map(x=>x[0]).slice(0,5),...QUICK]){ const k=t.toLowerCase(); if(seen.has(k)) continue; seen.add(k); chips.push(t); if(chips.length>=6) break; }
+  const chips=symptomChips(8);
   $("#ciChips").replaceChildren(...chips.map(t=>h("button",{class:"ci-chip",type:"button",disabled:ro,onclick:()=>quickSymptom(t,iso)},t)),
     h("button",{class:"ci-chip other",type:"button",disabled:ro,onclick:()=>openEntry(null,"symptom",{date:iso})},"+ Something else"));
   const todays=ofKind("symptom").filter(e=>e.date===iso);
@@ -1359,6 +1476,7 @@ function renderCheckin(){
   $("#ciWeek").replaceChildren(...cells);
   const pon=periodOn(); $("#ciPeriod").hidden=!pon;
   if(pon){ flowButtons($("#ciFlow"), iso, "pf"); $("#ciPstat").textContent=cycleText(); }
+  renderCheckinMore(iso, day);
 }
 function quickSymptom(title, iso){
   iso=iso||todayISO();
@@ -1604,7 +1722,7 @@ function openEntry(entry, presetKind, preset){
     saveBtn.disabled=true;
     const ok=await saveEntry(rec, entry&&entry.id);
     saveBtn.disabled=false;
-    if(ok){ closeSheet(); toast(isNew?"Added":"Saved"); }
+    if(ok){ closeSheet(); toast(isNew?"Added":"Saved"); if(k==="symptom"&&isNew) rememberSymptom(t); }
   });
   const actions=h("div",{class:"row",style:"justify-content:space-between"});
   if(!isNew){
@@ -2061,10 +2179,7 @@ function renderDay(){
       h("span",{class:"t"},e.title),
       e.severity? h("span",{class:"sev"+(e.severity>=7?" hi":"")},e.severity+"/10") : h("span"),
       e.details? h("span",{class:"s"},e.details.length>90?e.details.slice(0,90)+"…":e.details):null))), "None logged for this day.");
-  const freq={}; for(const e of ofKind("symptom")){ const k=e.title.trim(); freq[k]=(freq[k]||0)+1; }
-  const mine=Object.entries(freq).sort((a,b)=>b[1]-a[1]).map(x=>x[0]).slice(0,6);
-  const seen=new Set(), chips=[];
-  for(const t of [...mine,...QUICK]){ const k=t.toLowerCase(); if(seen.has(k)) continue; seen.add(k); chips.push(t); if(chips.length>=10) break; }
+  const chips=symptomChips(12);
   $("#symQuick").replaceChildren(...chips.map(t=>h("button",{class:"fchip",type:"button",disabled:!S.canWrite||null,onclick:()=>quickSymptom(t,iso)},t)),
     h("button",{class:"fchip",type:"button",disabled:!S.canWrite||null,onclick:()=>openEntry(null,"symptom",{date:iso})},"Something else…"));
   const bp=Array.isArray(day.bp)?day.bp:[];
@@ -2091,6 +2206,8 @@ $("#logToday").addEventListener("click",()=>openDay(todayISO()));
 $("#ciMore").addEventListener("click",()=>openDay(todayISO()));
 $("#tlOpen").addEventListener("click",()=>{ show("timeline"); renderTimeline(); });
 $("#tlBack").addEventListener("click",()=>show("overview"));
+$("#ciSymEdit").addEventListener("click",openSymEdit);
+$("#ciXBtn").addEventListener("click",()=>{ const open=$("#ciX").hidden; $("#ciX").hidden=!open; $("#ciXBtn").setAttribute("aria-expanded",String(open)); try{ localStorage.setItem("hl-ci-more",open?"1":"0"); }catch{} });
 $("#cycDiary").addEventListener("click",()=>openDay(todayISO()));
 $("#symAll").addEventListener("click",()=>{ S.filter="symptom"; renderRecords(); show("records"); });
 $("#trendMore").addEventListener("click",()=>{ S.trendsAll=!S.trendsAll; renderTrends(); });
@@ -2125,7 +2242,7 @@ function testGroups(){
   return g;
 }
 function tlLanes(){
-  const L=[{id:"mood",name:"Mood",type:"strip"},{id:"energy",name:"Energy",type:"strip"}];
+  const L=[{id:"mood",name:"Mood",type:"strip"},{id:"energy",name:"Energy",type:"strip"},{id:"sleep",name:"Sleep",type:"strip"},{id:"eat",name:"Eating",type:"strip"},{id:"stress",name:"Stress",type:"strip"}];
   if(periodOn()) L.push({id:"period",name:"Period",type:"period"});
   L.push({id:"sym",name:"Symptoms",type:"sym"},{id:"weight",name:"Weight",type:"line",unit:"kg"},{id:"bp",name:"Blood pressure",type:"bp",unit:"mmHg"});
   const g=testGroups();
@@ -2163,6 +2280,10 @@ function tlDayData(iso){
   const d=(S.days||{})[iso]||{}, out=[];
   if(d.feel) out.push(["Mood", FACE[d.feel-1]+" "+FEEL[d.feel-1]]);
   if(d.energy) out.push(["Energy", ENERGY[d.energy-1]]);
+  if(d.sleepQ||d.sleepH) out.push(["Sleep", [d.sleepQ?SLEEPQ[d.sleepQ-1]:"", d.sleepH?(SLEEPH.find(x=>x[1]===d.sleepH)||[""])[0]:""].filter(Boolean).join(", ")]);
+  if(d.eat) out.push(["Eating", EAT[d.eat-1]]);
+  if(Array.isArray(d.medsTaken)&&d.medsTaken.length) out.push(["Medicines taken", d.medsTaken.join(", ")]);
+  if(d.stress) out.push(["Stress", STRESS[d.stress-1]]);
   if(d.period&&periodOn()) out.push(["Period", d.period[0].toUpperCase()+d.period.slice(1)]);
   if(typeof d.weight==="number") out.push(["Weight", d.weight+" kg"]);
   for(const r of (Array.isArray(d.bp)?d.bp:[])) out.push(["Blood pressure", r.sys+"/"+r.dia+(r.time?" at "+r.time:"")]);
@@ -2202,11 +2323,13 @@ function drawTimeline(lanes, from, to){
   for(const L of lanes){
     const top=y;
     if(L.type==="strip"){
-      const key=L.id==="mood"?"feel":"energy", pts=Object.values(days).filter(d=>d[key]&&inR(d.date)).sort((a,b)=>a.date.localeCompare(b.date));
+      const key={mood:"feel",energy:"energy",sleep:"sleepQ",eat:"eat",stress:"stress"}[L.id], max={sleepQ:3,eat:4,stress:3}[key]||5;
+      const pts=Object.values(days).filter(d=>d[key]&&inR(d.date)).sort((a,b)=>a.date.localeCompare(b.date));
       const avg=pts.length? (pts.reduce((a,d)=>a+d[key],0)/pts.length) : null;
-      label(L.name, avg!=null? "average "+avg.toFixed(1)+" / 5" : "");
+      const toMood=v=> key==="stress"? [5,3,1][v-1] : max===5? v : Math.max(1,Math.min(5,Math.round(1+(v-1)*4/(max-1))));
+      label(L.name, avg!=null? "average "+avg.toFixed(1)+" / "+max+(key==="stress"?" (higher = more stressed)":"") : "");
       svg.append(sv("rect",{x:PL,y,width:W-PL-PR,height:H.strip,rx:4,fill:"var(--bg)"}));
-      for(const d of pts) svg.append(sv("rect",{x:X(d.date)-bw/2,y,width:bw,height:H.strip,rx:Math.min(2,bw/2),fill:"var(--mood"+d[key]+")"}));
+      for(const d of pts) svg.append(sv("rect",{x:X(d.date)-bw/2,y,width:bw,height:H.strip,rx:Math.min(2,bw/2),fill:"var(--mood"+toMood(d[key])+")"}));
       if(!pts.length) tlEmpty(svg,W,y,H.strip,"Nothing logged yet. Use the daily check-in.");
       summary.push(L.name+": "+(pts.length? pts.map(d=>d.date.slice(5)+"="+d[key]).join(", ") : "none logged"));
       y+=H.strip;
