@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-03.10">
+<meta name="app-version" content="2026-11-03.11">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -494,6 +494,9 @@ img.gi{padding:0;object-fit:cover}
 .tl-val{font-size:11px;fill:var(--ink);font-family:var(--f-mono)}
 .tl-val.flag{fill:var(--alert)}
 .tl-pt{font-size:10px;fill:var(--ink);font-family:var(--f-mono)}
+.tl-pt.fl{fill:var(--alert);font-weight:500}
+.tl-cnt{font-size:10px;font-weight:700;fill:#FFFFFF}
+.tl-near{font-size:.78rem;font-weight:700;color:var(--muted);margin-top:4px}
 .tl-ev{font-size:10.5px;fill:var(--muted)}
 .tl-ax{font-size:10.5px;fill:var(--muted);font-family:var(--f-mono)}
 .tl-empty{font-size:11px;fill:var(--muted);font-style:italic}
@@ -624,7 +627,7 @@ img.gi{padding:0;object-fit:cover}
       <textarea id="tlIn" rows="2" placeholder="Ask a follow-up about this chart…" aria-label="Your question about the chart"></textarea>
       <div class="row" style="justify-content:flex-end"><button class="btn ai" id="tlSend" type="button">Send</button></div>
     </div>
-    <p class="fineprint">Tap or drag across the chart to see everything from one day. Dashed lines mark appointments, medicines and operations.</p>
+    <p class="fineprint">Tap or drag across the chart to see everything from one day; it snaps to the nearest day with something logged. The events rows show appointments, medicines and tests, and a number means several close together.</p>
   </section>
 
   <!-- DIARY -->
@@ -2225,48 +2228,73 @@ function drawTimeline(lanes, from, to){
       if(L.type==="bp") for(const v of [90,140,60]){ if(v>lo&&v<hi) svg.append(sv("line",{x1:PL,x2:W-PR,y1:Y(v),y2:Y(v),stroke:"var(--line)","stroke-dasharray":"3 3"})); }
       series.forEach((ser,si)=>{
         const col= L.type==="bp"? (si?"var(--ai)":"var(--accent)") : L.id==="weight"? "var(--ai)" : "var(--accent)";
-        if(ser.length>1) svg.append(sv("polyline",{points:ser.map(p=>X(p.date).toFixed(1)+","+Y(p.value).toFixed(1)).join(" "),fill:"none",stroke:col,"stroke-width":"2","stroke-linejoin":"round","stroke-linecap":"round"}));
+        if(ser.length>1) svg.append(sv("polyline",{points:ser.map(p=>X(p.date).toFixed(1)+","+Y(p.value).toFixed(1)).join(" "),fill:"none",stroke:col,"stroke-width":"2.5","stroke-linejoin":"round","stroke-linecap":"round"}));
         const dense=ser.length>30;
-        ser.forEach((p,i)=>{ const fl=L.type!=="bp"&&flag(p); if(dense&&!fl&&i!==ser.length-1) return; svg.append(sv("circle",{cx:X(p.date),cy:Y(p.value),r:i===ser.length-1?4:dense?2.4:3,fill:fl?"var(--alert)":col,stroke:"var(--surface)","stroke-width":"1.5"})); });
+        ser.forEach((p,i)=>{ const fl=L.type!=="bp"&&flag(p); if(dense&&!fl&&i!==ser.length-1) return; svg.append(sv("circle",{cx:X(p.date),cy:Y(p.value),r:i===ser.length-1?5.5:dense?2.6:4,fill:fl?"var(--alert)":col,stroke:"var(--surface)","stroke-width":"2"})); });
       });
-      if(L.type!=="bp"&&series[0].length<=8&&W>=320) for(const p of series[0]){ const lw=String(p.value).length*3.3+3; const t=sv("text",{x:Math.min(W-PR-lw, Math.max(PL+lw, X(p.date))),y:Math.max(y+9,Y(p.value)-7),class:"tl-pt","text-anchor":"middle"}); t.textContent=String(p.value); svg.append(t); }
+      if(L.type!=="bp"){ const ser=series[0], boxes=[];
+        const imax=ser.reduce((m,p,i)=>p.value>ser[m].value?i:m,0), imin=ser.reduce((m,p,i)=>p.value<ser[m].value?i:m,0);
+        ser.forEach((p,i)=>{ const fl=flag(p); if(!(i===0||i===ser.length-1||fl||(ser.length>2&&(i===imax||i===imin)))) return;
+          const txt=String(p.value), bw2=txt.length*6.2+10, cx=Math.min(W-PR-bw2/2, Math.max(PL+bw2/2, X(p.date)));
+          let ty=Y(p.value)-15; if(ty<y+1) ty=Y(p.value)+7;
+          const box=[cx-bw2/2, ty, cx+bw2/2, ty+14]; if(boxes.some(b=>!(box[2]<b[0]-2||box[0]>b[2]+2||box[3]<b[1]||box[1]>b[3]))) return; boxes.push(box);
+          svg.append(sv("rect",{x:box[0],y:ty,width:bw2,height:14,rx:7,fill:fl?"var(--alert-soft)":"var(--surface)",stroke:fl?"var(--alert)":"var(--line)","stroke-width":".8"}));
+          const t=sv("text",{x:cx,y:ty+10.5,class:"tl-pt"+(fl?" fl":""),"text-anchor":"middle"}); t.textContent=txt; svg.append(t); }); }
       summary.push(L.name+(L.unit?" ("+L.unit+")":"")+": "+(L.type==="bp"? series[0].map((p,i)=>p.date.slice(5)+" "+p.value+"/"+series[1][i].value).join(", ") : series[0].map(p=>p.date+" "+p.value+(flag(p)?" "+flag(p):"")).join(", ")));
       y+=h0;
     }
     rows.push([top,y]); y+=10;
   }
-  // events
-  const ev=tlEvents(from,to), evTop=y;
-  const chartBottom=y-10;
-  const occ=[[],[],[]]; const free=(r,a,b)=>occ[r].every(([c,d])=>b<c-4||a>d+4);
-  for(const e of ev){ e.x=X(e.date); e.txt=e.label.length>18? e.label.slice(0,17)+"…" : e.label; const tw=e.txt.length*5.7+10;
-    const opts=[[e.x-4, e.x+tw, "r"], [e.x-tw, e.x+4, "l"]].filter(([a,b])=>a>=PL-2&&b<=W-PR+2);
-    e.row=-1; outer: for(let r=0;r<3;r++) for(const [a,b,side] of opts){ if(free(r,a,b)){ occ[r].push([a,b]); e.row=r; e.side=side; break outer; } }
-    if(e.row<0){ for(let r=0;r<3;r++) if(free(r,e.x-5,e.x+5)){ occ[r].push([e.x-5,e.x+5]); e.row=r; e.side=null; break; } if(e.row<0) e.row=2; } }
-  for(const e of ev){
-    svg.insertBefore(sv("line",{x1:e.x,x2:e.x,y1:0,y2:chartBottom,stroke:"var(--muted)","stroke-dasharray":"2 3","stroke-opacity":".55"}), svg.firstChild);
-    const ry=evTop+4+(Math.max(0,e.row))*16, col=e.type==="appt"?"var(--ai)":e.type==="cond"?"var(--due)":"var(--accent)";
-    svg.append(sv("rect",{x:e.x-3.5,y:ry,width:7,height:7,fill:col,transform:"rotate(45 "+e.x+" "+(ry+3.5)+")"}));
-    if(e.side){ const t=sv("text",{x: e.side==="r"? e.x+7 : e.x-7, y:ry+8, class:"tl-ev","text-anchor": e.side==="r"?"start":"end"}); t.textContent=e.txt; svg.append(t); }
+  // events strip: three slim rows, close markers grouped into a count
+  const ev=tlEvents(from,to), chartBottom=y-10;
+  const testDates=[...new Set(ofKind("result").filter(e=>e.date&&inR(e.date)).map(e=>e.date))];
+  const resByDate={}; for(const e of ofKind("result")) if(e.date&&inR(e.date)) (resByDate[e.date]=resByDate[e.date]||[]).push(e.title);
+  const strip=[["Appointments","appt",ev.filter(e=>e.type==="appt"||e.type==="cond")],["Medicines","med",ev.filter(e=>e.type==="med")],["Tests","test",testDates.map(d=>({date:d,label:resByDate[d].length>2? resByDate[d].length+" results" : resByDate[d].join(", "),type:"test"}))]].filter(r=>r[2].length);
+  const clusters=[];
+  if(strip.length){
+    const lab=sv("text",{x:PL,y:y+11,class:"tl-lab"}); lab.textContent="Events"; svg.append(lab);
+    const colOf={appt:"var(--ai)",med:"var(--accent)",test:"var(--due)"};
+    let lx=W-PR; for(const [name,kind] of strip.slice().reverse()){ const short=W<420&&name==="Appointments"?"Appts":name; const t=sv("text",{x:lx,y:y+11,class:"tl-ev","text-anchor":"end"}); t.textContent=short; svg.append(t); lx-=short.length*5.6+4; svg.append(sv("circle",{cx:lx-3,cy:y+7.5,r:4,fill:colOf[kind]})); lx-=16; }
+    y+=18;
+    for(const [name,kind,items] of strip){
+      const cy=y+8;
+      svg.append(sv("rect",{x:PL,y,width:W-PL-PR,height:16,rx:8,fill:"var(--bg)"}));
+      const pts=items.map(e=>({...e,x:X(e.date)})).sort((a,b)=>a.x-b.x), cl=[];
+      for(const e of pts){ const c=cl[cl.length-1]; if(c&&e.x-(c.x0+c.x1)/2<24){ c.items.push(e); c.x1=e.x; } else cl.push({x0:e.x,x1:e.x,items:[e],kind}); }
+      for(const c of cl){ const x=Math.min(W-PR-12, Math.max(PL+12, (c.x0+c.x1)/2)); c.x=x; clusters.push(c);
+        if(c.items.length>1){ svg.append(sv("rect",{x:x-11,y:cy-7,width:22,height:14,rx:7,fill:colOf[kind]})); const t=sv("text",{x,y:cy+3.5,class:"tl-cnt","text-anchor":"middle"}); t.textContent=String(c.items.length); svg.append(t); }
+        else svg.append(sv("circle",{cx:x,cy,r:5,fill:colOf[kind],stroke:"var(--surface)","stroke-width":"1.5"})); }
+      y+=20;
+    }
+    y+=2;
   }
-  if(ev.length) y=evTop+4+Math.min(3,Math.max(1,...ev.map(e=>e.row+1)))*16;
   // axis
   const axY=y+6; const ticks=tlTicks(from,to,n);
-  for(const [iso,lab] of ticks){ const x=X(iso); const t=sv("text",{x,y:axY+10,class:"tl-ax","text-anchor":"middle"}); t.textContent=lab; svg.append(t); svg.append(sv("line",{x1:x,x2:x,y1:axY-5,y2:axY-1,stroke:"var(--line)"})); }
+  for(const [iso,lab] of ticks){ const x=X(iso), hw=lab.length*3.4; const t=sv("text",{x:Math.min(W-PR-hw, Math.max(PL+hw, x)),y:axY+10,class:"tl-ax","text-anchor":"middle"}); t.textContent=lab; svg.append(t); svg.append(sv("line",{x1:x,x2:x,y1:axY-5,y2:axY-1,stroke:"var(--line)"})); }
   y=axY+16;
   // crosshair + hit area
-  const cross=sv("line",{x1:0,x2:0,y1:0,y2:chartBottom,stroke:"var(--ink)","stroke-width":"1.5"}); svg.append(cross);
+  const crossBottom=axY-6;
+  const cross=sv("line",{x1:0,x2:0,y1:0,y2:crossBottom,stroke:"var(--ink)","stroke-width":"1.5","stroke-opacity":".85"}); svg.append(cross);
+  const hot=new Set(); for(const d of Object.keys(days)) if(inR(d)&&tlDayData(d).length) hot.add(d);
+  for(const d of testDates) hot.add(d); for(const e of ev) hot.add(e.date); for(const e of ofKind("symptom")) if(e.date&&inR(e.date)) hot.add(e.date);
+  const hotX=[...hot].map(d=>[d,X(d)]);
   const hit=sv("rect",{x:0,y:0,width:W,height:y,fill:"transparent",style:"cursor:crosshair;touch-action:pan-y"}); svg.append(hit);
-  const setDay=iso=>{ TL.day=iso; const x=X(iso); cross.setAttribute("x1",x); cross.setAttribute("x2",x); tlRenderDetail(iso); };
-  const fromX=cx=>{ const r=svg.getBoundingClientRect(); const px=(cx-r.left)*W/r.width; let i=Math.floor((px-PL)/((W-PL-PR)/n)); i=Math.max(0,Math.min(n-1,i)); return addDays(from,i); };
+  const setDay=iso=>{ TL.day=iso; const x=X(iso); cross.setAttribute("x1",x); cross.setAttribute("x2",x);
+    const near=clusters.filter(c=>c.items.length>1&&x>=c.x0-8&&x<=c.x1+8).flatMap(c=>c.items).filter(e=>e.date!==iso);
+    tlRenderDetail(iso, near); };
+  const fromX=cx=>{ const r=svg.getBoundingClientRect(); const px=(cx-r.left)*W/r.width;
+    let best=null, bd=1e9; for(const [d,x] of hotX){ const dd=Math.abs(x-px); if(dd<bd){ bd=dd; best=d; } }
+    if(best&&bd<=12*W/r.width) return best;
+    let i=Math.floor((px-PL)/((W-PL-PR)/n)); i=Math.max(0,Math.min(n-1,i)); return addDays(from,i); };
   let drag=false;
-  hit.addEventListener("pointerdown",e=>{ drag=true; setDay(fromX(e.clientX)); });
+  hit.addEventListener("pointerdown",e=>{ drag=true; TL.dayAuto=false; setDay(fromX(e.clientX)); });
   hit.addEventListener("pointermove",e=>{ if(drag||e.pointerType==="mouse") setDay(fromX(e.clientX)); });
   window.addEventListener("pointerup",()=>{ drag=false; });
   svg.setAttribute("viewBox","0 0 "+W+" "+y);
   svg.setAttribute("aria-label","Timeline from "+fmtDate(from)+" to "+fmtDate(to)+" showing "+lanes.map(l=>l.name).join(", "));
   host.replaceChildren(svg);
   TL.summary="Timeline "+fmtDate(from)+" to "+fmtDate(to)+".\n"+summary.join("\n")+(ev.length?"\nEvents: "+ev.map(e=>e.date+" "+e.label+" ("+e.type+")").join("; "):"");
+  if(TL.dayAuto!==false && !hot.has(TL.day)){ const last=[...hot].sort().pop(); if(last) TL.day=last; }
   setDay(TL.day);
 }
 function tlEmpty(svg,W,y,h0,txt){ const t=sv("text",{x:W/2,y:y+h0/2+4,class:"tl-empty","text-anchor":"middle"}); t.textContent=txt; svg.append(t); }
@@ -2277,11 +2305,14 @@ function tlTicks(from,to,n){
   let y=fy, m=fm; for(;;){ m++; if(m>12){m=1;y++;} const iso=y+"-"+String(m).padStart(2,"0")+"-01"; if(iso>to) break; if(((m-1)%step)===0) out.push([iso, step>=12? String(y) : MON[m-1]+(m===1||step>1?" "+String(y).slice(2):"")]); }
   return out;
 }
-function tlRenderDetail(iso){
-  const rows=tlDayData(iso);
+function tlRenderDetail(iso, near){
+  const rows=tlDayData(iso); near=near||[];
+  const nm={appt:"Appointment",cond:"Condition",med:"Medicine",test:"Tests"};
   $("#tlDetail").replaceChildren(
     h("div",{class:"tl-dh"}, h("strong",{}, longDate(iso)+(iso===todayISO()?" (today)":"")), h("button",{class:"btn ghost small",type:"button",onclick:()=>openDay(iso)},"Open day ›")),
-    rows.length? h("ul",{class:"tl-dl"}, ...rows.map(([k,v])=>h("li",{}, h("span",{class:"k"},k), h("span",{},v)))) : h("p",{class:"none"},"Nothing logged on this day."));
+    rows.length? h("ul",{class:"tl-dl"}, ...rows.map(([k,v])=>h("li",{}, h("span",{class:"k"},k), h("span",{},v)))) : h("p",{class:"none"},"Nothing logged on this day."),
+    near.length? h("p",{class:"tl-near"},"Around this date") : null,
+    near.length? h("ul",{class:"tl-dl"}, ...near.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>h("li",{}, h("span",{class:"k"}, fmtDate(e.date).replace(/ 20(\d\d)$/," $1")), h("span",{}, nm[e.type]+": "+e.label)))) : null);
 }
 let tlResizeT; window.addEventListener("resize",()=>{ clearTimeout(tlResizeT); tlResizeT=setTimeout(()=>{ if(!$("#v-timeline").hidden) renderTimeline(); },200); });
 TL.chat=[];
