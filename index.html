@@ -10,6 +10,8 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
+<meta name="app-version" content="2026-11-03.6">
+<meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -1323,6 +1325,25 @@ function openProfile(){
         h("button",{class:"btn ghost",type:"button",onclick:()=>{ closeSheet(); sb.auth.signOut(); }},"Sign out")))]);
 }
 $("#editProfile").addEventListener("click",openProfile);
+
+/* ---------- keep the app up to date ---------- */
+const APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
+let verBusy=false;
+async function checkForUpdate(){
+  if(verBusy||location.protocol!=="https:") return; verBusy=true;
+  try{
+    const r=await fetch(location.pathname+"?_="+Date.now(),{cache:"no-store"});
+    const m=(await r.text()).match(/name="app-version" content="([^"]+)"/);
+    const latest=m&&m[1];
+    if(latest && latest!==APP_VERSION){
+      let tried=false; try{ tried=sessionStorage.getItem("hl-upd")===latest; sessionStorage.setItem("hl-upd",latest); }catch{}
+      if(!tried){ location.replace(location.pathname+"?v="+encodeURIComponent(latest)+location.hash); return; }
+      toast("An update is ready. Close the app and open it again.");
+    }
+  }catch{} finally{ verBusy=false; }
+}
+checkForUpdate();
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) checkForUpdate(); });
 
 /* ---------- install on the home screen ---------- */
 window.addEventListener("beforeinstallprompt", e=>{ e.preventDefault(); S.installEvt=e; });
