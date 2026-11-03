@@ -33,3 +33,7 @@ Claude API use is billed to the administrator's Anthropic account. Set a monthly
 ## Not medical advice
 
 The app helps people keep track and prepare for appointments. In an emergency call 999; for urgent help that isn't an emergency call NHS 111.
+
+## Updating
+
+When you change `index.html`, bump the `app-version` meta tag at the top. Open apps check it each time they come to the front and reload themselves when it changes.
