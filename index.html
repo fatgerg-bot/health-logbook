@@ -357,6 +357,20 @@ main{padding-top:10px}
 .scale button .emo{font-size:1.35rem;line-height:1.1}
 .scale.feel button{min-height:60px}
 
+/* period tracker */
+.pflow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.pf{min-height:44px;border-radius:12px;border:0;background:var(--glass);color:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:.8rem;font-weight:700;padding:4px 2px}
+.pf[aria-pressed="true"]{background:#FFFFFF;color:#A3305F}
+.pf[aria-pressed="true"]:first-child{color:#16302A}
+.drops{display:flex;gap:1px;height:12px}
+.drops svg{width:9px;height:12px}
+.ci-pstat{font-size:.82rem;opacity:.92;line-height:1.35}
+.scale.period button{display:flex;flex-direction:column;gap:1px}
+.scale.period button .drops{color:var(--period)}
+.cday.pp{border:1.5px dashed var(--period)}
+.cal-key .sw.pp{background:transparent;border:1.5px dashed var(--period)}
+#perStat:empty{display:none}
+
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
 .tab svg{width:54px;height:30px;padding:4px 16px;border-radius:99px;transition:background .15s ease}
@@ -392,9 +406,14 @@ main{padding-top:10px}
         <div class="ci-chips" id="ciChips"></div>
         <div class="ci-logged" id="ciLogged" hidden></div>
       </div>
+      <div class="ci-block" id="ciPeriod" hidden>
+        <p class="ci-lab">Period today?</p>
+        <div class="pflow" id="ciFlow" role="group" aria-label="Period flow today"></div>
+        <p class="ci-pstat" id="ciPstat"></p>
+      </div>
       <div class="ci-foot">
         <div class="week" id="ciWeek" aria-label="The last 7 days"></div>
-        <button class="ci-more" id="ciMore" type="button">+ Blood pressure, weight, period</button>
+        <button class="ci-more" id="ciMore" type="button">+ Blood pressure, weight, notes</button>
       </div>
     </article>
 
@@ -452,7 +471,8 @@ main{padding-top:10px}
         <span><span class="sw" style="background:var(--feel5)"></span>Great</span>
         <span><span class="dk"></span>Symptom</span>
         <span><span class="dk bp"></span>Blood pressure</span>
-        <span><span class="dk per"></span>Period</span>
+        <span class="perkey"><span class="dk per"></span>Period</span>
+        <span class="perkey"><span class="sw pp"></span>Expected period</span>
         <span><span class="dk due"></span>Due</span>
       </div>
     </article>
@@ -464,7 +484,7 @@ main{padding-top:10px}
       </div>
       <div class="field"><span class="flabel" id="feelLab">How do you feel overall?</span><div class="scale feel" id="feelScale" role="group" aria-labelledby="feelLab"></div></div>
       <div class="field"><span class="flabel" id="energyLab">Energy</span><div class="scale energy" id="energyScale" role="group" aria-labelledby="energyLab"></div></div>
-      <div class="field"><span class="flabel" id="perLab">Period</span><div class="scale four period" id="periodScale" role="group" aria-labelledby="perLab"></div></div>
+      <div class="field" id="perField"><span class="flabel" id="perLab">Period</span><span class="hint" id="perStat"></span><div class="scale four period" id="periodScale" role="group" aria-labelledby="perLab"></div></div>
       <div class="field">
         <label for="dayWeight">Weight (kg)</label>
         <div class="row"><input type="number" id="dayWeight" step="0.1" min="20" max="300" inputmode="decimal" placeholder="e.g. 68.4" style="max-width:9rem"><button class="btn" id="weightSave" type="button">Save weight</button><span class="hint" id="weightSt"></span></div>
@@ -737,6 +757,7 @@ function buildContext(){
   lines.push("Today's date: "+fmtDate(todayISO()));
   if(p.name) lines.push("Name: "+p.name);
   if(p.dob) lines.push("Date of birth: "+fmtDate(p.dob));
+  if(p.sex) lines.push("Sex: "+p.sex);
   if(p.gp) lines.push("GP surgery: "+p.gp);
   for(const k of ORDER){
     const es=ofKind(k).sort((a,b)=>(a.date||"").localeCompare(b.date||""));
@@ -769,6 +790,7 @@ function buildContext(){
       if(b.length>1) lines.push("- "+b.join(" | "));
     }
   }
+  if(periodOn()&&dd.some(d=>d.period)){ const c=cycleInfo(); lines.push("\nPERIOD CYCLE (from the diary): "+c.starts.length+" periods logged; "+(c.avg?"average cycle "+c.avg+" days over the last "+c.cycles+" cycles":"not enough cycles for an average")+"; last period started "+fmtDate(c.last)+(c.len?", lasting "+c.len+" days":"")+"."); }
   if(lines.length<2) lines.push("(The logbook is empty so far.)");
   const txt=lines.join("\n");
   return txt.length>80000? txt.slice(0,80000)+"\n(…logbook cut short)" : txt;
@@ -825,6 +847,41 @@ function itemRow(e, showTag){
 }
 function fill(ul, items, emptyText){ ul.replaceChildren(...(items.length? items : [h("li",{class:"none"},emptyText)])); }
 
+function periodOn(){ return (S.profile||{}).sex!=="male"; }
+function addDays(iso,n){ const [y,m,d]=iso.split("-").map(Number); const t=new Date(y,m-1,d+n); return isoOf(t.getFullYear(),t.getMonth(),t.getDate()); }
+const FLOW=[["none","None",0],["light","Light",1],["medium","Medium",2],["heavy","Heavy",3]];
+function cycleInfo(){
+  const days=S.days||{}, has=d=>!!(days[d]&&days[d].period), today=todayISO();
+  const starts=Object.keys(days).filter(has).sort().filter(d=>!has(addDays(d,-1))&&!has(addDays(d,-2)));
+  const gaps=[]; for(let i=1;i<starts.length;i++){ const g=daysBetween(starts[i-1],starts[i]); if(g>=15&&g<=60) gaps.push(g); }
+  const recent=gaps.slice(-6), avg=recent.length? Math.round(recent.reduce((a,b)=>a+b,0)/recent.length) : null;
+  const last=starts[starts.length-1]||null;
+  const dayN= last? daysBetween(last,today)+1 : 0;
+  const inPeriod= !!last && dayN<=10 && (has(today)||(has(addDays(today,-1))&&!(days[today]&&days[today].pnone)));
+  let len=null; if(last){ let d=last,n=0; while(has(d)||has(addDays(d,1))){ if(has(d)) n=daysBetween(last,d)+1; d=addDays(d,1); if(n>15) break; } len=n; }
+  const next= last? addDays(last, avg||28) : null;
+  return {starts,avg,last,next,inPeriod,dayN,len,cycles:recent.length};
+}
+function cycleText(){
+  const c=cycleInfo(), today=todayISO();
+  if(!c.last) return "Tap a flow on the first day of your period and the app will start predicting the next one.";
+  const dl=S.days||{};
+  if(c.inPeriod && dl[today] && dl[today].period) return "Day "+c.dayN+" of your period"+(c.avg?" · cycles average "+c.avg+" days":"")+".";
+  if(c.inPeriod) return "Yesterday was day "+(c.dayN-1)+". Still going? Tap today's flow, or None if it's finished.";
+  const g=daysBetween(today,c.next), when=new Date(...c.next.split("-").map((v,i)=>i===1?v-1:+v)).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"});
+  const basis= c.avg? "Your cycles average "+c.avg+" days." : "Guessing a 28-day cycle until two periods are logged.";
+  if(g>1) return "Next period expected around "+when+", in "+g+" days. "+basis;
+  if(g===1) return "Next period expected tomorrow. "+basis;
+  if(g===0) return "Next period expected today. "+basis;
+  if(g>=-20) return "Period is "+(-g)+" day"+(g===-1?"":"s")+" later than expected ("+when+"). "+basis;
+  return "Last period started "+fmtDate(c.last)+".";
+}
+function flowButtons(el, iso, cls){
+  const cur=((S.days||{})[iso]||{}).period||"none";
+  el.replaceChildren(...FLOW.map(([v,l,n])=>h("button",{type:"button",class:cls,"aria-pressed":String(cur===v),disabled:!S.canWrite||null,onclick:()=>{ saveDay(iso, v==="none"? {period:null,pnone:true} : {period:v,pnone:null}); }},
+    n? h("span",{class:"drops","aria-hidden":"true"}, ...Array.from({length:n},()=>dropIcon())) : null, h("span",{},l))));
+}
+function dropIcon(){ const s=sv("svg",{viewBox:"0 0 10 14"}); s.append(sv("path",{d:"M5 1C5 1 1 6.2 1 9a4 4 0 0 0 8 0C9 6.2 5 1 5 1z",fill:"currentColor"})); return s; }
 function greeting(){ const hr=new Date().getHours(); return hr<12?"Good morning":hr<18?"Good afternoon":"Good evening"; }
 function renderCheckin(){
   const p=S.profile||{}, iso=todayISO(), day=(S.days||{})[iso]||{}, ro=!S.canWrite||null;
@@ -845,6 +902,8 @@ function renderCheckin(){
     cells.push(h("button",{type:"button",class:"wd"+(o===0?" now":""),"aria-label":longDate(di)+(dd.feel?": "+FEEL[dd.feel-1]:": not logged"),onclick:()=>openDay(di)},
       h("span",{class:"wf"+(dd.feel?"":" blank"),"aria-hidden":"true"}, dd.feel?FACE[dd.feel-1]:""), h("span",{class:"wl","aria-hidden":"true"}, d.toLocaleDateString("en-GB",{weekday:"narrow"})))); }
   $("#ciWeek").replaceChildren(...cells);
+  const pon=periodOn(); $("#ciPeriod").hidden=!pon;
+  if(pon){ flowButtons($("#ciFlow"), iso, "pf"); $("#ciPstat").textContent=cycleText(); }
 }
 function quickSymptom(title, iso){
   iso=iso||todayISO();
@@ -1113,10 +1172,11 @@ function openProfile(){
   const nm=h("input",{type:"text",id:"p-name",value:p.name||"",autocomplete:"given-name"});
   const dob=h("input",{type:"date",id:"p-dob",value:p.dob||""});
   const gp=h("input",{type:"text",id:"p-gp",value:p.gp||"",placeholder:"e.g. Dymchurch Surgery"});
+  const sex=h("select",{id:"p-sex"},h("option",{value:""},"Not set"),h("option",{value:"female"},"Female"),h("option",{value:"male"},"Male")); sex.value=p.sex||"";
   const save=h("button",{class:"btn primary",type:"button"},"Save");
   save.addEventListener("click", async ()=>{
     save.disabled=true;
-    const ok=await write(()=>S.col.doc("profile").set(cleanBody({...S.profile,name:nm.value.trim(),dob:dob.value,gp:gp.value.trim(),updatedAt:Date.now()})));
+    const ok=await write(()=>S.col.doc("profile").set(cleanBody({...S.profile,name:nm.value.trim(),dob:dob.value,sex:sex.value,gp:gp.value.trim(),updatedAt:Date.now()})));
     save.disabled=false; if(ok){ closeSheet(); toast("Saved"); }
   });
   const pinBox=h("div",{class:"field"}, h("span",{class:"flabel"},"PIN lock"),
@@ -1125,7 +1185,7 @@ function openProfile(){
         h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); pinVerify(()=>showLock("set",savePin)); }},"Change PIN"),
         h("button",{class:"btn danger",type:"button",onclick:()=>{ closeSheet(); pinVerify(()=>savePin(null)); }},"Remove PIN"))
       : h("div",{}, h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>{ closeSheet(); showLock("set",savePin); }},"Set a PIN")));
-  openSheet("About you",[field("p-name","First name",nm), field("p-dob","Date of birth",dob), field("p-gp","GP surgery",gp), h("div",{class:"row",style:"justify-content:flex-end"},save), h("hr",{class:"sep"}), pinBox, h("hr",{class:"sep"}),
+  openSheet("About you",[field("p-name","First name",nm), field("p-dob","Date of birth",dob), field("p-sex","Sex",sex,"Female or not set shows the period tracker. Male hides it."), field("p-gp","GP surgery",gp), h("div",{class:"row",style:"justify-content:flex-end"},save), h("hr",{class:"sep"}), pinBox, h("hr",{class:"sep"}),
     h("div",{class:"field"}, h("span",{class:"flabel"},"Account"), h("span",{class:"hint"},"Signed in as "+(S.email||"")),
       h("div",{class:"row"},
         h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); openPassword(); }},"Change password"),
@@ -1461,12 +1521,13 @@ function renderDiary(){
   const offset=(new Date(y,m,1).getDay()+6)%7, dim=new Date(y,m+1,0).getDate();
   const symCount={}; for(const e of ofKind("symptom")) if(e.date) symCount[e.date]=(symCount[e.date]||0)+1;
   const dueOn={}; for(const e of ofKind("due")) if(e.date&&e.status!=="done") dueOn[e.date]=(dueOn[e.date]||[]).concat(e.title);
+  const pred=new Set(); if(periodOn()){ const c=cycleInfo(); if(c.next&&!c.inPeriod){ for(let i=0;i<Math.max(3,Math.min(c.len||5,8));i++){ const d=addDays(c.next,i); if(d>=today) pred.add(d); } } }
   const cells=[]; for(let i=0;i<offset;i++) cells.push(h("span",{class:"cal-blank","aria-hidden":"true"}));
   for(let d=1; d<=dim; d++){
     const iso=isoOf(y,m,d), day=S.days[iso]||{}, n=symCount[iso]||0, hasBP=Array.isArray(day.bp)&&day.bp.length;
     const dots=h("span",{class:"dots","aria-hidden":"true"}); for(let i=0;i<Math.min(n,3);i++) dots.append(h("i")); if(hasBP) dots.append(h("i",{class:"bp"})); if(day.period) dots.append(h("i",{class:"per"})); if(dueOn[iso]) dots.append(h("i",{class:"due"}));
-    const label=longDate(iso)+(day.feel?", felt "+FEEL[day.feel-1].toLowerCase():"")+(n?", "+n+" symptom"+(n>1?"s":""):"")+(hasBP?", blood pressure logged":"")+(day.period?", period "+day.period:"")+(dueOn[iso]?", due: "+dueOn[iso].join(", "):"");
-    cells.push(h("button",{type:"button",class:"cday"+(day.feel?" f"+day.feel:"")+(iso===today?" today":"")+(iso>today?" future":""),"aria-pressed":String(iso===S.selDay),"aria-label":label,onclick:()=>{ S.selDay=iso; renderDiary(); }}, h("span",{},String(d)), dots));
+    const label=longDate(iso)+(day.feel?", felt "+FEEL[day.feel-1].toLowerCase():"")+(n?", "+n+" symptom"+(n>1?"s":""):"")+(hasBP?", blood pressure logged":"")+(day.period?", period "+day.period:"")+(pred.has(iso)&&!day.period?", period expected":"")+(dueOn[iso]?", due: "+dueOn[iso].join(", "):"");
+    cells.push(h("button",{type:"button",class:"cday"+(pred.has(iso)&&!day.period?" pp":"")+(day.feel?" f"+day.feel:"")+(iso===today?" today":"")+(iso>today?" future":""),"aria-pressed":String(iso===S.selDay),"aria-label":label,onclick:()=>{ S.selDay=iso; renderDiary(); }}, h("span",{},String(d)), dots));
   }
   $("#calGrid").replaceChildren(...cells);
   renderDay();
@@ -1480,8 +1541,8 @@ function renderDay(){
   $("#dayToday").hidden = iso===todayISO();
   scaleButtons($("#feelScale"), FEEL, day.feel, v=>saveDay(iso,{feel:v}), FACE);
   scaleButtons($("#energyScale"), ENERGY, day.energy, v=>saveDay(iso,{energy:v}));
-  const PER=[["none","None"],["light","Light"],["medium","Medium"],["heavy","Heavy"]];
-  $("#periodScale").replaceChildren(...PER.map(([v,l])=>h("button",{type:"button","aria-pressed":String((day.period||"none")===v),disabled:!S.canWrite||null,onclick:()=>saveDay(iso,{period:v==="none"?null:v})},l)));
+  const pon=periodOn(); $("#perField").hidden=!pon; document.querySelectorAll(".perkey").forEach(k=>k.hidden=!pon);
+  if(pon){ flowButtons($("#periodScale"), iso, ""); $("#perStat").textContent= iso===todayISO()? cycleText() : ""; }
   const w=$("#dayWeight");
   if(S.notesFor!==iso || document.activeElement!==w){ if(S.notesFor!==iso || !w.dataset.dirty){ w.value=typeof day.weight==="number"?String(day.weight):""; w.dataset.dirty=""; $("#weightSt").textContent=""; } }
   const syms=ofKind("symptom").filter(e=>e.date===iso);
