@@ -371,6 +371,41 @@ main{padding-top:10px}
 .cal-key .sw.pp{background:transparent;border:1.5px dashed var(--period)}
 #perStat:empty{display:none}
 
+/* cycle ring */
+:root{--fert:#2E9C93;--fert-dark:#1C7A72;--ring-base:#E6D6DD;--ring-future:#F1E9ED}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--fert:#4CC3B8;--fert-dark:#7FE0D6;--ring-base:#3A2A31;--ring-future:#2A2226}}
+:root[data-theme="dark"]{--fert:#4CC3B8;--fert-dark:#7FE0D6;--ring-base:#3A2A31;--ring-future:#2A2226}
+.cyc-wrap{display:flex;justify-content:center}
+.ring{position:relative;width:min(280px,82vw);aspect-ratio:1}
+.ring svg{width:100%;height:100%;display:block;overflow:visible}
+.rseg{cursor:pointer}
+.rt{font-family:var(--f-mono);font-size:12px;font-weight:500;fill:var(--ink)}
+.ring-mid{position:absolute;inset:22%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px;pointer-events:none}
+.rm-k{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.rm-big{font-family:var(--f-display);font-size:2.4rem;line-height:1.05}
+.rm-big.sm{font-size:1.3rem}
+.rm-sub{font-size:.82rem;color:var(--muted)}
+.rm-stat{margin-top:6px;font-size:.85rem;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--soft);color:var(--accent)}
+.rm-stat.per{background:var(--alert-soft);color:var(--period)}
+.rm-stat.late{background:var(--due-soft);color:var(--due)}
+.cyc-key{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;font-size:.78rem;color:var(--muted)}
+.cyc-key .k{display:inline-block;width:12px;height:6px;border-radius:3px;margin-right:5px;vertical-align:2px}
+.k.per{background:var(--period)}.k.exp{border:1.5px dashed var(--period);height:7px}.k.fert{background:var(--fert);opacity:.75}.k.now{width:9px;height:9px;border-radius:50%;border:2px solid var(--ink);vertical-align:0}
+.cyc-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cs{background:var(--bg);border-radius:12px;padding:9px 10px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.cs b{font-family:var(--f-display);font-weight:400;font-size:1.15rem;white-space:nowrap}
+.cs span{font-size:.74rem;color:var(--muted)}
+.cyc-hist{display:flex;flex-direction:column;gap:4px}
+.cyc-hist:empty{display:none}
+.ci-hh{font-size:.8rem;font-weight:700;color:var(--muted);margin-bottom:2px}
+.hrow{display:grid;grid-template-columns:4.6em 1fr 3.4em;align-items:center;gap:8px;background:none;border:0;padding:3px 0;cursor:pointer;text-align:left;font-size:.8rem}
+.hd{color:var(--muted);font-family:var(--f-mono);font-size:.74rem;white-space:nowrap}
+.hl{font-family:var(--f-mono);font-size:.74rem;text-align:right;color:var(--muted)}
+.hbar{height:12px;border-radius:99px;background:transparent;display:block}
+.hfill{display:block;height:100%;border-radius:99px;background:var(--ring-base);overflow:hidden}
+.hfill.cur{background:repeating-linear-gradient(90deg,var(--ring-base) 0 6px,var(--ring-future) 6px 9px)}
+.hper{display:block;height:100%;background:var(--period);border-radius:99px}
+
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
 .tab svg{width:54px;height:30px;padding:4px 16px;border-radius:99px;transition:background .15s ease}
@@ -415,6 +450,15 @@ main{padding-top:10px}
         <div class="week" id="ciWeek" aria-label="The last 7 days"></div>
         <button class="ci-more" id="ciMore" type="button">+ Blood pressure, weight, notes</button>
       </div>
+    </article>
+
+    <article class="panel cyc" id="cycCard" hidden aria-labelledby="cycH">
+      <div class="ph"><span class="ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 8 8" stroke-width="3.2" stroke-linecap="round"/></svg></span><h2 id="cycH">Cycle</h2><button class="more" type="button" id="cycDiary">Calendar ›</button></div>
+      <div class="cyc-wrap"><div class="ring" id="cycRing"></div></div>
+      <div class="cyc-key" aria-hidden="true"><span><i class="k per"></i>Period</span><span><i class="k exp"></i>Expected</span><span><i class="k fert"></i>Fertile (estimate)</span><span><i class="k now"></i>Today</span></div>
+      <div class="cyc-stats" id="cycStats"></div>
+      <div class="cyc-hist" id="cycHist"></div>
+      <p class="fineprint" id="cycNote"></p>
     </article>
 
     <div class="quick">
@@ -790,7 +834,8 @@ function buildContext(){
       if(b.length>1) lines.push("- "+b.join(" | "));
     }
   }
-  if(periodOn()&&dd.some(d=>d.period)){ const c=cycleInfo(); lines.push("\nPERIOD CYCLE (from the diary): "+c.starts.length+" periods logged; "+(c.avg?"average cycle "+c.avg+" days over the last "+c.cycles+" cycles":"not enough cycles for an average")+"; last period started "+fmtDate(c.last)+(c.len?", lasting "+c.len+" days":"")+"."); }
+  if(periodOn()&&dd.some(d=>d.period)){ const c=cycleInfo(); lines.push("\nPERIOD CYCLE (from the diary): "+c.starts.length+" periods logged; "+(c.avg?"average cycle "+c.avg+" days over the last "+c.cycles+" cycles":"not enough cycles for an average")+"; last period started "+fmtDate(c.last)+(c.len?", lasting "+c.len+" days":"")+".");
+    for(const x of cycleList().slice(-8)) lines.push("- period started "+fmtDate(x.start)+": bled "+x.plen+" days ("+x.heavy+" heavy)"+(x.len?", cycle "+x.len+" days":", current cycle")); }
   if(lines.length<2) lines.push("(The logbook is empty so far.)");
   const txt=lines.join("\n");
   return txt.length>80000? txt.slice(0,80000)+"\n(…logbook cut short)" : txt;
@@ -882,6 +927,77 @@ function flowButtons(el, iso, cls){
     n? h("span",{class:"drops","aria-hidden":"true"}, ...Array.from({length:n},()=>dropIcon())) : null, h("span",{},l))));
 }
 function dropIcon(){ const s=sv("svg",{viewBox:"0 0 10 14"}); s.append(sv("path",{d:"M5 1C5 1 1 6.2 1 9a4 4 0 0 0 8 0C9 6.2 5 1 5 1z",fill:"currentColor"})); return s; }
+function cycleList(){
+  const days=S.days||{}, has=d=>!!(days[d]&&days[d].period), c=cycleInfo(), out=[];
+  for(let i=0;i<c.starts.length;i++){
+    const st=c.starts[i], nx=c.starts[i+1]||null;
+    let plen=0, heavy=0; for(let d=st,k=0;k<15;k++,d=addDays(d,1)){ if(nx&&d>=nx) break; if(has(d)){ plen=k+1; if(days[d].period==="heavy") heavy++; } else if(!has(addDays(d,1))) break; }
+    out.push({start:st, len: nx? daysBetween(st,nx) : null, plen, heavy});
+  }
+  return out;
+}
+function arcPath(cx,cy,r,a0,a1){ const p=a=>[cx+r*Math.sin(a), cy-r*Math.cos(a)]; const [x0,y0]=p(a0), [x1,y1]=p(a1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${a1-a0>Math.PI?1:0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; }
+function renderCycle(){
+  const card=$("#cycCard"), on=periodOn(); card.hidden=!on; if(!on) return;
+  const c=cycleInfo(), cl=cycleList(), today=todayISO(), days=S.days||{};
+  const L=c.avg||28, plens=cl.filter(x=>x.len).map(x=>x.plen).filter(Boolean).slice(-6);
+  const avgP=plens.length? Math.round(plens.reduce((a,b)=>a+b,0)/plens.length) : (cl.length? cl[cl.length-1].plen : 5);
+  const ring=$("#cycRing");
+  const S2=260, cx=130, cy=130, R=104, W=20;
+  const svg=sv("svg",{viewBox:`0 0 ${S2} ${S2}`,role:"img"});
+  if(!c.last){
+    svg.append(sv("circle",{cx,cy,r:R,fill:"none",stroke:"var(--soft)","stroke-width":W}));
+    ring.replaceChildren(svg, h("div",{class:"ring-mid"}, h("span",{class:"rm-big sm"},"No cycle yet"), h("span",{class:"rm-sub"},"Tap a flow in today's check-in when your period starts")));
+    svg.setAttribute("aria-label","No periods logged yet");
+    $("#cycStats").replaceChildren(); $("#cycHist").replaceChildren(); $("#cycNote").textContent=""; return;
+  }
+  const dayN=daysBetween(c.last,today)+1, n=Math.max(L,dayN), late=dayN>L;
+  const ov=L-14, fert=new Set(); for(let d=ov-5; d<=ov+1; d++) if(d>avgP) fert.add(d);
+  const gap=n>40?0.012:0.022, step=2*Math.PI/n;
+  for(let i=0;i<n;i++){
+    const dn=i+1, iso=addDays(c.last,i), dd=days[iso]||{}, fut=iso>today;
+    let col="var(--ring-base)", op=1;
+    if(dd.period){ col="var(--period)"; op= dd.period==="light"?.5: dd.period==="medium"?.78:1; }
+    else if(fert.has(dn)){ col= dn===ov? "var(--fert-dark)":"var(--fert)"; op= fut? .75 : .45; }
+    else if(fut) col="var(--ring-future)";
+    const a0=i*step+gap, a1=(i+1)*step-gap;
+    const seg=sv("path",{d:arcPath(cx,cy,R,a0,a1),fill:"none",stroke:col,"stroke-width":W,"stroke-opacity":op,class:"rseg"});
+    seg.addEventListener("click",()=>openDay(iso));
+    const t=sv("title",{}); t.textContent=longDate(iso)+" · cycle day "+dn+(dd.period?" · period ("+dd.period+")":fert.has(dn)?" · fertile window (estimate)":""); seg.append(t);
+    svg.append(seg);
+  }
+  // expected next period: a dashed arc just outside the end of the ring, leading back to day 1
+  if(!late){ const span=Math.min(avgP,6)*step; const e=sv("path",{d:arcPath(cx,cy,R+W/2+7,2*Math.PI-0.0001-span,2*Math.PI-0.0001),fill:"none",stroke:"var(--period)","stroke-width":4,"stroke-dasharray":"3 4","stroke-linecap":"round"}); svg.append(e); }
+  // day-1 tick
+  svg.append(sv("line",{x1:cx,y1:cy-R-W/2-3,x2:cx,y2:cy-R+W/2+3,stroke:"var(--surface)","stroke-width":3}));
+  // today marker
+  const ta=(dayN-0.5)*step, tx=cx+R*Math.sin(ta), ty=cy-R*Math.cos(ta);
+  svg.append(sv("circle",{cx:tx,cy:ty,r:15,fill:"var(--surface)",stroke:"var(--ink)","stroke-width":3}));
+  const tt=sv("text",{x:tx,y:ty+4.5,"text-anchor":"middle",class:"rt"}); tt.textContent=String(dayN); svg.append(tt);
+  const inP=!!(days[today]&&days[today].period), nextGap=daysBetween(today,c.next);
+  let big="Day "+dayN, sub= "of about "+L, stat;
+  if(inP) stat="Period · day "+dayN;
+  else if(late) stat=(dayN-L)+" day"+(dayN-L===1?"":"s")+" late";
+  else if(nextGap<=0) stat="Period due today";
+  else stat="Period in "+nextGap+" day"+(nextGap===1?"":"s");
+  if(!inP && !late && fert.has(dayN)) stat+=" · fertile window";
+  svg.setAttribute("aria-label","Cycle day "+dayN+" of about "+L+". "+stat+".");
+  ring.replaceChildren(svg, h("div",{class:"ring-mid"}, h("span",{class:"rm-k"},"Cycle"), h("span",{class:"rm-big"},big), h("span",{class:"rm-sub"},sub+" days"), h("span",{class:"rm-stat"+(inP?" per":late?" late":"")},stat)));
+  const nextTxt= c.next? new Date(...c.next.split("-").map((v,i)=>i===1?v-1:+v)).toLocaleDateString("en-GB",{day:"numeric",month:"short"}) : "—";
+  $("#cycStats").replaceChildren(
+    h("div",{class:"cs"}, h("b",{}, c.avg? c.avg+" days":"—"), h("span",{},"Cycle length")),
+    h("div",{class:"cs"}, h("b",{}, plens.length? avgP+" days":"—"), h("span",{},"Period length")),
+    h("div",{class:"cs"}, h("b",{}, nextTxt), h("span",{},"Next period")));
+  const hist=cl.slice(-6).reverse(), maxL=Math.max(35,...hist.map(x=>x.len||dayN));
+  $("#cycHist").replaceChildren(h("p",{class:"ci-hh"},"Recent cycles"), ...hist.map(x=>{
+    const len=x.len||dayN, cur=!x.len;
+    return h("button",{class:"hrow",type:"button",onclick:()=>openDay(x.start),"aria-label":"Cycle starting "+fmtDate(x.start)+": "+(cur?"current, day "+dayN:len+" days")+", period "+x.plen+" days"+(x.heavy?", "+x.heavy+" heavy":"")},
+      h("span",{class:"hd"}, cur? "Now" : new Date(...x.start.split("-").map((v,i)=>i===1?v-1:+v)).toLocaleDateString("en-GB",{day:"numeric",month:"short"})),
+      h("span",{class:"hbar"}, h("span",{class:"hfill"+(cur?" cur":""),style:"width:"+(len/maxL*100).toFixed(1)+"%"}, h("span",{class:"hper",style:"width:"+(x.plen/len*100).toFixed(1)+"%"}))),
+      h("span",{class:"hl"}, cur? "day "+dayN : len+"d"));
+  }));
+  $("#cycNote").textContent= (c.avg? "Based on your last "+c.cycles+" cycle"+(c.cycles===1?"":"s")+"." : "Using a 28-day cycle until two periods are logged.")+" The fertile window is a rough estimate, not contraception.";
+}
 function greeting(){ const hr=new Date().getHours(); return hr<12?"Good morning":hr<18?"Good afternoon":"Good evening"; }
 function renderCheckin(){
   const p=S.profile||{}, iso=todayISO(), day=(S.days||{})[iso]||{}, ro=!S.canWrite||null;
@@ -926,6 +1042,7 @@ function renderOverview(){
   $("#who").textContent = greeting()+(first?", "+first:"");
   $("#topDate").textContent = new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
   renderCheckin();
+  renderCycle();
   const empty = S.loaded && S.entries.length===0;
   $("#empty").hidden=!empty;
 
@@ -1508,7 +1625,7 @@ function saveDay(date, patch){
   if(!S.canWrite){ toast("This login can't save here."); return Promise.resolve(false); }
   const cur=S.days[date]||{kind:"day",date,createdAt:Date.now()};
   const next={...cur,...patch,kind:"day",date,updatedAt:Date.now()};
-  S.days={...S.days,[date]:next}; renderDiary(); renderTrends(); renderCheckin();
+  S.days={...S.days,[date]:next}; renderDiary(); renderTrends(); renderCheckin(); renderCycle();
   const body=cleanBody(next);
   dayQ[date]=(dayQ[date]||Promise.resolve()).then(()=>write(()=>S.col.doc("day-"+date).set(body)));
   return dayQ[date];
@@ -1578,6 +1695,7 @@ $("#calNext").addEventListener("click",()=>{ let {y,m}=S.cal; m++; if(m>11){m=0;
 $("#dayToday").addEventListener("click",()=>openDay(todayISO()));
 $("#logToday").addEventListener("click",()=>openDay(todayISO()));
 $("#ciMore").addEventListener("click",()=>openDay(todayISO()));
+$("#cycDiary").addEventListener("click",()=>openDay(todayISO()));
 $("#symAll").addEventListener("click",()=>{ S.filter="symptom"; renderRecords(); show("records"); });
 $("#trendMore").addEventListener("click",()=>{ S.trendsAll=!S.trendsAll; renderTrends(); });
 $("#dayNotes").addEventListener("blur",()=>{ const n=$("#dayNotes"); if(n.dataset.dirty&&S.notesFor) saveDay(S.notesFor,{notes:n.value.trim()}).then(ok=>{ if(ok){ n.dataset.dirty=""; $("#notesState").textContent="Saved"; } }); });
