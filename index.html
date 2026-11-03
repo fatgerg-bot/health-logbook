@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-03.15">
+<meta name="app-version" content="2026-11-03.16">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -590,6 +590,17 @@ details.fold[open] .fpv{display:none}
 .fchev{flex:none;font-size:1.3rem;color:var(--muted);transition:transform .15s ease;line-height:1}
 details.fold[open] .fchev{transform:rotate(90deg)}
 
+/* check-in sections fold once answered */
+.ci-sumrow{display:none}
+.ci-block.done > :not(.ci-sumrow):not(.keep){display:none}
+.ci-block.done > .ci-sumrow{display:flex;align-items:center;gap:10px;width:100%;background:var(--glass);border:0;border-radius:12px;padding:10px 12px;color:inherit;cursor:pointer;text-align:left}
+.sr-l{font-size:.85rem;font-weight:700;opacity:.9;min-width:4.6em}
+.sr-v{background:#FFFFFF;color:#16302A;border-radius:99px;padding:4px 11px;font-weight:700;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sr-c{margin-left:auto;font-size:.8rem;opacity:.85;text-decoration:underline;text-underline-offset:3px;flex:none}
+.ci-block.done{gap:6px}
+.ci-doneb{letter-spacing:.06em}
+@media (prefers-reduced-motion: no-preference){.ci-block.done > .ci-sumrow{animation:ciIn .22s ease-out}@keyframes ciIn{from{opacity:.4;transform:scale(.98)}}}
+
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
 .tab svg{width:54px;height:30px;padding:4px 16px;border-radius:99px;transition:background .15s ease}
@@ -617,11 +628,11 @@ details.fold[open] .fchev{transform:rotate(90deg)}
   <section id="v-overview" class="view" aria-label="Overview">
     <article class="checkin" id="checkin" aria-labelledby="ciTitle">
       <div class="ci-head">
-        <div><p class="ci-eyebrow">Today's check-in</p><h2 id="ciTitle">How are you feeling?</h2></div>
+        <div><p class="ci-eyebrow">Today's check-in<span class="ci-doneb" id="ciDoneB" hidden> · Done ✓</span></p><h2 id="ciTitle">How are you feeling?</h2></div>
         <button class="ci-link" id="logToday" type="button">Diary ›</button>
       </div>
-      <div class="faces" id="ciFaces" role="group" aria-label="How you feel today"></div>
-      <div class="ci-block">
+      <div class="ci-block" data-sec="feel"><div class="faces" id="ciFaces" role="group" aria-label="How you feel today"></div></div>
+      <div class="ci-block" data-sec="energy">
         <p class="ci-lab">Energy today?</p>
         <div class="pflow five" id="ciEnergy" role="group" aria-label="Energy today"></div>
       </div>
@@ -630,17 +641,17 @@ details.fold[open] .fchev{transform:rotate(90deg)}
         <div class="ci-chips" id="ciChips"></div>
         <div class="ci-logged" id="ciLogged" hidden></div>
       </div>
-      <div class="ci-block" id="ciPeriod" hidden>
+      <div class="ci-block" id="ciPeriod" data-sec="period" hidden>
         <p class="ci-lab">Period today?</p>
         <div class="pflow" id="ciFlow" role="group" aria-label="Period flow today"></div>
-        <p class="ci-pstat" id="ciPstat"></p>
+        <p class="ci-pstat keep" id="ciPstat"></p>
       </div>
       <button class="ci-expand" id="ciXBtn" type="button" aria-expanded="false" aria-controls="ciX"><span>More about today</span><span class="ci-xsum" id="ciXSum">Sleep, eating, medicines, stress</span><span class="ci-chev" aria-hidden="true">›</span></button>
       <div class="ci-x" id="ciX" hidden>
-        <div class="ci-block"><p class="ci-lab">How did you sleep?</p><div class="pflow" id="ciSleepQ" role="group" aria-label="Sleep quality"></div><div class="pflow four sm" id="ciSleepH" role="group" aria-label="Hours of sleep"></div></div>
-        <div class="ci-block"><p class="ci-lab">How much have you eaten?</p><div class="pflow four" id="ciEat" role="group" aria-label="How much you ate"></div></div>
+        <div class="ci-block" data-sec="sleep"><p class="ci-lab">How did you sleep?</p><div class="pflow" id="ciSleepQ" role="group" aria-label="Sleep quality"></div><div class="pflow four sm" id="ciSleepH" role="group" aria-label="Hours of sleep"></div></div>
+        <div class="ci-block" data-sec="eat"><p class="ci-lab">How much have you eaten?</p><div class="pflow four" id="ciEat" role="group" aria-label="How much you ate"></div></div>
         <div class="ci-block" id="ciMedsB"><p class="ci-lab">Medicines taken today</p><div class="ci-chips" id="ciMeds"></div></div>
-        <div class="ci-block"><p class="ci-lab">Stress or anxiety?</p><div class="pflow" id="ciStress" role="group" aria-label="Stress or anxiety today"></div></div>
+        <div class="ci-block" data-sec="stress"><p class="ci-lab">Stress or anxiety?</p><div class="pflow" id="ciStress" role="group" aria-label="Stress or anxiety today"></div></div>
       </div>
       <div class="ci-foot">
         <div class="week" id="ciWeek" aria-label="The last 7 days"></div>
@@ -1380,7 +1391,7 @@ function cycleText(){
 }
 function flowButtons(el, iso, cls){
   const cur=((S.days||{})[iso]||{}).period||"none";
-  el.replaceChildren(...FLOW.map(([v,l,n])=>h("button",{type:"button",class:cls,"aria-pressed":String(cur===v),disabled:!S.canWrite||null,onclick:()=>{ saveDay(iso, v==="none"? {period:null,pnone:true} : {period:v,pnone:null}); }},
+  el.replaceChildren(...FLOW.map(([v,l,n])=>h("button",{type:"button",class:cls,"aria-pressed":String(cur===v),disabled:!S.canWrite||null,onclick:()=>{ ciPicked("period"); saveDay(iso, v==="none"? {period:null,pnone:true} : {period:v,pnone:null}); }},
     n? h("span",{class:"drops","aria-hidden":"true"}, ...Array.from({length:n},()=>dropIcon())) : null, h("span",{},l))));
 }
 function dropIcon(){ const s=sv("svg",{viewBox:"0 0 10 14"}); s.append(sv("path",{d:"M5 1C5 1 1 6.2 1 9a4 4 0 0 0 8 0C9 6.2 5 1 5 1z",fill:"currentColor"})); return s; }
@@ -1498,11 +1509,11 @@ function segButtons(el, labels, cur, onPick, cls){
 function shortMed(t){ return String(t||"").split(/\s+\d|\s*\(|\s+tablets|\s+capsules|\s+injection|\s+chewable|\s+modified/i)[0].trim(); }
 function renderCheckinMore(iso, day){
   const ro=!S.canWrite||null;
-  segButtons($("#ciEnergy"), ENERGY, day.energy, v=>saveDay(iso,{energy:v}), "en");
-  segButtons($("#ciSleepQ"), SLEEPQ, day.sleepQ, v=>saveDay(iso,{sleepQ:v}));
-  $("#ciSleepH").replaceChildren(...SLEEPH.map(([l,v])=>h("button",{type:"button",class:"pf","aria-pressed":String(day.sleepH===v),disabled:ro,onclick:()=>saveDay(iso,{sleepH:day.sleepH===v?null:v})}, h("span",{},l))));
-  segButtons($("#ciEat"), EAT, day.eat, v=>saveDay(iso,{eat:v}));
-  segButtons($("#ciStress"), STRESS, day.stress, v=>saveDay(iso,{stress:v}));
+  segButtons($("#ciEnergy"), ENERGY, day.energy, v=>{ ciPicked("energy"); saveDay(iso,{energy:v}); }, "en");
+  segButtons($("#ciSleepQ"), SLEEPQ, day.sleepQ, v=>{ if(day.sleepH) ciPicked("sleep"); saveDay(iso,{sleepQ:v}); });
+  $("#ciSleepH").replaceChildren(...SLEEPH.map(([l,v])=>h("button",{type:"button",class:"pf","aria-pressed":String(day.sleepH===v),disabled:ro,onclick:()=>{ if(day.sleepQ) ciPicked("sleep"); saveDay(iso,{sleepH:day.sleepH===v?null:v}); }}, h("span",{},l))));
+  segButtons($("#ciEat"), EAT, day.eat, v=>{ ciPicked("eat"); saveDay(iso,{eat:v}); });
+  segButtons($("#ciStress"), STRESS, day.stress, v=>{ ciPicked("stress"); saveDay(iso,{stress:v}); });
   const meds=ofKind("medication").filter(m=>m.status==="current").map(m=>shortMed(m.title)).filter((v,i,a)=>v&&a.indexOf(v)===i);
   const taken=new Set(Array.isArray(day.medsTaken)?day.medsTaken:[]);
   $("#ciMedsB").hidden=!meds.length;
@@ -1537,12 +1548,24 @@ function renderTlPreview(){
   const tests=testGroups().size;
   $("#tlPrevStat").textContent= logged? logged+" of the last 30 days checked in · "+tests+" blood tests" : tests+" blood tests ready · check in daily to fill it in";
 }
+const CI={iso:null, edit:new Set()};
+function ciSection(sec, filled, label, value){
+  const block=document.querySelector('#checkin .ci-block[data-sec="'+sec+'"]'); if(!block) return;
+  let row=block.querySelector(":scope > .ci-sumrow");
+  if(!row){ row=h("button",{type:"button",class:"ci-sumrow"}); row.addEventListener("click",()=>{ CI.edit.add(sec); renderCheckin(); const b=document.querySelector('#checkin .ci-block[data-sec="'+sec+'"]'); const f=b&&b.querySelector("button:not(.ci-sumrow)"); if(f) f.focus(); }); block.prepend(row); }
+  const done=filled && !CI.edit.has(sec);
+  block.classList.toggle("done", done);
+  row.replaceChildren(h("span",{class:"sr-l"},label), h("span",{class:"sr-v"},"✓ "+value), h("span",{class:"sr-c"},"Change"));
+  row.setAttribute("aria-label", label+": "+value+". Tap to change.");
+}
+function ciPicked(sec){ CI.edit.delete(sec); }
 function greeting(){ const hr=new Date().getHours(); return hr<12?"Good morning":hr<18?"Good afternoon":"Good evening"; }
 function renderCheckin(){
   const p=S.profile||{}, iso=todayISO(), day=(S.days||{})[iso]||{}, ro=!S.canWrite||null;
+  if(CI.iso!==iso){ CI.iso=iso; CI.edit=new Set(); }
   $("#ciTitle").textContent = day.feel? "Feeling "+FEEL[day.feel-1].toLowerCase()+" today" : "How are you feeling?";
   $("#ciFaces").replaceChildren(...FEEL.map((l,i)=>h("button",{type:"button",class:"face","data-v":String(i+1),"aria-pressed":String(day.feel===i+1),disabled:ro,
-    onclick:()=>{ const v=day.feel===i+1?null:i+1; saveDay(iso,{feel:v}); if(v) toast("Saved: "+l.toLowerCase()+" today"); }},
+    onclick:()=>{ const v=day.feel===i+1?null:i+1; ciPicked("feel"); saveDay(iso,{feel:v}); }},
     h("span",{class:"emo","aria-hidden":"true"},FACE[i]), h("span",{class:"fl"},l))));
   const chips=symptomChips(8);
   $("#ciChips").replaceChildren(...chips.map(t=>h("button",{class:"ci-chip",type:"button",disabled:ro,onclick:()=>quickSymptom(t,iso)},t)),
@@ -1558,6 +1581,13 @@ function renderCheckin(){
   const pon=periodOn(); $("#ciPeriod").hidden=!pon;
   if(pon){ flowButtons($("#ciFlow"), iso, "pf"); $("#ciPstat").textContent=cycleText(); }
   renderCheckinMore(iso, day);
+  ciSection("feel", !!day.feel, "Feeling", day.feel? FACE[day.feel-1]+" "+FEEL[day.feel-1] : "");
+  ciSection("energy", !!day.energy, "Energy", day.energy? ENERGY[day.energy-1] : "");
+  if(pon) ciSection("period", !!(day.period||day.pnone), "Period", day.period? day.period[0].toUpperCase()+day.period.slice(1) : "None");
+  ciSection("sleep", !!(day.sleepQ&&day.sleepH), "Sleep", [day.sleepQ?"Slept "+SLEEPQ[day.sleepQ-1].toLowerCase():"", day.sleepH?(SLEEPH.find(x=>x[1]===day.sleepH)||[""])[0]:""].filter(Boolean).join(", "));
+  ciSection("eat", !!day.eat, "Eating", day.eat? EAT[day.eat-1] : "");
+  ciSection("stress", !!day.stress, "Stress", day.stress? STRESS[day.stress-1] : "");
+  $("#ciDoneB").hidden=!(day.feel&&day.energy&&(!pon||day.period||day.pnone));
 }
 function quickSymptom(title, iso){
   iso=iso||todayISO();
