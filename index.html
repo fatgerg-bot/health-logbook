@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-03.7">
+<meta name="app-version" content="2026-11-03.8">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -470,6 +470,43 @@ img.gi{padding:0;object-fit:cover}
   .print-root .viz,.print-root tr,.print-root li{break-inside:avoid}
 }
 
+/* health timeline */
+:root{--mood1:#E06C5C;--mood2:#F0A464;--mood3:#C7D0CC;--mood4:#79C3A0;--mood5:#24906F}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--mood1:#C4574A;--mood2:#C98A4E;--mood3:#4A5753;--mood4:#4E9C7C;--mood5:#62C4A3}}
+:root[data-theme="dark"]{--mood1:#C4574A;--mood2:#C98A4E;--mood3:#4A5753;--mood4:#4E9C7C;--mood5:#62C4A3}
+.tl-open{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--soft);border:0;border-radius:14px;padding:12px 14px;cursor:pointer;color:var(--ink)}
+.tl-open b{display:block;font-size:.98rem}
+.tl-open small{display:block;color:var(--muted);font-size:.8rem;line-height:1.3}
+.tl-open > span:last-child{margin-left:auto;font-size:1.4rem;color:var(--accent)}
+.tl-mini{flex:none;width:40px;height:40px;border-radius:11px;background:var(--surface);display:flex;flex-direction:column;justify-content:center;gap:3px;padding:0 7px}
+.tl-mini i{display:block;height:4px;border-radius:2px;background:var(--accent)}
+.tl-mini i:nth-child(1){width:80%;background:var(--feel5)}.tl-mini i:nth-child(2){width:55%;background:var(--period)}.tl-mini i:nth-child(3){width:90%;background:var(--ai)}.tl-mini i:nth-child(4){width:65%}
+.seg{display:inline-flex;background:var(--soft);border-radius:99px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;border-radius:99px;min-height:34px;padding:0 13px;font-weight:700;font-size:.85rem;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.fchip.on{background:var(--soft);border-color:transparent;color:var(--accent);font-weight:700}
+.fchip.on .x{opacity:.6}
+.fchip.add{border-style:dashed}
+.tl-panel{padding:12px 12px 14px}
+.tl-chart{width:100%;min-height:120px}
+.tl-svg{display:block;user-select:none;-webkit-user-select:none}
+.tl-lab{font-size:11px;font-weight:700;fill:var(--muted);letter-spacing:.02em}
+.tl-val{font-size:11px;fill:var(--ink);font-family:var(--f-mono)}
+.tl-val.flag{fill:var(--alert)}
+.tl-pt{font-size:10px;fill:var(--ink);font-family:var(--f-mono)}
+.tl-ev{font-size:10.5px;fill:var(--muted)}
+.tl-ax{font-size:10.5px;fill:var(--muted);font-family:var(--f-mono)}
+.tl-empty{font-size:11px;fill:var(--muted);font-style:italic}
+.tl-detail{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;display:flex;flex-direction:column;gap:6px}
+.tl-dh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tl-dl{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.9rem}
+.tl-dl li{display:contents}
+.tl-dl .k{color:var(--muted);font-size:.8rem;font-weight:700;padding-top:2px}
+.tl-picks{display:flex;flex-direction:column}
+.tl-pick{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer}
+.tl-pick input{width:20px;height:20px}
+.tl-pick .hint{margin-left:auto}
+
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
 .tab svg{width:54px;height:30px;padding:4px 16px;border-radius:99px;transition:background .15s ease}
@@ -549,6 +586,7 @@ img.gi{padding:0;object-fit:cover}
 
     <article class="panel" id="ovTrends" hidden>
       <div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 18l5-6 4 3 7-9"/></svg></span><h2>Trends</h2><span class="legend"><span class="band-key"></span>normal</span></div>
+      <button class="tl-open" id="tlOpen" type="button"><span class="tl-mini" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span><b>Health timeline</b><small>Mood, weight, periods, symptoms and results on one chart</small></span><span aria-hidden="true">›</span></button>
       <div id="trendList" class="trends"></div>
       <button class="btn ghost" id="trendMore" type="button" hidden></button>
     </article>
@@ -561,6 +599,26 @@ img.gi{padding:0;object-fit:cover}
 
     <div class="row"><button class="btn ghost" id="editProfile" type="button">About you, PIN, account and people</button></div>
     <p class="fineprint">This logbook helps you keep track and prepare for appointments. It isn't medical advice. In an emergency call 999. For urgent help that isn't an emergency, call NHS 111.</p>
+  </section>
+
+  <!-- TIMELINE -->
+  <section id="v-timeline" class="view" aria-label="Health timeline" hidden>
+    <div class="row" style="justify-content:space-between">
+      <button class="btn ghost" id="tlBack" type="button">‹ Overview</button>
+      <div class="seg" id="tlRange" role="group" aria-label="Time range"></div>
+    </div>
+    <h2 class="vh">Health timeline</h2>
+    <div class="chips wrapchips" id="tlLanes" role="group" aria-label="What to show"></div>
+    <article class="panel tl-panel">
+      <div id="tlChart" class="tl-chart"></div>
+      <div id="tlDetail" class="tl-detail" aria-live="polite"></div>
+    </article>
+    <div class="row">
+      <button class="btn ai" id="tlAsk" type="button">Ask Claude about this chart</button>
+      <button class="btn" id="tlStop" type="button" hidden>Stop</button>
+    </div>
+    <div id="tlAi" class="ai-out" aria-live="polite" hidden></div>
+    <p class="fineprint">Tap or drag across the chart to see everything from one day. Dashed lines mark appointments, medicines and operations.</p>
   </section>
 
   <!-- DIARY -->
@@ -1122,7 +1180,7 @@ async function saveEntry(body, id){
 }
 
 /* ---------- views ---------- */
-const VIEWS=["overview","diary","records","prepare","ask"];
+const VIEWS=["overview","diary","records","prepare","ask","timeline"];
 function show(v){
   if(!VIEWS.includes(v)) v="overview";
   for(const x of VIEWS) $("#v-"+x).hidden = x!==v;
@@ -1410,7 +1468,7 @@ function renderPrepSelect(){
   if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
   updatePrepTools();
 }
-function renderAll(){ renderOverview(); renderTrends(); renderRecords(); renderPrepSelect(); renderDiary(); }
+function renderAll(){ renderOverview(); renderTrends(); renderRecords(); renderPrepSelect(); renderDiary(); if(!$("#v-timeline").hidden) renderTimeline(); }
 
 /* ---------- sheet ---------- */
 let sheetReturn=null;
@@ -1930,7 +1988,7 @@ function saveDay(date, patch){
   if(!S.canWrite){ toast("This login can't save here."); return Promise.resolve(false); }
   const cur=S.days[date]||{kind:"day",date,createdAt:Date.now()};
   const next={...cur,...patch,kind:"day",date,updatedAt:Date.now()};
-  S.days={...S.days,[date]:next}; renderDiary(); renderTrends(); renderCheckin(); renderCycle();
+  S.days={...S.days,[date]:next}; renderDiary(); renderTrends(); renderCheckin(); renderCycle(); if(!$("#v-timeline").hidden) renderTimeline();
   const body=cleanBody(next);
   dayQ[date]=(dayQ[date]||Promise.resolve()).then(()=>write(()=>S.col.doc("day-"+date).set(body)));
   return dayQ[date];
@@ -2000,6 +2058,8 @@ $("#calNext").addEventListener("click",()=>{ let {y,m}=S.cal; m++; if(m>11){m=0;
 $("#dayToday").addEventListener("click",()=>openDay(todayISO()));
 $("#logToday").addEventListener("click",()=>openDay(todayISO()));
 $("#ciMore").addEventListener("click",()=>openDay(todayISO()));
+$("#tlOpen").addEventListener("click",()=>{ show("timeline"); renderTimeline(); });
+$("#tlBack").addEventListener("click",()=>show("overview"));
 $("#cycDiary").addEventListener("click",()=>openDay(todayISO()));
 $("#symAll").addEventListener("click",()=>{ S.filter="symptom"; renderRecords(); show("records"); });
 $("#trendMore").addEventListener("click",()=>{ S.trendsAll=!S.trendsAll; renderTrends(); });
@@ -2020,6 +2080,217 @@ $("#bpAdd").addEventListener("click", ()=>{
   for(const id of ["#bpSys","#bpDia","#bpPulse","#bpTime"]) $(id).value="";
   toast("Reading added");
 });
+
+/* ---------- health timeline ---------- */
+const TL={range:"3M", sel:null, day:null, ctl:null, text:""};
+const TL_RANGES=[["1M",31],["3M",92],["1Y",366],["All",0]];
+const TEST_PRIORITY=["ferritin","haemoglobin","vitamin b12","serum vitamin b12","folate","serum folate","zinc","serum zinc","copper","white cell count","neutrophils","vitamin d"];
+function tlLoadSel(){ try{ const v=JSON.parse(localStorage.getItem("hl-tl-sel")||"null"); if(Array.isArray(v)) return v; }catch{} return null; }
+function tlSaveSel(){ try{ localStorage.setItem("hl-tl-sel", JSON.stringify(TL.sel)); }catch{} }
+function testGroups(){
+  const g=new Map();
+  for(const e of ofKind("result")){ if(typeof e.value!=="number"||!e.date) continue; const k=testKey(e.title); if(!k) continue; if(!g.has(k)) g.set(k,[]); g.get(k).push(e); }
+  for(const v of g.values()) v.sort((a,b)=>a.date.localeCompare(b.date));
+  return g;
+}
+function tlLanes(){
+  const L=[{id:"mood",name:"Mood",type:"strip"},{id:"energy",name:"Energy",type:"strip"}];
+  if(periodOn()) L.push({id:"period",name:"Period",type:"period"});
+  L.push({id:"sym",name:"Symptoms",type:"sym"},{id:"weight",name:"Weight",type:"line",unit:"kg"},{id:"bp",name:"Blood pressure",type:"bp",unit:"mmHg"});
+  const g=testGroups();
+  const keys=[...g.keys()].sort((a,b)=>{ const ia=TEST_PRIORITY.indexOf(a), ib=TEST_PRIORITY.indexOf(b); if(ia!==ib) return (ia<0?99:ia)-(ib<0?99:ib); return g.get(b).length-g.get(a).length; });
+  for(const k of keys){ const arr=g.get(k), last=arr[arr.length-1]; L.push({id:"t:"+k,name:last.title,type:"line",unit:last.unit||"",test:k,count:arr.length}); }
+  return L;
+}
+function tlDefaultSel(lanes){
+  const ids=["mood"]; if(periodOn()) ids.push("period"); ids.push("sym","weight");
+  const tests=lanes.filter(l=>l.test&&l.count>=2).slice(0,2).map(l=>l.id); return ids.concat(tests);
+}
+function tlEvents(from,to){
+  const ev=[];
+  for(const a of ofKind("appointment")) if(a.date&&a.date>=from&&a.date<=to) ev.push({date:a.date,label:a.title.replace(/\s*\(.*?\)\s*/g," ").trim(),type:"appt"});
+  const seen=new Set();
+  for(const m of ofKind("medication").filter(m=>m.date&&m.date>=from&&m.date<=to).sort((a,b)=>a.date.localeCompare(b.date))){
+    const nm=(m.title||"").split(/\s+\d|\s*\(|\s+tablets|\s+capsules|\s+injection/i)[0].trim(); const k=nm.toLowerCase();
+    if(!nm||seen.has(k)) continue; seen.add(k); ev.push({date:m.date,label:nm,type:"med"});
+  }
+  for(const c of ofKind("condition")) if(c.date&&c.date>=from&&c.date<=to) ev.push({date:c.date,label:c.title.replace(/\s*\(.*?\)\s*/g," ").trim(),type:"cond"});
+  for(const d of ofKind("due")) if(d.lastDone&&d.lastDone>=from&&d.lastDone<=to) ev.push({date:d.lastDone,label:d.title,type:"med"});
+  return ev.sort((a,b)=>a.date.localeCompare(b.date));
+}
+function tlSpan(){
+  const to=todayISO(), r=TL_RANGES.find(x=>x[0]===TL.range);
+  if(r&&r[1]) return {from:addDays(to,-(r[1]-1)), to};
+  let from=to;
+  for(const d of Object.keys(S.days||{})) if(d<from) from=d;
+  for(const l of TL.sel) if(l.startsWith("t:")){ const arr=testGroups().get(l.slice(2))||[]; if(arr[0]&&arr[0].date<from) from=arr[0].date; }
+  for(const e of ofKind("symptom")) if(e.date&&e.date<from) from=e.date;
+  if(daysBetween(from,to)<30) from=addDays(to,-29);
+  return {from,to};
+}
+function tlDayData(iso){
+  const d=(S.days||{})[iso]||{}, out=[];
+  if(d.feel) out.push(["Mood", FACE[d.feel-1]+" "+FEEL[d.feel-1]]);
+  if(d.energy) out.push(["Energy", ENERGY[d.energy-1]]);
+  if(d.period&&periodOn()) out.push(["Period", d.period[0].toUpperCase()+d.period.slice(1)]);
+  if(typeof d.weight==="number") out.push(["Weight", d.weight+" kg"]);
+  for(const r of (Array.isArray(d.bp)?d.bp:[])) out.push(["Blood pressure", r.sys+"/"+r.dia+(r.time?" at "+r.time:"")]);
+  for(const e of ofKind("symptom").filter(e=>e.date===iso)) out.push(["Symptom", e.title+(e.severity?" "+e.severity+"/10":"")+(e.time?" at "+e.time:"")]);
+  for(const e of ofKind("result").filter(e=>e.date===iso&&typeof e.value==="number")) { const f=flag(e); out.push(["Result", e.title+" "+e.value+(e.unit?" "+e.unit:"")+(f?" ("+f+")":"")]); }
+  for(const e of tlEvents(iso,iso)) out.push([{appt:"Appointment",med:"Medicine",cond:"Condition"}[e.type], e.label]);
+  if(d.notes) out.push(["Notes", d.notes.length>120? d.notes.slice(0,120)+"…" : d.notes]);
+  return out;
+}
+function renderTimeline(){
+  const lanes=tlLanes(), byId=Object.fromEntries(lanes.map(l=>[l.id,l]));
+  if(!TL.sel) TL.sel=(tlLoadSel()||tlDefaultSel(lanes));
+  TL.sel=TL.sel.filter(id=>byId[id]);
+  if(!TL.sel.length) TL.sel=tlDefaultSel(lanes);
+  $("#tlRange").replaceChildren(...TL_RANGES.map(([k])=>h("button",{type:"button","aria-pressed":String(TL.range===k),onclick:()=>{ TL.range=k; renderTimeline(); }},k)));
+  $("#tlLanes").replaceChildren(...TL.sel.map(id=>h("button",{class:"fchip on",type:"button","aria-label":"Hide "+byId[id].name,onclick:()=>{ TL.sel=TL.sel.filter(x=>x!==id); tlSaveSel(); renderTimeline(); }}, byId[id].name, h("span",{class:"x","aria-hidden":"true"}," ×"))),
+    h("button",{class:"fchip add",type:"button",onclick:()=>tlPicker(lanes)},"+ Add"));
+  const {from,to}=tlSpan(); TL.from=from; TL.to=to;
+  if(!TL.day||TL.day<from||TL.day>to) TL.day=to;
+  drawTimeline(TL.sel.map(id=>byId[id]), from, to);
+}
+function tlPicker(lanes){
+  const boxes=lanes.map(l=>{ const cb=h("input",{type:"checkbox",id:"tlc-"+l.id}); cb.checked=TL.sel.includes(l.id);
+    cb.addEventListener("change",()=>{ TL.sel= cb.checked? [...TL.sel.filter(x=>x!==l.id), l.id] : TL.sel.filter(x=>x!==l.id); tlSaveSel(); renderTimeline(); });
+    return h("label",{class:"tl-pick",for:"tlc-"+l.id}, cb, h("span",{}, l.name), l.count? h("span",{class:"hint"}, l.count+" results") : null); });
+  const daily=boxes.slice(0, lanes.findIndex(l=>l.test)>=0? lanes.findIndex(l=>l.test) : boxes.length), tests=boxes.slice(daily.length);
+  openSheet("Show on the timeline",[h("p",{class:"flabel"},"Diary"), h("div",{class:"tl-picks"},...daily), tests.length? h("p",{class:"flabel"},"Blood tests") : null, tests.length? h("div",{class:"tl-picks"},...tests) : null, h("button",{class:"btn primary",type:"button",onclick:closeSheet},"Done")]);
+}
+function drawTimeline(lanes, from, to){
+  const host=$("#tlChart"); const W=Math.max(300, Math.round(host.clientWidth||340)); const PL=6, PR=6;
+  const n=daysBetween(from,to)+1, X=iso=>PL+(W-PL-PR)*(daysBetween(from,iso)+0.5)/n, bw=Math.max(1,(W-PL-PR)/n-(n>120?0:1.2));
+  const svg=sv("svg",{viewBox:"0 0 "+W+" 10",width:"100%",class:"tl-svg",role:"img"});
+  let y=0; const H={strip:22,period:16,sym:22,line:60,bp:60}, rows=[];
+  const days=S.days||{}, inR=d=>d>=from&&d<=to;
+  const label=(txt,right,cls)=>{ const t=sv("text",{x:PL,y:y+11,class:"tl-lab"}); t.textContent=txt; svg.append(t); if(right){ const r=sv("text",{x:W-PR,y:y+11,class:"tl-val"+(cls?" "+cls:""),"text-anchor":"end"}); r.textContent=right; svg.append(r); } y+=16; };
+  const summary=[];
+  for(const L of lanes){
+    const top=y;
+    if(L.type==="strip"){
+      const key=L.id==="mood"?"feel":"energy", pts=Object.values(days).filter(d=>d[key]&&inR(d.date)).sort((a,b)=>a.date.localeCompare(b.date));
+      const avg=pts.length? (pts.reduce((a,d)=>a+d[key],0)/pts.length) : null;
+      label(L.name, avg!=null? "average "+avg.toFixed(1)+" / 5" : "");
+      svg.append(sv("rect",{x:PL,y,width:W-PL-PR,height:H.strip,rx:4,fill:"var(--bg)"}));
+      for(const d of pts) svg.append(sv("rect",{x:X(d.date)-bw/2,y,width:bw,height:H.strip,rx:Math.min(2,bw/2),fill:"var(--mood"+d[key]+")"}));
+      if(!pts.length) tlEmpty(svg,W,y,H.strip,"Nothing logged yet. Use the daily check-in.");
+      summary.push(L.name+": "+(pts.length? pts.map(d=>d.date.slice(5)+"="+d[key]).join(", ") : "none logged"));
+      y+=H.strip;
+    } else if(L.type==="period"){
+      const pts=Object.values(days).filter(d=>d.period&&inR(d.date));
+      label(L.name, pts.length? pts.length+" day"+(pts.length>1?"s":"") : "");
+      svg.append(sv("rect",{x:PL,y,width:W-PL-PR,height:H.period,rx:4,fill:"var(--bg)"}));
+      for(const d of pts) svg.append(sv("rect",{x:X(d.date)-bw/2,y,width:bw,height:H.period,rx:Math.min(2,bw/2),fill:"var(--period)","fill-opacity":d.period==="light"?.45:d.period==="medium"?.72:1}));
+      if(!pts.length) tlEmpty(svg,W,y,H.period,"No periods logged in this range.");
+      summary.push("Period days: "+(pts.length? pts.sort((a,b)=>a.date.localeCompare(b.date)).map(d=>d.date.slice(5)+"("+d.period+")").join(", ") : "none"));
+      y+=H.period;
+    } else if(L.type==="sym"){
+      const by={}; for(const e of ofKind("symptom")) if(e.date&&inR(e.date)) (by[e.date]=by[e.date]||[]).push(e);
+      const total=Object.values(by).reduce((a,v)=>a+v.length,0);
+      label(L.name, total? total+" logged" : "");
+      svg.append(sv("rect",{x:PL,y,width:W-PL-PR,height:H.sym,rx:4,fill:"var(--bg)"}));
+      for(const [d,arr] of Object.entries(by)){ const sev=Math.max(0,...arr.map(e=>e.severity||0)); const r=Math.min(8, 3+arr.length*1.3);
+        svg.append(sv("circle",{cx:X(d),cy:y+H.sym/2,r,fill:sev>=7?"var(--alert)":"var(--warn-ic)","fill-opacity":sev>=7?.95:.7})); }
+      if(!total) tlEmpty(svg,W,y,H.sym,"No symptoms logged in this range.");
+      summary.push("Symptoms: "+(total? Object.entries(by).sort().map(([d,a])=>d.slice(5)+" "+a.map(e=>e.title+(e.severity?" "+e.severity+"/10":"")+(e.time?" at "+e.time:"")).join("; ")).join(" | ") : "none"));
+      y+=H.sym;
+    } else if(L.type==="line"||L.type==="bp"){
+      let series=[];
+      if(L.id==="weight") series=[Object.values(days).filter(d=>typeof d.weight==="number"&&inR(d.date)).map(d=>({date:d.date,value:d.weight})).sort((a,b)=>a.date.localeCompare(b.date))];
+      else if(L.type==="bp"){ const s1=[],s2=[]; for(const d of Object.values(days)) if(inR(d.date)) for(const r of (Array.isArray(d.bp)?d.bp:[])){ s1.push({date:d.date,value:r.sys,low:90,high:140}); s2.push({date:d.date,value:r.dia,low:60,high:90}); } series=[s1.sort((a,b)=>a.date.localeCompare(b.date)), s2.sort((a,b)=>a.date.localeCompare(b.date))]; }
+      else series=[(testGroups().get(L.test)||[]).filter(e=>inR(e.date))];
+      const all=series.flat(), last=series[0][series[0].length-1];
+      const rv=last? (L.type==="bp"? last.value+"/"+series[1][series[1].length-1].value : last.value)+(L.unit?" "+L.unit:"") : "";
+      const f=last&&L.type!=="bp"? flag(last) : "";
+      label(L.name, rv+(f?" "+f:""), f?"flag":"");
+      const h0=H.line;
+      if(!all.length){ svg.append(sv("rect",{x:PL,y,width:W-PL-PR,height:h0,rx:4,fill:"var(--bg)"})); tlEmpty(svg,W,y,h0, L.id==="weight"?"No weights logged in this range.":"No results in this range. Try 1Y or All."); y+=h0; summary.push(L.name+": none in range"); continue; }
+      const lows=all.map(p=>p.low).filter(v=>typeof v==="number"), highs=all.map(p=>p.high).filter(v=>typeof v==="number");
+      let lo=Math.min(...all.map(p=>p.value), ...(lows.length?[Math.min(...lows)]:[])), hi=Math.max(...all.map(p=>p.value), ...(highs.length?[Math.max(...highs)]:[]));
+      if(L.type!=="bp"&&highs.length&&hi>Math.max(...all.map(p=>p.value))*2.2) hi=Math.max(...all.map(p=>p.value))*1.3;
+      if(lo===hi){ lo-=1; hi+=1; } const pad=(hi-lo)*.12; lo-=pad; hi+=pad;
+      const Y=v=>y+4+(h0-8)*(1-(v-lo)/(hi-lo));
+      svg.append(sv("rect",{x:PL,y,width:W-PL-PR,height:h0,rx:4,fill:"var(--bg)"}));
+      const p0=series[0][0]||{};
+      if(L.type!=="bp"&&(typeof p0.low==="number"||typeof p0.high==="number")){ const t=Y(Math.min(hi,typeof p0.high==="number"?p0.high:hi)), b=Y(Math.max(lo,typeof p0.low==="number"?p0.low:lo)); svg.append(sv("rect",{x:PL,y:t,width:W-PL-PR,height:Math.max(0,b-t),fill:"var(--soft)"})); }
+      if(L.type==="bp") for(const v of [90,140,60]){ if(v>lo&&v<hi) svg.append(sv("line",{x1:PL,x2:W-PR,y1:Y(v),y2:Y(v),stroke:"var(--line)","stroke-dasharray":"3 3"})); }
+      series.forEach((ser,si)=>{
+        const col= L.type==="bp"? (si?"var(--ai)":"var(--accent)") : L.id==="weight"? "var(--ai)" : "var(--accent)";
+        if(ser.length>1) svg.append(sv("polyline",{points:ser.map(p=>X(p.date).toFixed(1)+","+Y(p.value).toFixed(1)).join(" "),fill:"none",stroke:col,"stroke-width":"2","stroke-linejoin":"round","stroke-linecap":"round"}));
+        const dense=ser.length>30;
+        ser.forEach((p,i)=>{ const fl=L.type!=="bp"&&flag(p); if(dense&&!fl&&i!==ser.length-1) return; svg.append(sv("circle",{cx:X(p.date),cy:Y(p.value),r:i===ser.length-1?4:dense?2.4:3,fill:fl?"var(--alert)":col,stroke:"var(--surface)","stroke-width":"1.5"})); });
+      });
+      if(L.type!=="bp"&&series[0].length<=8&&W>=320) for(const p of series[0]){ const lw=String(p.value).length*3.3+3; const t=sv("text",{x:Math.min(W-PR-lw, Math.max(PL+lw, X(p.date))),y:Math.max(y+9,Y(p.value)-7),class:"tl-pt","text-anchor":"middle"}); t.textContent=String(p.value); svg.append(t); }
+      summary.push(L.name+(L.unit?" ("+L.unit+")":"")+": "+(L.type==="bp"? series[0].map((p,i)=>p.date.slice(5)+" "+p.value+"/"+series[1][i].value).join(", ") : series[0].map(p=>p.date+" "+p.value+(flag(p)?" "+flag(p):"")).join(", ")));
+      y+=h0;
+    }
+    rows.push([top,y]); y+=10;
+  }
+  // events
+  const ev=tlEvents(from,to), evTop=y;
+  const chartBottom=y-10;
+  const occ=[[],[],[]]; const free=(r,a,b)=>occ[r].every(([c,d])=>b<c-4||a>d+4);
+  for(const e of ev){ e.x=X(e.date); e.txt=e.label.length>18? e.label.slice(0,17)+"…" : e.label; const tw=e.txt.length*5.7+10;
+    const opts=[[e.x-4, e.x+tw, "r"], [e.x-tw, e.x+4, "l"]].filter(([a,b])=>a>=PL-2&&b<=W-PR+2);
+    e.row=-1; outer: for(let r=0;r<3;r++) for(const [a,b,side] of opts){ if(free(r,a,b)){ occ[r].push([a,b]); e.row=r; e.side=side; break outer; } }
+    if(e.row<0){ for(let r=0;r<3;r++) if(free(r,e.x-5,e.x+5)){ occ[r].push([e.x-5,e.x+5]); e.row=r; e.side=null; break; } if(e.row<0) e.row=2; } }
+  for(const e of ev){
+    svg.insertBefore(sv("line",{x1:e.x,x2:e.x,y1:0,y2:chartBottom,stroke:"var(--muted)","stroke-dasharray":"2 3","stroke-opacity":".55"}), svg.firstChild);
+    const ry=evTop+4+(Math.max(0,e.row))*16, col=e.type==="appt"?"var(--ai)":e.type==="cond"?"var(--due)":"var(--accent)";
+    svg.append(sv("rect",{x:e.x-3.5,y:ry,width:7,height:7,fill:col,transform:"rotate(45 "+e.x+" "+(ry+3.5)+")"}));
+    if(e.side){ const t=sv("text",{x: e.side==="r"? e.x+7 : e.x-7, y:ry+8, class:"tl-ev","text-anchor": e.side==="r"?"start":"end"}); t.textContent=e.txt; svg.append(t); }
+  }
+  if(ev.length) y=evTop+4+Math.min(3,Math.max(1,...ev.map(e=>e.row+1)))*16;
+  // axis
+  const axY=y+6; const ticks=tlTicks(from,to,n);
+  for(const [iso,lab] of ticks){ const x=X(iso); const t=sv("text",{x,y:axY+10,class:"tl-ax","text-anchor":"middle"}); t.textContent=lab; svg.append(t); svg.append(sv("line",{x1:x,x2:x,y1:axY-5,y2:axY-1,stroke:"var(--line)"})); }
+  y=axY+16;
+  // crosshair + hit area
+  const cross=sv("line",{x1:0,x2:0,y1:0,y2:chartBottom,stroke:"var(--ink)","stroke-width":"1.5"}); svg.append(cross);
+  const hit=sv("rect",{x:0,y:0,width:W,height:y,fill:"transparent",style:"cursor:crosshair;touch-action:pan-y"}); svg.append(hit);
+  const setDay=iso=>{ TL.day=iso; const x=X(iso); cross.setAttribute("x1",x); cross.setAttribute("x2",x); tlRenderDetail(iso); };
+  const fromX=cx=>{ const r=svg.getBoundingClientRect(); const px=(cx-r.left)*W/r.width; let i=Math.floor((px-PL)/((W-PL-PR)/n)); i=Math.max(0,Math.min(n-1,i)); return addDays(from,i); };
+  let drag=false;
+  hit.addEventListener("pointerdown",e=>{ drag=true; setDay(fromX(e.clientX)); });
+  hit.addEventListener("pointermove",e=>{ if(drag||e.pointerType==="mouse") setDay(fromX(e.clientX)); });
+  window.addEventListener("pointerup",()=>{ drag=false; });
+  svg.setAttribute("viewBox","0 0 "+W+" "+y);
+  svg.setAttribute("aria-label","Timeline from "+fmtDate(from)+" to "+fmtDate(to)+" showing "+lanes.map(l=>l.name).join(", "));
+  host.replaceChildren(svg);
+  TL.summary="Timeline "+fmtDate(from)+" to "+fmtDate(to)+".\n"+summary.join("\n")+(ev.length?"\nEvents: "+ev.map(e=>e.date+" "+e.label+" ("+e.type+")").join("; "):"");
+  setDay(TL.day);
+}
+function tlEmpty(svg,W,y,h0,txt){ const t=sv("text",{x:W/2,y:y+h0/2+4,class:"tl-empty","text-anchor":"middle"}); t.textContent=txt; svg.append(t); }
+function tlTicks(from,to,n){
+  const out=[]; const [fy,fm]=from.split("-").map(Number);
+  if(n<=45){ for(let i=0;i<n;i+=7){ const d=addDays(from,i); out.push([d, +d.slice(8)+" "+MON[+d.slice(5,7)-1]]); } return out; }
+  const step= n<=130?1: n<=400?2: n<=800?4: 12;
+  let y=fy, m=fm; for(;;){ m++; if(m>12){m=1;y++;} const iso=y+"-"+String(m).padStart(2,"0")+"-01"; if(iso>to) break; if(((m-1)%step)===0) out.push([iso, step>=12? String(y) : MON[m-1]+(m===1||step>1?" "+String(y).slice(2):"")]); }
+  return out;
+}
+function tlRenderDetail(iso){
+  const rows=tlDayData(iso);
+  $("#tlDetail").replaceChildren(
+    h("div",{class:"tl-dh"}, h("strong",{}, longDate(iso)+(iso===todayISO()?" (today)":"")), h("button",{class:"btn ghost small",type:"button",onclick:()=>openDay(iso)},"Open day ›")),
+    rows.length? h("ul",{class:"tl-dl"}, ...rows.map(([k,v])=>h("li",{}, h("span",{class:"k"},k), h("span",{},v)))) : h("p",{class:"none"},"Nothing logged on this day."));
+}
+let tlResizeT; window.addEventListener("resize",()=>{ clearTimeout(tlResizeT); tlResizeT=setTimeout(()=>{ if(!$("#v-timeline").hidden) renderTimeline(); },200); });
+$("#tlAsk").addEventListener("click", async ()=>{
+  if(!S.sample){ disableAI("Claude isn't available on this page right now."); return; }
+  const out=$("#tlAi"); out.hidden=false; out.replaceChildren(h("p",{class:"thinking"},"Claude is looking at your timeline…"));
+  $("#tlAsk").disabled=true; $("#tlStop").hidden=false; TL.ctl=new AbortController();
+  const prompt=GUIDE+"\n\nTheir full health logbook for background:\n"+buildContext()+"\n\nThey are looking at this timeline chart (dates are MM-DD within the range, mood and energy 1 worst to 5 best):\n"+TL.summary
+    +"\n\nLook across the lines on this chart for links and patterns: things that happen together, before or after each other, around periods, medicine changes, meals or appointments, and changes over time. Use exactly these sections, each starting with '## ':\n## What the chart shows\n## Possible links\n(each with how strong the evidence is: weak, moderate or strong, and what else could explain it)\n## Worth raising with the GP\n## Keep tracking\nUse '- ' bullets. Under 350 words. If there's too little data to say much, say so plainly and say what to log for the next few weeks. This is to take to their clinician, not a diagnosis.";
+  try{
+    const {text}=await S.sample(prompt,{signal:TL.ctl.signal,cache:false,modelTier:"complex",onText:({text})=>{ out.replaceChildren(md(text)); }});
+    TL.text=text; out.replaceChildren(md(text), replyActions(text, "What my health timeline shows"));
+  }catch(e){ const msg=aiErr(e); out.replaceChildren(...(e&&e.text&&e.code!=="refused"?[md(e.text)]:[]), ...(msg?[h("p",{class:"notice warn"},msg)]:[])); if(!out.childNodes.length) out.hidden=true; }
+  finally{ $("#tlAsk").disabled=S.aiOff; $("#tlStop").hidden=true; }
+});
+$("#tlStop").addEventListener("click",()=>TL.ctl&&TL.ctl.abort());
 
 /* ---------- whole-history review ---------- */
 $("#revGo").addEventListener("click", async ()=>{
