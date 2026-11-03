@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-03.6">
+<meta name="app-version" content="2026-11-03.7">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -421,6 +421,55 @@ main{padding-top:10px}
 .gi svg{width:26px;height:26px}
 img.gi{padding:0;object-fit:cover}
 
+/* visuals in replies */
+.viz{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;margin:4px 0;overflow-x:auto}
+.viz.pending{color:var(--muted);font-style:italic;font-size:.9rem}
+.viz.diagram{align-items:center}
+.viz.diagram svg{height:auto}
+.viz-title{font-weight:700}
+.vc{display:flex;flex-direction:column;gap:4px}
+.vc-head{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+.vc-last{font-family:var(--f-mono);font-size:.82rem}
+.vc-last.flag{color:var(--alert)}
+.vc svg{width:100%;height:auto;overflow:visible}
+.vc-meta{display:flex;justify-content:space-between;gap:8px;font-size:.72rem;color:var(--muted);font-family:var(--f-mono)}
+.vc-meta span:nth-child(2){text-align:center;font-family:var(--f-body)}
+.md-table{overflow-x:auto;margin:4px 0}
+.md-table table{border-collapse:collapse;font-size:.88rem;min-width:100%}
+.md-table th,.md-table td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.md-table th{font-weight:700;background:var(--soft)}
+.md-pre{white-space:pre-wrap;font-family:var(--f-mono);font-size:.8rem;background:var(--bg);border-radius:8px;padding:8px}
+.bub-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;padding-top:8px;border-top:1px solid rgba(90,74,138,.18)}
+.act{min-height:34px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--ai);font-weight:700;font-size:.82rem;cursor:pointer}
+.act:disabled{opacity:.6}
+
+/* document */
+.doc-frame{border-radius:12px;overflow:hidden;box-shadow:0 2px 14px rgba(0,0,0,.18);background:#FFFFFF}
+.docpage{background:#FFFFFF;color:#16302A;padding:22px 22px 18px;display:flex;flex-direction:column;gap:10px;font-family:var(--f-body);font-size:14px;line-height:1.5;
+  --ink:#16302A;--muted:#566A64;--line:#D6E0DB;--soft:#E1EEE8;--accent:#1E6B57;--alert:#A8261D;--alert-soft:#FBE8E5;--ai:#5A4A8A;--ai-soft:#ECE8F6;--surface:#FFFFFF;--bg:#F2F5F3;--period:#C2477A}
+.docpage *{color:inherit}
+.doc-head{display:flex;gap:10px;align-items:center;border-bottom:2px solid #1E6B57;padding-bottom:10px}
+.doc-head img{border-radius:8px}
+.doc-k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#1E6B57}
+.doc-who{font-size:13px;color:#566A64}
+.doc-title{font-family:var(--f-display);font-weight:400;font-size:22px;line-height:1.2;margin-top:4px}
+.doc-date{font-size:12px;color:#566A64}
+.doc-body{display:flex;flex-direction:column;gap:8px}
+.doc-body h3{font-family:var(--f-display);font-weight:400;font-size:16px;color:#1E6B57;margin-top:8px}
+.doc-body ul,.doc-body ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:3px}
+.doc-body .viz{background:#FFFFFF;border-color:#D6E0DB;overflow:visible}
+.doc-body .viz.diagram svg{max-width:min(100%,460px)!important}
+.doc-foot{margin-top:10px;padding-top:8px;border-top:1px solid #D6E0DB;font-size:11px;color:#566A64}
+
+.print-root{display:none}
+@media print{
+  body.printing > *:not(.print-root){display:none!important}
+  body.printing .print-root{display:block}
+  body.printing{background:#FFFFFF}
+  .print-root .docpage{padding:0}
+  .print-root .viz,.print-root tr,.print-root li{break-inside:avoid}
+}
+
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
 .tab svg{width:54px;height:30px;padding:4px 16px;border-radius:99px;transition:background .15s ease}
@@ -604,7 +653,7 @@ img.gi{padding:0;object-fit:cover}
     <div id="prepTools" class="row" hidden>
       <button class="btn" id="prepCopy" type="button">Copy</button>
       <button class="btn" id="prepSave" type="button">Save to this appointment</button>
-      <button class="btn" id="prepFile" type="button">Save as a file</button>
+      <button class="btn" id="prepFile" type="button">Make a document</button>
     </div>
 
     <hr class="sep">
@@ -622,7 +671,7 @@ img.gi{padding:0;object-fit:cover}
     <div id="revTools" class="row" hidden>
       <button class="btn" id="revCopy" type="button">Copy</button>
       <button class="btn" id="revSave" type="button">Save to my logbook</button>
-      <button class="btn" id="revFile" type="button">Save as a file</button>
+      <button class="btn" id="revFile" type="button">Make a document</button>
     </div>
   </section>
 
@@ -769,18 +818,207 @@ function subline(e){
 
 /* tiny markdown: ## headings, - bullets, 1. lists, **bold** */
 function inline(s){ return s.split(/(\*\*[^*]+\*\*)/).filter(Boolean).map(p=> (p.length>4&&p.startsWith("**")&&p.endsWith("**"))? h("strong",{},p.slice(2,-2)) : document.createTextNode(p)); }
-function md(text){
-  const frag=document.createDocumentFragment(); let list=null, listType="";
-  for(const raw of String(text).split("\n")){
-    const line=raw.trimEnd();
+function md(text, opt){
+  opt=opt||{};
+  const frag=document.createDocumentFragment(); let list=null, listType="", fence=null, fbuf=[], table=null;
+  const lines=String(text).split("\n");
+  const flushTable=()=>{ if(table){ frag.append(mdTable(table)); table=null; } };
+  for(let li=0; li<lines.length; li++){
+    const line=lines[li].trimEnd();
     let m;
+    if(fence){
+      if(/^\s*```\s*$/.test(line)){ frag.append(fenceBlock(fence, fbuf.join("\n"), true, opt)); fence=null; fbuf=[]; }
+      else fbuf.push(lines[li]);
+      continue;
+    }
+    if((m=line.match(/^\s*```\s*([a-z]*)\s*$/i))){ flushTable(); list=null; fence=(m[1]||"text").toLowerCase(); fbuf=[]; continue; }
+    if(/^\s*\|.*\|\s*$/.test(line)){ list=null; (table=table||[]).push(line); continue; }
+    flushTable();
     if(/^#{1,4}\s+/.test(line)){ list=null; frag.append(h("h3",{},inline(line.replace(/^#{1,4}\s+/,"")))); }
     else if((m=line.match(/^\s*[-*•]\s+(.*)$/))){ if(!list||listType!=="ul"){list=h("ul");listType="ul";frag.append(list);} list.append(h("li",{},inline(m[1]))); }
     else if((m=line.match(/^\s*\d+[.)]\s+(.*)$/))){ if(!list||listType!=="ol"){list=h("ol");listType="ol";frag.append(list);} list.append(h("li",{},inline(m[1]))); }
     else if(!line.trim()){ list=null; }
     else { list=null; frag.append(h("p",{},inline(line))); }
   }
+  flushTable();
+  if(fence) frag.append(fenceBlock(fence, fbuf.join("\n"), false, opt));
   return frag;
+}
+function mdTable(rows){
+  const cells=r=>r.trim().replace(/^\|/,"").replace(/\|$/,"").split("|").map(c=>c.trim());
+  const body=rows.filter(r=>!/^\s*\|?(\s*:?-{2,}:?\s*\|)+\s*(:?-{2,}:?\s*)?$/.test(r.trim())).map(cells);
+  if(!body.length) return h("span");
+  const [head,...rest]=body;
+  return h("div",{class:"md-table"}, h("table",{}, h("thead",{}, h("tr",{}, ...head.map(c=>h("th",{},inline(c))))), h("tbody",{}, ...rest.map(r=>h("tr",{}, ...r.map(c=>h("td",{},inline(c))))))));
+}
+function fenceBlock(kind, code, done, opt){
+  if(kind==="mermaid"){
+    if(!done) return h("div",{class:"viz pending"},"Drawing a diagram…");
+    return mermaidBlock(code, opt);
+  }
+  if(kind==="chart"){
+    if(!done) return h("div",{class:"viz pending"},"Making a chart…");
+    let spec=null; try{ spec=JSON.parse(code); }catch{}
+    return spec? chartBlock(spec) : h("div",{class:"viz pending"},"(This chart couldn't be drawn.)");
+  }
+  return h("pre",{class:"md-pre"}, code);
+}
+
+/* ---------- diagrams (Mermaid, loaded only when needed) ---------- */
+const MERMAID_SRC="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js";
+let mermaidP=null; const mmCache=new Map(), mmInflight=new Map(); let mmN=0, mmQueue=Promise.resolve();
+function loadScript(src){ return new Promise((res,rej)=>{ const sc=document.createElement("script"); sc.src=src; sc.onload=res; sc.onerror=()=>rej(new Error("load")); document.head.append(sc); }); }
+function isDark(){ const t=document.documentElement.dataset.theme; if(t) return t==="dark"; try{ return matchMedia("(prefers-color-scheme: dark)").matches; }catch{ return false; } }
+function loadMermaid(){
+  if(!mermaidP) mermaidP=(window.mermaid? Promise.resolve() : loadScript(MERMAID_SRC)).then(()=>window.mermaid);
+  return mermaidP;
+}
+function mmConfig(dark){
+  return {startOnLoad:false, securityLevel:"strict", theme:"base", fontFamily:"Atkinson Hyperlegible, system-ui, sans-serif",
+    flowchart:{htmlLabels:false, curve:"basis", useMaxWidth:true}, timeline:{useMaxWidth:true},
+    themeVariables: dark? {background:"#162321",primaryColor:"#1B2F2A",primaryBorderColor:"#62C4A3",primaryTextColor:"#E3EDE9",lineColor:"#93A7A0",secondaryColor:"#241F39",tertiaryColor:"#3A1F1C",fontSize:"15px",textColor:"#E3EDE9"}
+                        : {background:"#FFFFFF",primaryColor:"#E1EEE8",primaryBorderColor:"#1E6B57",primaryTextColor:"#16302A",lineColor:"#566A64",secondaryColor:"#ECE8F6",tertiaryColor:"#FBE8E5",fontSize:"15px",textColor:"#16302A"}};
+}
+function mermaidBlock(code, opt){
+  const dark= opt.light? false : isDark(), key=(dark?"d:":"l:")+code;
+  const box=h("div",{class:"viz diagram"});
+  const put=svg=>{ box.innerHTML=svg; const el=box.querySelector("svg"); if(el){ el.removeAttribute("height"); el.style.maxWidth="100%"; el.setAttribute("role","img"); el.setAttribute("aria-label","Diagram"); } };
+  if(mmCache.has(key)){ const v=mmCache.get(key); if(v) put(v); else box.replaceChildren(h("pre",{class:"md-pre"},code)); return box; }
+  box.textContent="Drawing a diagram…"; box.classList.add("pending");
+  box.dataset.pending="1";
+  if(!mmInflight.has(key)) mmInflight.set(key, mmQueue=mmQueue.then(()=>loadMermaid()).then(async mm=>{
+    mm.initialize(mmConfig(dark));
+    const {svg}=await mm.render("mm"+(++mmN), code.trim());
+    mmCache.set(key, svg); return svg;
+  }).catch(()=>{ mmCache.set(key,""); return ""; }).finally(()=>mmInflight.delete(key)));
+  mmInflight.get(key).then(svg=>{ box.classList.remove("pending"); if(svg) put(svg); else box.replaceChildren(h("p",{class:"none"},"(The diagram couldn't be drawn.)")); delete box.dataset.pending; });
+  return box;
+}
+
+/* ---------- charts drawn from the logbook's own numbers ---------- */
+function seriesFor(name){
+  const k=testKey(name), out=[];
+  if(/^blood pressure|^bp$/.test(k)){
+    for(const d of Object.values(S.days||{})) for(const r of (Array.isArray(d.bp)?d.bp:[])) if(typeof r.sys==="number") out.push({date:d.date,value:r.sys,unit:"mmHg",low:90,high:140,title:"Blood pressure (top number)"});
+    return out;
+  }
+  if(k==="weight"){ for(const d of Object.values(S.days||{})) if(typeof d.weight==="number") out.push({date:d.date,value:d.weight,unit:"kg",title:"Weight"}); return out; }
+  if(k==="mood"||k==="feeling"){ for(const d of Object.values(S.days||{})) if(d.feel) out.push({date:d.date,value:d.feel,unit:"/5",low:3,title:"How you felt (1 awful to 5 great)"}); return out; }
+  if(k==="energy"){ for(const d of Object.values(S.days||{})) if(d.energy) out.push({date:d.date,value:d.energy,unit:"/5",title:"Energy (1 to 5)"}); return out; }
+  if(k==="cycle length"||k==="cycle"){ for(const c of cycleList()) if(c.len) out.push({date:c.start,value:c.len,unit:"days",low:21,high:35,title:"Cycle length"}); return out; }
+  if(k==="period length"||k==="period"){ for(const c of cycleList()) if(c.plen) out.push({date:c.start,value:c.plen,unit:"days",high:7,title:"Period length (days bleeding)"}); return out; }
+  for(const e of ofKind("result")) if(typeof e.value==="number"&&e.date&&testKey(e.title)===k) out.push(e);
+  if(!out.length){ for(const e of ofKind("result")) if(typeof e.value==="number"&&e.date&&testKey(e.title).includes(k)&&k.length>=3) out.push(e); }
+  return out;
+}
+function chartBlock(spec){
+  const names=(Array.isArray(spec.tests)?spec.tests:Array.isArray(spec.series)?spec.series:[spec.test]).filter(Boolean).slice(0,4);
+  const box=h("div",{class:"viz chart"});
+  if(spec.title) box.append(h("p",{class:"viz-title"},String(spec.title)));
+  for(const n of names){
+    let pts=seriesFor(n).filter(p=>!spec.from||p.date>=spec.from).sort((a,b)=>a.date.localeCompare(b.date));
+    if(!pts.length){ box.append(h("p",{class:"none"},"No results for “"+n+"” in the logbook.")); continue; }
+    const last=pts[pts.length-1], f=flag(last);
+    const rng= typeof last.low==="number"&&typeof last.high==="number"? "normal "+last.low+"–"+last.high : typeof last.low==="number"? "normal above "+last.low : typeof last.high==="number"? "normal below "+last.high : "";
+    const vals=pts.map(p=>p.value), lo=Math.min(...vals), hi=Math.max(...vals);
+    box.append(h("div",{class:"vc"},
+      h("div",{class:"vc-head"}, h("strong",{},last.title||n), h("span",{class:"vc-last"+(f?" flag":"")}, "latest "+last.value+(last.unit?" "+last.unit:"")+(f?" ("+f+")":""))),
+      sparkline(pts),
+      h("div",{class:"vc-meta"}, h("span",{},fmtDate(pts[0].date)), h("span",{}, pts.length+" reading"+(pts.length>1?"s":"")+" · lowest "+lo+", highest "+hi+(rng?" · "+rng:"")), h("span",{},fmtDate(last.date)))));
+  }
+  return box;
+}
+
+/* ---------- turning a reply into a note or a document ---------- */
+function plainForNote(text){
+  return String(text).replace(/```mermaid[\s\S]*?```/g,"[diagram]").replace(/```chart\s*([\s\S]*?)```/g,(m,j)=>{ try{ const o=JSON.parse(j); return "[chart: "+(o.title||(o.tests||[]).join(", "))+"]"; }catch{ return "[chart]"; } }).trim();
+}
+function docTitleOf(text, fallback){ const m=String(text).match(/^\s*#{1,2}\s+(.+)$/m); return (m&&m[1].replace(/[*_`]/g,"").trim().slice(0,90)) || fallback; }
+async function saveReplyNote(text, title){
+  const ok=await saveEntry({kind:"note", title:title||docTitleOf(text,"From a chat with Claude"), date:todayISO(), details:plainForNote(text), md:text, source:"claude"});
+  if(ok) toast("Saved to Notes & reviews");
+  return ok;
+}
+function replyActions(text, title){
+  const save=h("button",{class:"act",type:"button",disabled:!S.canWrite||null},"Save to logbook");
+  save.addEventListener("click", async ()=>{ save.disabled=true; const ok=await saveReplyNote(text,title); save.textContent= ok? "Saved ✓" : "Save to logbook"; if(!ok) save.disabled=false; });
+  return h("div",{class:"bub-actions"},
+    save,
+    h("button",{class:"act",type:"button",onclick:()=>openDocument(text,title)},"Make a document"),
+    h("button",{class:"act",type:"button",onclick:(ev)=>copyText(plainForNote(text), ev.target.closest(".bubble")||document.body)},"Copy"));
+}
+const PDF_SRC="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+let pdfP=null;
+function loadPdf(){ if(!pdfP) pdfP=(window.html2pdf? Promise.resolve() : loadScript(PDF_SRC)).then(()=>window.html2pdf); return pdfP; }
+function buildDocPage(text, title){
+  const p=S.profile||{};
+  const body=md(String(text).replace(/^\s*#{1,2}\s+.+\n?/,"").split("\n").filter(l=>!/make a document/i.test(l)).join("\n"), {light:true});
+  const who=[p.name, p.dob? "born "+fmtDate(p.dob) : "", p.gp? p.gp : ""].filter(Boolean).join(" · ");
+  return h("div",{class:"docpage"},
+    h("div",{class:"doc-head"}, h("img",{src:"icon-180.png",alt:"",width:"34",height:"34"}), h("div",{}, h("p",{class:"doc-k"},"Health Logbook"), h("p",{class:"doc-who"},who||"My health"))),
+    h("h1",{class:"doc-title"},title),
+    h("p",{class:"doc-date"},"Written "+new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})+" with help from Claude, from my own health logbook"),
+    h("div",{class:"doc-body"},body),
+    h("p",{class:"doc-foot"},"This is my own summary to help with my care. It is not a medical record or a diagnosis. Please check anything important against my records."));
+}
+function waitDiagrams(root){ return new Promise(res=>{ const t0=Date.now(); (function tick(){ if(!root.querySelector("[data-pending]")||Date.now()-t0>15000) res(); else setTimeout(tick,150); })(); }); }
+function freezeSvgColors(root){
+  root.querySelectorAll("svg *").forEach(el=>{ const cs=getComputedStyle(el); for(const k of ["fill","stroke"]){ const v=el.style[k]; if(v&&v.startsWith("var(")){ el.style[k]=cs[k]; } } });
+}
+async function svgsToImages(root){
+  for(const svg of [...root.querySelectorAll("svg")]){
+    const r=svg.getBoundingClientRect(); if(!r.width||!r.height) continue;
+    const c=svg.cloneNode(true); c.setAttribute("width",String(r.width)); c.setAttribute("height",String(r.height)); c.setAttribute("xmlns","http://www.w3.org/2000/svg");
+    const img=new Image(); img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(new XMLSerializer().serializeToString(c));
+    try{ await img.decode(); }catch{ continue; }
+    const k=2, cv=document.createElement("canvas"); cv.width=Math.ceil(r.width*k); cv.height=Math.ceil(r.height*k);
+    const ctx=cv.getContext("2d"); ctx.scale(k,k); ctx.drawImage(img,0,0,r.width,r.height);
+    let src; try{ src=cv.toDataURL("image/png"); }catch{ continue; }
+    const out=new Image(); out.src=src; out.alt=svg.getAttribute("aria-label")||""; out.style.cssText="display:block;width:"+r.width+"px;height:"+r.height+"px;max-width:100%";
+    try{ await out.decode(); }catch{}
+    svg.replaceWith(out);
+  }
+}
+async function makePdfBlob(page, fname){
+  const lib=await loadPdf(); await waitDiagrams(page);
+  const holder=h("div",{style:"position:absolute;left:-10000px;top:0;width:740px;background:#FFFFFF"});
+  const clone=page.cloneNode(true); holder.append(clone); document.body.append(holder);
+  try{
+    freezeSvgColors(clone); await svgsToImages(clone);
+    return await lib().set({margin:[12,12,14,12], filename:fname, image:{type:"jpeg",quality:0.94},
+      html2canvas:{scale:2,backgroundColor:"#FFFFFF",useCORS:true,scrollX:0,scrollY:0,windowWidth:740},
+      jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}, pagebreak:{mode:["css","legacy"],avoid:[".viz",".vc",".md-table","tr","li","h3"]}}).from(clone).outputPdf("blob");
+  } finally { holder.remove(); }
+}
+function printDoc(page){
+  const root=h("div",{class:"print-root"}); root.append(page.cloneNode(true));
+  document.body.append(root); document.body.classList.add("printing");
+  const done=()=>{ document.body.classList.remove("printing"); root.remove(); window.removeEventListener("afterprint",done); };
+  window.addEventListener("afterprint",done); setTimeout(()=>{ try{ window.print(); }catch{} setTimeout(done,60000); },50);
+}
+function openDocument(text, title){
+  title=title||docTitleOf(text, "Notes from my health logbook");
+  const page=buildDocPage(text, title);
+  const go=h("button",{class:"btn primary",type:"button"},"Save as PDF");
+  const st=h("span",{class:"hint"});
+  go.addEventListener("click", async ()=>{
+    go.disabled=true; st.textContent="Making your PDF…";
+    try{
+      const fname=(title.replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"-").slice(0,60)||"health-note")+"-"+todayISO()+".pdf";
+      const blob=await makePdfBlob(page, fname);
+      const file=new File([blob], fname, {type:"application/pdf"});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        try{ await navigator.share({files:[file], title}); st.textContent="Done."; }
+        catch(e){ if(e&&e.name==="AbortError") st.textContent=""; else { await S.downloads.save({filename:fname,data:blob}); st.textContent="Saved to your downloads."; } }
+      } else { await S.downloads.save({filename:fname,data:blob}); st.textContent="Saved to your downloads."; }
+    }catch(e){ console.warn("pdf", e); st.textContent="Couldn't make the PDF here. Use Print instead, then choose Save as PDF or Share."; printBtn.hidden=false; }
+    finally{ go.disabled=false; }
+  });
+  const printBtn=h("button",{class:"btn",type:"button",hidden:true,onclick:()=>printDoc(page)},"Print / Save as PDF");
+  const save=h("button",{class:"btn",type:"button",disabled:!S.canWrite||null},"Save to logbook");
+  save.addEventListener("click", async ()=>{ save.disabled=true; if(await saveReplyNote(text,title)) save.textContent="Saved ✓"; else save.disabled=false; });
+  openSheet("Document", [h("div",{class:"doc-frame"},page), h("div",{class:"row"}, go, printBtn, save), st,
+    h("p",{class:"fineprint"},"On iPhone, Save as PDF opens the share menu: choose Save to Files, Mail, Print or Messages.")]);
 }
 function aiErr(e){
   switch(e&&e.code){
@@ -1261,6 +1499,7 @@ function openEntry(entry, presetKind, preset){
   body.push(h("div",{class:"field"}, h("label",{for:"f-title"},"Name"), title, titleHint));
   body.push(h("div",{class:"field"}, dateLab, date));
   body.push(extra);
+  if(!isNew && e.md) body.push(h("div",{class:"prep-saved"}, md(e.md), h("div",{}, h("button",{class:"btn ghost",type:"button",onclick:()=>{ closeSheet(); openDocument(e.md, e.title); }},"Make a document"))));
   body.push(h("div",{class:"field"}, detailLab, details, detailHint));
   if(e.source==="import") body.push(h("p",{class:"fineprint"},"Imported from a screenshot. Check it matches your record."));
 
@@ -1269,7 +1508,7 @@ function openEntry(entry, presetKind, preset){
     const k=kindSel.value; const t=title.value.trim();
     if(!t){ title.focus(); toast("Give it a name first."); return; }
     const v=id=>{ const n=document.getElementById(id); return n? n.value.trim() : ""; };
-    const rec={kind:k,title:t,date:date.value,details:details.value.trim(),source:e.source||"manual",createdAt:e.createdAt,prep:k==="appointment"?e.prep:undefined,prepAt:k==="appointment"?e.prepAt:undefined};
+    const rec={kind:k,title:t,date:date.value,details:details.value.trim(),source:e.source||"manual",createdAt:e.createdAt,md:(k==="note"&&e.md&&details.value.trim()===(e.details||"").trim())?e.md:undefined,prep:k==="appointment"?e.prep:undefined,prepAt:k==="appointment"?e.prepAt:undefined};
     if(k==="medication"){ rec.dose=v("f-dose"); rec.status=v("f-status"); }
     if(k==="condition"){ rec.status=v("f-status"); }
     if(k==="symptom"){ const n=parseInt(v("f-sev"),10); if(n>=1&&n<=10) rec.severity=n; if(e.time) rec.time=e.time; }
@@ -1673,11 +1912,7 @@ $("#prepSave").addEventListener("click", async ()=>{
   const ok=await write(()=>S.col.doc(a.id).update({prep:S.prepText, prepAt:Date.now(), updatedAt:Date.now()}));
   if(ok){ toast("Saved to "+a.title); $("#prepSave").textContent="Saved"; }
 });
-$("#prepFile").addEventListener("click", async ()=>{
-  if(!S.downloads||!S.prepText) return;
-  try{ await S.downloads.save({filename:"appointment-brief-"+todayISO()+".txt", data:S.prepText}); }
-  catch(e){ if(e&&e.code&&!/declin|cancel/i.test(e.code)) toast("Couldn't save the file."); }
-});
+$("#prepFile").addEventListener("click", ()=>{ if(!S.prepText) return; const a=selectedAppt(); openDocument(S.prepText, "Appointment brief"+(a&&a.title?": "+a.title:"")); });
 
 /* ---------- diary ---------- */
 const FEEL=["Awful","Poor","OK","Good","Great"];
@@ -1821,11 +2056,7 @@ $("#revSave").addEventListener("click", async ()=>{
   const ok=await saveEntry({kind:"note", title:"History review", date:todayISO(), details:S.revText, source:"claude"});
   if(ok){ toast("Saved to Notes & reviews"); $("#revSave").textContent="Saved"; $("#revSave").disabled=true; setTimeout(()=>$("#revSave").disabled=false,1500); }
 });
-$("#revFile").addEventListener("click", async ()=>{
-  if(!S.downloads||!S.revText) return;
-  try{ await S.downloads.save({filename:"history-review-"+todayISO()+".txt", data:S.revText}); }
-  catch(e){ if(e&&e.code&&!/declin|cancel/i.test(e.code)) toast("Couldn't save the file."); }
-});
+$("#revFile").addEventListener("click", ()=>{ if(!S.revText) return; openDocument(S.revText, "Review of my health history"); });
 
 /* ---------- ask ---------- */
 const STARTERS=[
@@ -1838,7 +2069,7 @@ const STARTERS=[
 $("#starters").replaceChildren(...STARTERS.map(([l,t])=>h("button",{class:"fchip",type:"button",onclick:()=>{ const c=$("#chatIn"); c.value=t; c.focus(); if(l==="Explain a letter"&&!$("#attachLbl").hidden) toast("Add a photo of the letter, then Send."); }},l)));
 function addBubble(role, content){
   const b=h("div",{class:"bubble "+(role==="user"?"me":"claude")});
-  if(role==="user") b.textContent=content; else b.append(md(content));
+  if(role==="user") b.textContent=content; else b.append(md(content), replyActions(content));
   $("#chatlog").append(b); b.scrollIntoView({block:"end",behavior:"smooth"}); return b;
 }
 $("#chatFile").addEventListener("change",()=>{
@@ -1858,13 +2089,18 @@ async function sendChat(){
   const bub=h("div",{class:"bubble claude"}, h("span",{class:"thinking"},"Thinking…")); $("#chatlog").append(bub); bub.scrollIntoView({block:"end",behavior:"smooth"});
   $("#chatSend").disabled=true; $("#chatStop").hidden=false;
   S.chatCtl=new AbortController();
-  const rules=GUIDE+"\n\nHere is their health logbook:\n"+buildContext()+"\n\nAnswer their questions, using the logbook where it's relevant. If they share a photo of a letter or result, explain it in plain English, define medical terms, and point out anything worth asking the doctor about. Keep answers fairly short (under 250 words) unless they ask for more, and ask a follow-up question when the answer depends on details the logbook lacks. Use '## ' headings and '- ' bullets only when they help.";
+  const rules=GUIDE+"\n\nHere is their health logbook:\n"+buildContext()+"\n\nAnswer their questions, using the logbook where it's relevant. If they share a photo of a letter or result, explain it in plain English, define medical terms, and point out anything worth asking the doctor about. Keep answers fairly short (under 250 words) unless they ask for more, and ask a follow-up question when the answer depends on details the logbook lacks. Use '## ' headings and '- ' bullets only when they help."
+    + "\n\nVISUALS. The app can show three kinds of visual inside your reply. Use one when it genuinely makes things clearer (a pattern over time, how things connect, a sequence of steps, a comparison), not in every answer, and say in a sentence what it shows."
+    + "\n1. A chart of their OWN numbers: a fenced code block with the language 'chart' containing only JSON, e.g. ```chart\n{\"title\":\"Iron levels\",\"tests\":[\"Ferritin\",\"Haemoglobin\"]}\n``` The app draws it from the real values in the logbook, so never put numbers in it. 'tests' takes up to 4 test names exactly as they appear in the logbook, or the special names \"Blood pressure\", \"Weight\", \"Mood\", \"Energy\", \"Cycle length\", \"Period length\". Optional \"from\":\"YYYY-MM-DD\"."
+    + "\n2. A diagram: a fenced code block with the language 'mermaid' using 'flowchart TD' (or 'timeline' for dated events). At most 12 boxes, short plain labels in double quotes, no styling, no HTML, no special characters like ( ) inside unquoted labels."
+    + "\n3. A table: standard markdown pipe table with a header row, for comparisons."
+    + "\nNOTES AND DOCUMENTS. Under each of your replies there are buttons to save it to their logbook or turn it into a PDF document. If they ask for a note, letter, summary or document (for example something to hand to the GP), write the whole reply as that document: start with a '# Title' line, write it in the first person as them where it's for a clinician, keep it clear and well organised, include a chart if results matter, and finish with a line telling them to tap Make a document to save or share it as a PDF.";
   const turns=S.chat.slice(-20);
   try{
     const opts={signal:S.chatCtl.signal, cache:false, onText:({text})=>{ bub.replaceChildren(md(text)); }};
     if(files.length) opts.images=files;
     const {text:reply}=await S.sample([{role:"user",content:rules}, ...turns], opts);
-    bub.replaceChildren(md(reply));
+    bub.replaceChildren(md(reply), replyActions(reply));
     S.chat.push({role:"assistant",content:reply});
   }catch(e){
     const msg=aiErr(e);
