@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-03.9">
+<meta name="app-version" content="2026-11-03.10">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -503,6 +503,7 @@ img.gi{padding:0;object-fit:cover}
 .tl-dl li{display:contents}
 .tl-dl .k{color:var(--muted);font-size:.8rem;font-weight:700;padding-top:2px}
 .tl-picks{display:flex;flex-direction:column}
+#tlComposer .chips{flex:1;min-width:0}
 .tl-pick{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer}
 .tl-pick input{width:20px;height:20px}
 .tl-pick .hint{margin-left:auto}
@@ -614,10 +615,15 @@ img.gi{padding:0;object-fit:cover}
       <div id="tlDetail" class="tl-detail" aria-live="polite"></div>
     </article>
     <div class="row">
-      <button class="btn ai" id="tlAsk" type="button">Ask Claude about this chart</button>
+      <button class="btn ai" id="tlAsk" type="button">Ask Claude to analyse this chart</button>
       <button class="btn" id="tlStop" type="button" hidden>Stop</button>
     </div>
-    <div id="tlAi" class="ai-out" aria-live="polite" hidden></div>
+    <div class="chatlog" id="tlLog" aria-live="polite"></div>
+    <div class="composer" id="tlComposer" hidden>
+      <div class="chips wrapchips" id="tlStarters"></div>
+      <textarea id="tlIn" rows="2" placeholder="Ask a follow-up about this chart…" aria-label="Your question about the chart"></textarea>
+      <div class="row" style="justify-content:flex-end"><button class="btn ai" id="tlSend" type="button">Send</button></div>
+    </div>
     <p class="fineprint">Tap or drag across the chart to see everything from one day. Dashed lines mark appointments, medicines and operations.</p>
   </section>
 
@@ -2278,18 +2284,37 @@ function tlRenderDetail(iso){
     rows.length? h("ul",{class:"tl-dl"}, ...rows.map(([k,v])=>h("li",{}, h("span",{class:"k"},k), h("span",{},v)))) : h("p",{class:"none"},"Nothing logged on this day."));
 }
 let tlResizeT; window.addEventListener("resize",()=>{ clearTimeout(tlResizeT); tlResizeT=setTimeout(()=>{ if(!$("#v-timeline").hidden) renderTimeline(); },200); });
-$("#tlAsk").addEventListener("click", async ()=>{
+TL.chat=[];
+function tlRules(){
+  return GUIDE+"\n\nTheir full health logbook for background:\n"+buildContext()+"\n\nThey are looking at this timeline chart (dates are MM-DD within the range, mood and energy 1 worst to 5 best):\n"+TL.summary
+    +"\n\nYou are helping them understand this chart. Look across its lines for links and patterns: things that happen together, before or after each other, around periods, medicine changes, meals or appointments, and changes over time. Say how strong each link is (weak, moderate or strong) and what else could explain it. You can add a ```chart block or a small table if it helps (see the formats below). This is to take to their clinician, not a diagnosis."
+    +"\n\nVISUALS: a chart of their own numbers is a ```chart code block holding only JSON like {\"title\":\"...\",\"tests\":[\"Ferritin\"]} (test names as in the logbook, or Blood pressure, Weight, Mood, Energy, Cycle length, Period length); never put numbers in it. Tables use markdown pipes.";
+}
+async function tlTurn(userText, first){
   if(!S.sample){ disableAI("Claude isn't available on this page right now."); return; }
-  const out=$("#tlAi"); out.hidden=false; out.replaceChildren(h("p",{class:"thinking"},"Claude is looking at your timeline…"));
-  $("#tlAsk").disabled=true; $("#tlStop").hidden=false; TL.ctl=new AbortController();
-  const prompt=GUIDE+"\n\nTheir full health logbook for background:\n"+buildContext()+"\n\nThey are looking at this timeline chart (dates are MM-DD within the range, mood and energy 1 worst to 5 best):\n"+TL.summary
-    +"\n\nLook across the lines on this chart for links and patterns: things that happen together, before or after each other, around periods, medicine changes, meals or appointments, and changes over time. Use exactly these sections, each starting with '## ':\n## What the chart shows\n## Possible links\n(each with how strong the evidence is: weak, moderate or strong, and what else could explain it)\n## Worth raising with the GP\n## Keep tracking\nUse '- ' bullets. Under 350 words. If there's too little data to say much, say so plainly and say what to log for the next few weeks. This is to take to their clinician, not a diagnosis.";
+  const log=$("#tlLog");
+  if(!first){ log.append(h("div",{class:"bubble me"},userText)); }
+  TL.chat.push({role:"user",content:userText});
+  const bub=h("div",{class:"bubble claude"}, h("span",{class:"thinking"}, first? "Claude is analysing your chart…" : "Thinking…")); log.append(bub); bub.scrollIntoView({block:"end",behavior:"smooth"});
+  $("#tlAsk").disabled=true; $("#tlSend").disabled=true; $("#tlStop").hidden=false; TL.ctl=new AbortController();
   try{
-    const {text}=await S.sample(prompt,{signal:TL.ctl.signal,cache:false,modelTier:"complex",onText:({text})=>{ out.replaceChildren(md(text)); }});
-    TL.text=text; out.replaceChildren(md(text), replyActions(text, "What my health timeline shows"));
-  }catch(e){ const msg=aiErr(e); out.replaceChildren(...(e&&e.text&&e.code!=="refused"?[md(e.text)]:[]), ...(msg?[h("p",{class:"notice warn"},msg)]:[])); if(!out.childNodes.length) out.hidden=true; }
-  finally{ $("#tlAsk").disabled=S.aiOff; $("#tlStop").hidden=true; }
+    const {text}=await S.sample([{role:"user",content:tlRules()}, ...TL.chat.slice(-16)],{signal:TL.ctl.signal,cache:false,modelTier:"complex",onText:({text})=>{ bub.replaceChildren(md(text)); }});
+    TL.chat.push({role:"assistant",content:text});
+    bub.replaceChildren(md(text), replyActions(text, first? "What my health timeline shows" : undefined));
+    $("#tlComposer").hidden=false;
+  }catch(e){ const msg=aiErr(e); bub.replaceChildren(...(e&&e.text&&e.code!=="refused"?[md(e.text)]:[]), h("span",{class:"err"}, msg||"Stopped.")); if(e&&e.text&&e.code!=="refused") TL.chat.push({role:"assistant",content:e.text}); else TL.chat.pop(); }
+  finally{ $("#tlAsk").disabled=S.aiOff; $("#tlSend").disabled=S.aiOff; $("#tlStop").hidden=true; }
+}
+$("#tlAsk").addEventListener("click", ()=>{
+  TL.chat=[]; $("#tlLog").replaceChildren(); $("#tlComposer").hidden=true;
+  $("#tlAsk").textContent="Analyse again";
+  tlTurn("Please analyse this chart. Use exactly these sections, each starting with '## ': ## What the chart shows, ## Possible links, ## Worth raising with the GP, ## Keep tracking. Use '- ' bullets, under 350 words. If there's too little data to say much, say so plainly and say what to log over the next few weeks. End by suggesting one or two questions I could ask you next about it.", true);
 });
+const TL_STARTERS=["Why might that be?","What should I ask my GP?","What else should I track?","Explain that more simply"];
+$("#tlStarters").replaceChildren(...TL_STARTERS.map(t=>h("button",{class:"fchip",type:"button",onclick:()=>{ $("#tlIn").value=t; tlSendNow(); }},t)));
+function tlSendNow(){ const box=$("#tlIn"), t=box.value.trim(); if(!t) return; box.value=""; tlTurn(t+(TL.lastSummary&&TL.lastSummary!==TL.summary?"\n\n(I've changed what the chart shows since my last question.)":""), false); TL.lastSummary=TL.summary; }
+$("#tlSend").addEventListener("click", tlSendNow);
+$("#tlIn").addEventListener("keydown",e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); tlSendNow(); }});
 $("#tlStop").addEventListener("click",()=>TL.ctl&&TL.ctl.abort());
 
 /* ---------- whole-history review ---------- */
