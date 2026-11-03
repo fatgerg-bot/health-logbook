@@ -1,6 +1,14 @@
 # Health Logbook
 
-A private health logbook web app for a few people. Each person keeps their own records — conditions, operations, medicines, allergies, symptoms, a daily diary, blood pressure, weight, periods, test results, letters, appointments and due dates — and can use Claude to:
+A private health logbook web app for a few people. Each person keeps their own records — conditions, operations, medicines, allergies, symptoms, a daily diary, blood pressure, weight, periods, test results, letters, appointments and due dates —.
+
+## What's on the overview
+
+- **Today's check-in** — tap a face for how you feel, tap a symptom then a 1–10 score (saved with the time), log today's period flow, and see the last 7 days at a glance.
+- **Cycle ring** — day of cycle, logged period days, expected next period, an estimated fertile window, average cycle and period length, and recent cycles. Hidden for anyone whose profile is set to Male.
+- **Next appointment, due dates, compact test-result trends** (out-of-range results first), current medicines, ongoing conditions and recent symptoms.
+
+Each person can use Claude to:
 
 - read NHS App PDFs, screenshots and photos of letters and turn them into entries
 - write a brief before an appointment
