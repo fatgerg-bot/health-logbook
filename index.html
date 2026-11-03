@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-03.11">
+<meta name="app-version" content="2026-11-03.12">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -511,6 +511,15 @@ img.gi{padding:0;object-fit:cover}
 .tl-pick input{width:20px;height:20px}
 .tl-pick .hint{margin-left:auto}
 
+/* records upload */
+.rec-up{background:var(--surface);border-radius:var(--r);box-shadow:var(--card);padding:14px 14px 10px;display:flex;flex-direction:column;gap:10px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .rec-up{border:1px solid var(--line)}}
+:root[data-theme="dark"] .rec-up{border:1px solid var(--line)}
+.rec-up-t{font-weight:700}
+.rec-up .qa{background:var(--bg);box-shadow:none}
+label.qa{cursor:pointer}
+@media (prefers-reduced-motion: no-preference){.btn.pulse{animation:pulse 1.6s ease-in-out 2}@keyframes pulse{50%{box-shadow:0 0 0 6px var(--ai-soft)}}}
+
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
 .tab svg{width:54px;height:30px;padding:4px 16px;border-radius:99px;transition:background .15s ease}
@@ -694,6 +703,16 @@ img.gi{padding:0;object-fit:cover}
     <div class="row" style="justify-content:space-between">
       <h2 class="vh">Records</h2>
       <button class="btn primary" data-act="add" type="button">Add</button>
+    </div>
+    <div class="rec-up">
+      <p class="rec-up-t">Got a new letter, result or NHS App update?</p>
+      <div class="quick">
+        <label class="qa" for="recCam" id="recCamLbl"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8a2 2 0 0 1 2-2h2l1.5-2h5L16 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg></span><span class="qt"><b>Take a photo</b><small>Letters and paperwork</small></span></label>
+        <label class="qa" for="recFiles"><span class="qi ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span><span class="qt"><b>Upload</b><small>Screenshots, PDFs, NHS App</small></span></label>
+      </div>
+      <input type="file" id="recCam" accept="image/*" capture="environment" hidden>
+      <input type="file" id="recFiles" accept="image/*,application/pdf,.pdf" multiple hidden>
+      <p class="fineprint">Claude reads it and lists what it found. You tick what to keep before anything is added.</p>
     </div>
     <div class="chips" id="filters" role="group" aria-label="Show"></div>
     <div class="panel"><ul class="list" id="recList"></ul></div>
@@ -1164,7 +1183,7 @@ function buildContext(){
 /* ---------- writes ---------- */
 function setReadOnly(){
   S.canWrite=false; $("#roNote").hidden=false;
-  document.querySelectorAll('[data-act="add"],[data-act="import"],#editProfile,#bpAdd,#dayNotesSave').forEach(b=>b.disabled=true);
+  document.querySelectorAll('[data-act="add"],[data-act="import"],#editProfile,#bpAdd,#dayNotesSave,#recCam,#recFiles').forEach(b=>b.disabled=true);
 }
 async function write(fn){
   if(!S.col){ toast("Sign in to save your records."); return false; }
@@ -1778,7 +1797,7 @@ async function imageToJpeg(file, maxSide){
 const isPdf=f=> f.type==="application/pdf" || /\.pdf$/i.test(f.name||"");
 const MAX_PAGES=30;
 
-function openImport(){
+function openImport(initial){
   if(!S.sample || S.aiOff){ openSheet("Import documents",[h("p",{},"Importing needs Claude, which isn't available on this page right now. You can still add entries by hand.")]); return; }
   const canImg=!!S.img;
   let files=[], ctl=null;
@@ -1878,8 +1897,9 @@ function openImport(){
   });
 
   const btns=h("div",{class:"row"});
-  if(canImg) btns.append(h("label",{class:"btn primary",for:"imp-cam"},"Take a photo"));
-  btns.append(h("label",{class:"btn",for:"imp-files"}, canImg? "Choose files or screenshots" : "Choose PDF files"));
+  const more=initial&&initial.length;
+  if(canImg) btns.append(h("label",{class:"btn"+(more?"":" primary"),for:"imp-cam"}, more?"Take another photo":"Take a photo"));
+  btns.append(h("label",{class:"btn",for:"imp-files"}, more? "Add more pages" : canImg? "Choose files or screenshots" : "Choose PDF files"));
   openSheet("Import documents",[
     h("p",{class:"none"},"Add PDFs downloaded from the NHS App (Documents section), screenshots of your GP record, or photos of letters and paperwork. Add as many pages as you like, then let Claude read them."),
     camIn, pickIn, btns, chosen,
@@ -1887,8 +1907,10 @@ function openImport(){
     out,
     h("p",{class:"fineprint"},"Only what Claude reads out is kept, in your private logbook. The pictures and files themselves aren't stored.")
   ]);
+  if(initial&&initial.length){ addFiles(initial); if(files.length) go.classList.add("pulse"); }
   drawChosen();
 }
+for(const id of ["#recCam","#recFiles"]) $(id).addEventListener("change",e=>{ const fs=[...e.target.files]; e.target.value=""; if(fs.length) openImport(fs); });
 function showImportResults(out, docs, items, skipped){
   if(!docs.length && !items.length){ out.replaceChildren(h("p",{class:"notice"},"Claude couldn't find anything new in those pages. Try clearer photos in good light, or different pages.")); return; }
   const dChecks=[], iChecks=[];
@@ -1914,12 +1936,12 @@ function showImportResults(out, docs, items, skipped){
         h("button",{class:"btn ai",type:"button",onclick:()=>{ closeSheet(); show("prepare"); const q=$("#revQ"); q.scrollIntoView({block:"center"}); q.focus(); }},"Review my whole history"),
         h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); show("records"); }},"See my records")));
   });
-  out.replaceChildren(
+  out.replaceChildren(...[
     skipped.length? h("p",{class:"fineprint"},"Skipped: "+skipped.join("; ")+".") : null,
     docs.length? h("h3",{},"Letters and documents ("+docs.length+")") : null, ...docRows,
     items.length? h("h3",{style:"margin-top:8px"},"Added to your history ("+items.length+")") : null, ...itemRows,
     h("p",{class:"none"},"Untick anything that's wrong. You can edit entries later."),
-    h("div",{class:"row",style:"justify-content:flex-end"},save));
+    h("div",{class:"row",style:"justify-content:flex-end"},save)].filter(Boolean));
 }
 document.querySelectorAll('[data-act="add"]').forEach(b=>b.addEventListener("click",()=>openEntry(null)));
 document.querySelectorAll('[data-act="import"]').forEach(b=>b.addEventListener("click",openImport));
@@ -2308,11 +2330,11 @@ function tlTicks(from,to,n){
 function tlRenderDetail(iso, near){
   const rows=tlDayData(iso); near=near||[];
   const nm={appt:"Appointment",cond:"Condition",med:"Medicine",test:"Tests"};
-  $("#tlDetail").replaceChildren(
+  $("#tlDetail").replaceChildren(...[
     h("div",{class:"tl-dh"}, h("strong",{}, longDate(iso)+(iso===todayISO()?" (today)":"")), h("button",{class:"btn ghost small",type:"button",onclick:()=>openDay(iso)},"Open day ›")),
     rows.length? h("ul",{class:"tl-dl"}, ...rows.map(([k,v])=>h("li",{}, h("span",{class:"k"},k), h("span",{},v)))) : h("p",{class:"none"},"Nothing logged on this day."),
     near.length? h("p",{class:"tl-near"},"Around this date") : null,
-    near.length? h("ul",{class:"tl-dl"}, ...near.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>h("li",{}, h("span",{class:"k"}, fmtDate(e.date).replace(/ 20(\d\d)$/," $1")), h("span",{}, nm[e.type]+": "+e.label)))) : null);
+    near.length? h("ul",{class:"tl-dl"}, ...near.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>h("li",{}, h("span",{class:"k"}, fmtDate(e.date).replace(/ 20(\d\d)$/," $1")), h("span",{}, nm[e.type]+": "+e.label)))) : null].filter(Boolean));
 }
 let tlResizeT; window.addEventListener("resize",()=>{ clearTimeout(tlResizeT); tlResizeT=setTimeout(()=>{ if(!$("#v-timeline").hidden) renderTimeline(); },200); });
 TL.chat=[];
