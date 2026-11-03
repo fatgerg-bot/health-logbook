@@ -12,7 +12,8 @@
 <meta name="robots" content="noindex,nofollow">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
-<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <title>Health Logbook</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -405,6 +406,18 @@ main{padding-top:10px}
 .hfill{display:block;height:100%;border-radius:99px;background:var(--ring-base);overflow:hidden}
 .hfill.cur{background:repeating-linear-gradient(90deg,var(--ring-base) 0 6px,var(--ring-future) 6px 9px)}
 .hper{display:block;height:100%;background:var(--period);border-radius:99px}
+
+/* install */
+.inst-app{display:flex;gap:12px;align-items:center}
+.inst-app img{border-radius:13px;box-shadow:0 3px 10px rgba(22,48,42,.2);flex:none}
+.inst-app div{display:flex;flex-direction:column}
+.inst-ok{color:var(--accent);font-weight:700}
+.guide{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.gstep{display:grid;grid-template-columns:26px 44px 1fr;gap:10px;align-items:center}
+.gn{width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:.85rem}
+.gi{width:44px;height:44px;border-radius:12px;background:var(--bg);display:grid;place-items:center;color:#0A84FF}
+.gi svg{width:26px;height:26px}
+img.gi{padding:0;object-fit:cover}
 
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
@@ -1302,7 +1315,7 @@ function openProfile(){
         h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); pinVerify(()=>showLock("set",savePin)); }},"Change PIN"),
         h("button",{class:"btn danger",type:"button",onclick:()=>{ closeSheet(); pinVerify(()=>savePin(null)); }},"Remove PIN"))
       : h("div",{}, h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>{ closeSheet(); showLock("set",savePin); }},"Set a PIN")));
-  openSheet("About you",[field("p-name","First name",nm), field("p-dob","Date of birth",dob), field("p-sex","Sex",sex,"Female or not set shows the period tracker. Male hides it."), field("p-gp","GP surgery",gp), h("div",{class:"row",style:"justify-content:flex-end"},save), h("hr",{class:"sep"}), pinBox, h("hr",{class:"sep"}),
+  openSheet("About you",[installBox(), h("hr",{class:"sep"}), field("p-name","First name",nm), field("p-dob","Date of birth",dob), field("p-sex","Sex",sex,"Female or not set shows the period tracker. Male hides it."), field("p-gp","GP surgery",gp), h("div",{class:"row",style:"justify-content:flex-end"},save), h("hr",{class:"sep"}), pinBox, h("hr",{class:"sep"}),
     h("div",{class:"field"}, h("span",{class:"flabel"},"Account"), h("span",{class:"hint"},"Signed in as "+(S.email||"")),
       h("div",{class:"row"},
         h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); openPassword(); }},"Change password"),
@@ -1310,6 +1323,42 @@ function openProfile(){
         h("button",{class:"btn ghost",type:"button",onclick:()=>{ closeSheet(); sb.auth.signOut(); }},"Sign out")))]);
 }
 $("#editProfile").addEventListener("click",openProfile);
+
+/* ---------- install on the home screen ---------- */
+window.addEventListener("beforeinstallprompt", e=>{ e.preventDefault(); S.installEvt=e; });
+window.addEventListener("appinstalled", ()=>{ S.installEvt=null; toast("Added to your home screen"); });
+if("serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
+function isInstalled(){ try{ return matchMedia("(display-mode: standalone)").matches || navigator.standalone===true; }catch{ return false; } }
+function isIOS(){ return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1); }
+const SHARE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M7 10H5.5a1.5 1.5 0 0 0-1.5 1.5v8A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5v-8a1.5 1.5 0 0 0-1.5-1.5H17"/></svg>';
+const PLUS_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
+function svgSpan(html){ const s=h("span",{class:"gi"}); s.innerHTML=html; return s; }
+function installBox(){
+  const app=h("div",{class:"inst-app"}, h("img",{src:"icon-180.png",alt:"",width:"56",height:"56"}), h("div",{}, h("strong",{},"Health Logbook"), h("span",{class:"hint"},"Opens full screen like a normal app, with this icon.")));
+  let action;
+  if(isInstalled()) action=h("p",{class:"inst-ok"},"✓ Already on this phone's home screen");
+  else if(S.installEvt) action=h("button",{class:"btn primary",type:"button",onclick:async()=>{ const ev=S.installEvt; S.installEvt=null; try{ await ev.prompt(); const r=await ev.userChoice; if(r&&r.outcome==="accepted") closeSheet(); }catch{} }},"Install the app");
+  else action=h("button",{class:"btn primary",type:"button",onclick:()=>{ closeSheet(); openInstallGuide(); }},"Add to Home Screen");
+  return h("div",{class:"field"}, h("span",{class:"flabel"},"App on your home screen"), app, h("div",{}, action));
+}
+function openInstallGuide(){
+  const step=(n,icon,text)=>h("li",{class:"gstep"}, h("span",{class:"gn"},String(n)), icon, h("span",{},...text));
+  let steps, note;
+  if(isIOS()){
+    steps=[
+      step(1, svgSpan(SHARE_SVG), ["Tap the ", h("strong",{},"Share"), " button. In Safari it's at the bottom of the screen. If you can't see it, tap ", h("strong",{},"⋯"), " first."]),
+      step(2, svgSpan(PLUS_SVG), ["Scroll down and tap ", h("strong",{},"Add to Home Screen"), "."]),
+      step(3, h("img",{src:"icon-180.png",alt:"",class:"gi img"}), ["Make sure ", h("strong",{},"Open as Web App"), " is on if you see it, then tap ", h("strong",{},"Add"), ". The heart icon appears on your home screen."])];
+    note="Open this page in Safari to do this. Then always open the logbook from the new icon.";
+  } else {
+    steps=[
+      step(1, svgSpan('<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>'), ["Tap the browser's ", h("strong",{},"⋮"), " menu, top right in Chrome."]),
+      step(2, svgSpan(PLUS_SVG), ["Tap ", h("strong",{},"Add to Home screen"), " or ", h("strong",{},"Install app"), "."]),
+      step(3, h("img",{src:"icon-180.png",alt:"",class:"gi img"}), ["Tap ", h("strong",{},"Install"), " or ", h("strong",{},"Add"), ". The heart icon appears with your apps."])];
+    note="Works best in Chrome. Then always open the logbook from the new icon.";
+  }
+  openSheet("Add to your home screen",[h("ol",{class:"guide"},...steps), h("p",{class:"fineprint"},note)]);
+}
 
 /* ---------- PIN lock ---------- */
 function pinVerify(cb){ if(S.freshLogin) cb(); else showLock("verify",cb); }
