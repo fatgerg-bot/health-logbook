@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-03.14">
+<meta name="app-version" content="2026-11-03.15">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -576,6 +576,20 @@ label.qa{cursor:pointer}
 .tab-tl[aria-current="page"] svg{background:var(--ai-soft);color:var(--ai)}
 .tab-tl[aria-current="page"]{color:var(--ai)}
 
+/* fold-up panels */
+details.fold{gap:0}
+details.fold > summary{list-style:none;cursor:pointer;align-items:center;min-height:40px;-webkit-tap-highlight-color:transparent}
+details.fold > summary::-webkit-details-marker{display:none}
+details.fold[open] > summary{margin-bottom:8px}
+.fh{flex:1;min-width:0;display:flex;flex-direction:column}
+.fh h2{flex:none}
+.fpv{font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.fold[open] .fpv{display:none}
+.fcount{flex:none;min-width:26px;height:24px;padding:0 8px;border-radius:99px;background:var(--soft);color:var(--accent);font-weight:700;font-size:.8rem;display:grid;place-items:center}
+.fcount:empty{display:none}
+.fchev{flex:none;font-size:1.3rem;color:var(--muted);transition:transform .15s ease;line-height:1}
+details.fold[open] .fchev{transform:rotate(90deg)}
+
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
 .tab svg{width:54px;height:30px;padding:4px 16px;border-radius:99px;transition:background .15s ease}
@@ -679,9 +693,19 @@ label.qa{cursor:pointer}
     </article>
 
     <div class="grid2">
-      <article class="panel"><div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="9" width="17" height="7" rx="3.5" transform="rotate(-35 12 12.5)"/><path d="M9.7 8.6l4.1 5.8"/></svg></span><h2>Current medicines</h2></div><ul class="list" id="ovMeds"></ul></article>
-      <article class="panel"><div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><h2>Ongoing conditions</h2></div><ul class="list" id="ovConds"></ul></article>
-      <article class="panel"><div class="ph"><span class="ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg></span><h2>Recent symptoms</h2><button class="more" type="button" id="symAll">All ›</button></div><ul class="list" id="ovSym"></ul></article>
+      <details class="panel fold" data-fold="meds">
+        <summary class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="9" width="17" height="7" rx="3.5" transform="rotate(-35 12 12.5)"/><path d="M9.7 8.6l4.1 5.8"/></svg></span><span class="fh"><h2>Current medicines</h2><span class="fpv" id="ovMedsPv"></span></span><span class="fcount" id="ovMedsN"></span><span class="fchev" aria-hidden="true">›</span></summary>
+        <ul class="list" id="ovMeds"></ul>
+      </details>
+      <details class="panel fold" data-fold="conds">
+        <summary class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><span class="fh"><h2>Ongoing conditions</h2><span class="fpv" id="ovCondsPv"></span></span><span class="fcount" id="ovCondsN"></span><span class="fchev" aria-hidden="true">›</span></summary>
+        <ul class="list" id="ovConds"></ul>
+      </details>
+      <details class="panel fold" data-fold="sym">
+        <summary class="ph"><span class="ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg></span><span class="fh"><h2>Recent symptoms</h2><span class="fpv" id="ovSymPv"></span></span><span class="fcount" id="ovSymN"></span><span class="fchev" aria-hidden="true">›</span></summary>
+        <ul class="list" id="ovSym"></ul>
+        <button class="btn ghost small" type="button" id="symAll" style="align-self:flex-start">See all symptoms ›</button>
+      </details>
     </div>
 
     <div class="row"><button class="btn ghost" id="editProfile" type="button">About you, PIN, account and people</button></div>
@@ -1598,6 +1622,12 @@ function renderOverview(){
   fill($("#ovMeds"), ofKind("medication").filter(m=>m.status!=="stopped").sort((a,b)=>a.title.localeCompare(b.title)).map(e=>h("li",{}, h("button",{class:"item two",type:"button",onclick:()=>openEntry(e)}, h("span",{class:"t"},e.title), h("span"), e.dose? h("span",{class:"s"},e.dose):null))), "None added yet.");
   fill($("#ovConds"), ofKind("condition").filter(c=>c.status!=="past").sort(byDateDesc).map(e=>itemRow(e,false)), "None added yet.");
   fill($("#ovSym"), ofKind("symptom").sort(byDateDesc).slice(0,5).map(e=>itemRow(e,false)), "Log symptoms as they happen. It makes appointments much easier.");
+  const pv=(id,names,n,emptyTxt)=>{ $("#"+id+"N").textContent=n? String(n) : ""; $("#"+id+"Pv").textContent= n? names.slice(0,3).join(", ")+(n>3?" and "+(n-3)+" more":"") : emptyTxt; };
+  const meds=ofKind("medication").filter(m=>m.status!=="stopped"); pv("ovMeds", meds.map(m=>shortMed(m.title)||m.title), meds.length, "None added yet");
+  const conds=ofKind("condition").filter(c=>c.status!=="past").sort(byDateDesc); pv("ovConds", conds.map(c=>c.title.replace(/\s*\(.*?\)\s*/g," ").trim()), conds.length, "None added yet");
+  const syms=ofKind("symptom").sort(byDateDesc), wk=addDays(todayISO(),-6), recent=syms.filter(e=>e.date&&e.date>=wk);
+  $("#ovSymN").textContent= recent.length? String(recent.length) : "";
+  $("#ovSymPv").textContent= recent.length? recent.length+" this week · "+[...new Set(recent.map(e=>e.title))].slice(0,3).join(", ") : syms.length? "None this week" : "None logged yet";
 }
 
 const SVGNS="http://www.w3.org/2000/svg";
@@ -2267,6 +2297,7 @@ $("#tlBack").addEventListener("click",()=>show("overview"));
 $("#ciSymEdit").addEventListener("click",openSymEdit);
 $("#ciXBtn").addEventListener("click",()=>{ const open=$("#ciX").hidden; $("#ciX").hidden=!open; $("#ciXBtn").setAttribute("aria-expanded",String(open)); try{ localStorage.setItem("hl-ci-more",open?"1":"0"); }catch{} });
 $("#cycDiary").addEventListener("click",()=>openDay(todayISO()));
+document.querySelectorAll("details.fold").forEach(d=>{ const k="hl-fold-"+d.dataset.fold; try{ d.open=localStorage.getItem(k)==="1"; }catch{} d.addEventListener("toggle",()=>{ try{ localStorage.setItem(k,d.open?"1":"0"); }catch{} }); });
 $("#symAll").addEventListener("click",()=>{ S.filter="symptom"; renderRecords(); show("records"); });
 $("#trendMore").addEventListener("click",()=>{ S.trendsAll=!S.trendsAll; renderTrends(); });
 $("#dayNotes").addEventListener("blur",()=>{ const n=$("#dayNotes"); if(n.dataset.dirty&&S.notesFor) saveDay(S.notesFor,{notes:n.value.trim()}).then(ok=>{ if(ok){ n.dataset.dirty=""; $("#notesState").textContent="Saved"; } }); });
