@@ -1,0 +1,1676 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Logbook">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Health Logbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Young+Serif&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;-webkit-text-size-adjust:100%}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: a patient-held logbook. One reading column, sticky name header, four jobs on a bottom tab bar, entry forms in a bottom sheet. */
+:root{
+  --bg:#F2F5F3; --surface:#FFFFFF; --ink:#16302A; --muted:#566A64; --line:#D6E0DB;
+  --accent:#1E6B57; --accent-ink:#FFFFFF; --soft:#E1EEE8;
+  --alert:#A8261D; --alert-soft:#FBE8E5;
+  --ai:#5A4A8A; --ai-soft:#ECE8F6;
+  --period:#C2477A; --due:#B26A00;
+  --feel1:#F2C3BC; --feel2:#FAE1D2; --feel3:#E6EBE7; --feel4:#CDE8D9; --feel5:#9FD6BC;
+  --shadow:0 10px 30px rgba(22,48,42,.14);
+  --f-display:"Young Serif", Georgia, "Times New Roman", serif;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1816; --surface:#162321; --ink:#E3EDE9; --muted:#93A7A0; --line:#283A36;
+    --accent:#62C4A3; --accent-ink:#08201A; --soft:#1B2F2A;
+    --alert:#F29489; --alert-soft:#3A1F1C;
+    --ai:#BBAAF2; --ai-soft:#241F39;
+    --period:#F08AB4; --due:#F0B64F;
+    --period:#F08AB4; --due:#F0B64F;
+  --feel1:#5E2B26; --feel2:#4A3427; --feel3:#26322E; --feel4:#1F4235; --feel5:#2B6650;
+    --shadow:0 10px 30px rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1816; --surface:#162321; --ink:#E3EDE9; --muted:#93A7A0; --line:#283A36;
+  --accent:#62C4A3; --accent-ink:#08201A; --soft:#1B2F2A;
+  --alert:#F29489; --alert-soft:#3A1F1C;
+  --ai:#BBAAF2; --ai-soft:#241F39;
+  --feel1:#5E2B26; --feel2:#4A3427; --feel3:#26322E; --feel4:#1F4235; --feel5:#2B6650;
+  --shadow:0 10px 30px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{text-wrap:balance;margin:0}
+h1{font-family:var(--f-display);font-weight:400;font-size:1.6rem;line-height:1.15}
+h2{font-family:var(--f-display);font-weight:400;font-size:1.2rem}
+h3{font-size:1rem;font-weight:700}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:14px}
+.eyebrow{font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.lock{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--accent);background:var(--soft);padding:5px 10px;border-radius:99px;white-space:nowrap;border:0;font-family:inherit;cursor:default}
+.lock.can{cursor:pointer}
+.lock svg{width:13px;height:13px}
+
+main{padding-block:18px 120px;display:flex;flex-direction:column;gap:18px}
+.view{display:flex;flex-direction:column;gap:18px}
+.notice{border-radius:var(--r);padding:12px 14px;background:var(--soft);font-size:.92rem}
+.notice.warn{background:var(--alert-soft);color:var(--ink)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:99px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:700;font-size:.95rem}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ai{background:var(--ai);color:var(--surface);border-color:var(--ai)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--accent);padding:0 8px}
+.btn.danger{color:var(--alert);border-color:var(--alert)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+.alertband{border:1.5px solid var(--alert);background:var(--alert-soft);border-radius:var(--r);padding:12px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.alertband .lab{font-weight:700;color:var(--alert);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;margin-right:4px}
+.chip{display:inline-flex;align-items:center;padding:4px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-size:.88rem}
+.alertband .chip{border-color:var(--alert);cursor:pointer}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.panel h2{font-size:1.05rem}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.item{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;align-items:baseline;padding:10px 0;border-top:1px solid var(--line);cursor:pointer;text-align:left;background:none;border-left:0;border-right:0;border-bottom:0;width:100%}
+.list > li:first-child .item{border-top:0}
+.item.two{grid-template-columns:1fr auto}.item.two .s{grid-column:1 / -1}
+.item:hover .t{text-decoration:underline}
+.d{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;min-width:6.5em}
+.t{font-weight:700;min-width:0;overflow-wrap:anywhere}
+.s{grid-column:2 / -1;color:var(--muted);font-size:.88rem;min-width:0;overflow-wrap:anywhere}
+.tag{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.tag.allergy{color:var(--alert)}
+.sev{font-family:var(--f-mono);font-size:.8rem;padding:1px 7px;border-radius:99px;background:var(--soft);white-space:nowrap}
+.sev.hi{background:var(--alert-soft);color:var(--alert)}
+.none{color:var(--muted);font-size:.92rem}
+.next-date{font-family:var(--f-mono);font-size:.85rem;color:var(--accent)}
+.next-title{font-size:1.1rem;font-weight:700}
+
+.trends{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px 20px}
+.trend{display:flex;flex-direction:column;gap:4px;min-width:0;background:none;border:0;padding:0;text-align:left;cursor:pointer}
+.trend-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.trend-name{font-weight:700;min-width:0;overflow-wrap:anywhere}
+.trend-val{font-family:var(--f-mono);font-size:.85rem;white-space:nowrap;font-variant-numeric:tabular-nums}
+.trend-val.low,.trend-val.high{color:var(--alert);font-weight:500}
+.trend svg{width:100%;height:auto;display:block;overflow:visible}
+.trend-meta{font-family:var(--f-mono);font-size:.74rem;color:var(--muted);display:flex;justify-content:space-between}
+.legend{font-size:.78rem;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.band-key{width:14px;height:10px;border-radius:2px;background:var(--soft);border:1px solid var(--line)}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px}
+.empty ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.fchip{flex:none;min-height:36px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:.9rem}
+.fchip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.fchip .n{font-family:var(--f-mono);font-size:.78rem;opacity:.7;margin-left:4px}
+
+.vh{font-size:1.35rem}
+.sep{border:0;border-top:1px solid var(--line);margin:10px 0 0;width:100%}
+.lede{color:var(--muted);max-width:62ch}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-weight:700;font-size:.92rem}
+.field .hint{color:var(--muted);font-size:.82rem}
+input[type=text],input[type=date],input[type=time],input[type=number],select,textarea{width:100%;min-height:44px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
+textarea{resize:vertical;min-height:90px}
+.fields2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+
+.ai-out{background:var(--ai-soft);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:8px;overflow-wrap:anywhere}
+.ai-out h3{color:var(--ai);font-family:var(--f-display);font-weight:400;font-size:1.05rem;margin-top:6px}
+.ai-out ul,.ai-out ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+.thinking{color:var(--ai);font-style:italic}
+
+.chatlog{display:flex;flex-direction:column;gap:12px}
+.bubble{max-width:88%;padding:10px 14px;border-radius:14px;display:flex;flex-direction:column;gap:6px;overflow-wrap:anywhere}
+.bubble.me{align-self:flex-end;background:var(--accent);color:var(--accent-ink);border-bottom-right-radius:4px;white-space:pre-wrap}
+.bubble.claude{align-self:flex-start;background:var(--ai-soft);border-bottom-left-radius:4px}
+.bubble.claude h3{color:var(--ai);font-size:.98rem}
+.bubble.claude ul,.bubble.claude ol{margin:0;padding-left:1.2em}
+.bubble .err{color:var(--alert);font-size:.88rem}
+.composer{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.composer textarea{min-height:64px;background:transparent;border:0;padding:4px}
+.composer textarea:focus-visible{outline:none}
+.composer:focus-within{border-color:var(--accent)}
+.attach-note{font-size:.85rem;color:var(--muted)}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+.tabs-in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+.tab{background:none;border:0;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:.78rem;color:var(--muted);cursor:pointer}
+.tab svg{width:22px;height:22px}
+.tab[aria-current="page"]{color:var(--accent);font-weight:700}
+
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(10,20,18,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet-card{background:var(--surface);width:100%;max-width:640px;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
+@media (min-width:700px){.sheet{align-items:center}.sheet-card{border-radius:18px;max-height:86%}}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.icon-btn{width:40px;height:40px;border-radius:99px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-size:1.3rem;line-height:1}
+.prep-saved{background:var(--ai-soft);border-radius:8px;padding:12px;font-size:.92rem;display:flex;flex-direction:column;gap:6px}
+.imp-item{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:start;padding:10px 0;border-top:1px solid var(--line)}
+.imp-item input[type=checkbox]{width:20px;height:20px;margin-top:2px}
+
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cal-dow,.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal-dow span{text-align:center;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.cday{position:relative;min-height:46px;border-radius:8px;border:1px solid transparent;background:var(--bg);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px 0;font-family:var(--f-mono);font-size:.88rem;font-variant-numeric:tabular-nums}
+.cday.f1{background:var(--feel1)}.cday.f2{background:var(--feel2)}.cday.f3{background:var(--feel3)}.cday.f4{background:var(--feel4)}.cday.f5{background:var(--feel5)}
+.cday.today{border-color:var(--accent)}
+.cday[aria-pressed="true"]{outline:2.5px solid var(--ink);outline-offset:1px}
+.cday.future{opacity:.55}
+.dots{display:flex;gap:2px;height:6px}
+.dots i{width:5px;height:5px;border-radius:50%;background:var(--alert)}
+.dots i.bp{background:var(--ai);border-radius:1px}
+.cal-blank{min-height:46px}
+.cal-key{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--muted);align-items:center}
+.cal-key .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:3px;border:1px solid var(--line)}
+.cal-key .dk{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--alert);margin-right:4px;vertical-align:1px}
+.cal-key .dk.bp{background:var(--ai);border-radius:1px}
+.flabel{font-weight:700;font-size:.92rem}
+.scale{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.scale button{min-height:52px;border-radius:8px;border:1px solid var(--line);background:var(--bg);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.76rem;line-height:1.15;padding:4px 2px;text-align:center}
+.scale button b{font-family:var(--f-mono);font-size:1rem;font-weight:500}
+.scale button[aria-pressed="true"]{border-color:var(--ink);border-width:2px;font-weight:700}
+.scale.feel button[aria-pressed="true"][data-v="1"]{background:var(--feel1)}.scale.feel button[aria-pressed="true"][data-v="2"]{background:var(--feel2)}.scale.feel button[aria-pressed="true"][data-v="3"]{background:var(--feel3)}.scale.feel button[aria-pressed="true"][data-v="4"]{background:var(--feel4)}.scale.feel button[aria-pressed="true"][data-v="5"]{background:var(--feel5)}
+.scale.energy button[aria-pressed="true"]{background:var(--soft)}
+.wrapchips{flex-wrap:wrap;overflow:visible}
+.bp-add{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;align-items:end}
+.bp-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.list > li:first-child .bp-row{border-top:0}
+.bp-num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1rem}
+.bp-num.out{color:var(--alert);font-weight:500}
+.day-panel{gap:16px}
+.scale.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.scale.period button[aria-pressed="true"]{background:var(--alert-soft);border-color:var(--period);color:var(--ink)}
+.dots i.per{background:var(--period);border-radius:1px;width:9px;height:3px;margin-top:1px}
+.dots i.due{background:transparent;border:1.5px solid var(--due);width:6px;height:6px}
+.cal-key .dk.per{background:var(--period);width:10px;height:3px;border-radius:1px}
+.cal-key .dk.due{background:transparent;border:1.5px solid var(--due)}
+.due-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.list > li:first-child .due-row{border-top:0}
+.due-when{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.due-when.over{color:var(--alert);font-weight:500}
+.due-when.soon{color:var(--due);font-weight:500}
+.lock-screen{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:calc(24px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.lock-card{width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+.pin-dots{display:flex;gap:16px;height:18px}
+.pin-dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--ink)}
+.pin-dots i.on{background:var(--ink)}
+.lock-msg{min-height:1.4em;color:var(--alert);font-size:.9rem}
+.keypad{display:grid;grid-template-columns:repeat(3,72px);gap:14px;justify-content:center}
+.keypad button{width:72px;height:72px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-family:var(--f-mono);font-size:1.5rem;cursor:pointer}
+.keypad button.txt{font-family:var(--f-body);font-size:.85rem;border-color:transparent;background:transparent}
+.keypad button:active{background:var(--soft)}
+.auth-card{width:100%;max-width:380px;display:flex;flex-direction:column;gap:14px;max-height:100%;overflow:auto}
+.auth-form{display:flex;flex-direction:column;gap:14px}
+#auth{z-index:60;align-items:flex-start}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:.92rem;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
+.fineprint{font-size:.82rem;color:var(--muted);max-width:62ch}
+@media (prefers-reduced-motion: no-preference){.sheet-card{animation:up .22s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <div>
+      <p class="eyebrow">Health logbook</p>
+      <h1 id="who">My health</h1>
+    </div>
+    <button class="lock" id="lockBtn" type="button" title="Only your login can see your records"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>Private to you</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="status" class="notice" hidden></div>
+  <div id="roNote" class="notice warn" hidden>Your changes couldn't be saved. Sign out and back in, or ask the administrator if it keeps happening.</div>
+
+  <!-- OVERVIEW -->
+  <section id="v-overview" class="view" aria-label="Overview">
+    <div class="row">
+      <button class="btn primary" id="logToday" type="button">How are you today?</button>
+      <button class="btn" data-act="add" type="button">Add an entry</button>
+      <button class="btn" data-act="import" type="button">Import documents or photos</button>
+    </div>
+
+    <div id="empty" class="empty" hidden>
+      <h2>Start your logbook</h2>
+      <ol>
+        <li>In the NHS App, download letters from <strong>Documents</strong>, and screenshot your <strong>GP health record</strong> pages (allergies, medicines, conditions, test results).</li>
+        <li>Tap <strong>Import documents or photos</strong>. Add the PDFs and screenshots, or photograph paper letters. Claude reads them, summarises each letter and lists what it found for you to check.</li>
+        <li>Add anything else by hand: symptoms as they happen, upcoming appointments, what the doctor said.</li>
+      </ol>
+      <p class="fineprint">For your complete record, you can ask your GP surgery for a copy (a subject access request). It's free.</p>
+    </div>
+
+    <div id="ovAllergies" hidden></div>
+
+    <article class="panel" id="ovTrends" hidden>
+      <div class="row" style="justify-content:space-between"><h2>Trends</h2><span class="legend"><span class="band-key"></span>normal range</span></div>
+      <div id="trendList" class="trends"></div>
+    </article>
+
+    <div class="grid2" id="ovGrid">
+      <article class="panel" id="ovDuePanel"><h2>Coming up</h2><ul class="list" id="ovDue"></ul></article>
+      <article class="panel"><h2>Next appointment</h2><div id="ovNext"></div></article>
+      <article class="panel"><h2>Current medicines</h2><ul class="list" id="ovMeds"></ul></article>
+      <article class="panel"><h2>Ongoing conditions</h2><ul class="list" id="ovConds"></ul></article>
+      <article class="panel"><h2>Recent symptoms</h2><ul class="list" id="ovSym"></ul></article>
+    </div>
+
+    <div class="row"><button class="btn ghost" id="editProfile" type="button">About you, PIN, account and people</button></div>
+    <p class="fineprint">This logbook helps you keep track and prepare for appointments. It isn't medical advice. In an emergency call 999. For urgent help that isn't an emergency, call NHS 111.</p>
+  </section>
+
+  <!-- DIARY -->
+  <section id="v-diary" class="view" aria-label="Diary" hidden>
+    <article class="panel">
+      <div class="cal-head">
+        <button class="icon-btn" id="calPrev" type="button" aria-label="Previous month">‹</button>
+        <h2 id="calTitle"></h2>
+        <button class="icon-btn" id="calNext" type="button" aria-label="Next month">›</button>
+      </div>
+      <div class="cal-dow" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-key">
+        <span><span class="sw" style="background:var(--feel1)"></span>Awful</span>
+        <span><span class="sw" style="background:var(--feel3)"></span>OK</span>
+        <span><span class="sw" style="background:var(--feel5)"></span>Great</span>
+        <span><span class="dk"></span>Symptom</span>
+        <span><span class="dk bp"></span>Blood pressure</span>
+        <span><span class="dk per"></span>Period</span>
+        <span><span class="dk due"></span>Due</span>
+      </div>
+    </article>
+
+    <article class="panel day-panel">
+      <div class="row" style="justify-content:space-between">
+        <h2 id="dayTitle"></h2>
+        <button class="btn ghost" id="dayToday" type="button">Today</button>
+      </div>
+      <div class="field"><span class="flabel" id="feelLab">How do you feel overall?</span><div class="scale feel" id="feelScale" role="group" aria-labelledby="feelLab"></div></div>
+      <div class="field"><span class="flabel" id="energyLab">Energy</span><div class="scale energy" id="energyScale" role="group" aria-labelledby="energyLab"></div></div>
+      <div class="field"><span class="flabel" id="perLab">Period</span><div class="scale four period" id="periodScale" role="group" aria-labelledby="perLab"></div></div>
+      <div class="field">
+        <label for="dayWeight">Weight (kg)</label>
+        <div class="row"><input type="number" id="dayWeight" step="0.1" min="20" max="300" inputmode="decimal" placeholder="e.g. 68.4" style="max-width:9rem"><button class="btn" id="weightSave" type="button">Save weight</button><span class="hint" id="weightSt"></span></div>
+      </div>
+      <div class="field">
+        <span class="flabel">Symptoms</span>
+        <ul class="list" id="daySym"></ul>
+        <span class="hint">Tap to log one for this day:</span>
+        <div class="chips wrapchips" id="symQuick"></div>
+      </div>
+      <div class="field">
+        <span class="flabel">Blood pressure</span>
+        <ul class="list" id="dayBP"></ul>
+        <div class="bp-add">
+          <div class="field"><label for="bpSys">Top number</label><input type="number" id="bpSys" inputmode="numeric" min="40" max="260" placeholder="e.g. 95"></div>
+          <div class="field"><label for="bpDia">Bottom number</label><input type="number" id="bpDia" inputmode="numeric" min="20" max="160" placeholder="e.g. 60"></div>
+          <div class="field"><label for="bpPulse">Pulse</label><input type="number" id="bpPulse" inputmode="numeric" min="20" max="250" placeholder="optional"></div>
+          <div class="field"><label for="bpTime">Time</label><input type="time" id="bpTime"></div>
+        </div>
+        <div class="row"><button class="btn" id="bpAdd" type="button">Add reading</button><span class="hint">Usual range is about 90/60 to 140/90. Under 90/60 counts as low.</span></div>
+      </div>
+      <div class="field">
+        <label for="dayNotes">Notes</label>
+        <textarea id="dayNotes" rows="3" placeholder="Anything else: sleep, food, periods, stress, what you did, how you coped"></textarea>
+        <div class="row"><button class="btn" id="dayNotesSave" type="button">Save notes</button><span class="hint" id="notesState"></span></div>
+      </div>
+    </article>
+  </section>
+
+  <!-- RECORDS -->
+  <section id="v-records" class="view" aria-label="Records" hidden>
+    <div class="row" style="justify-content:space-between">
+      <h2 class="vh">Records</h2>
+      <button class="btn primary" data-act="add" type="button">Add</button>
+    </div>
+    <div class="chips" id="filters" role="group" aria-label="Show"></div>
+    <div class="panel"><ul class="list" id="recList"></ul></div>
+  </section>
+
+  <!-- PREPARE -->
+  <section id="v-prepare" class="view" aria-label="Prepare" hidden>
+    <h2 class="vh">Get ready for an appointment</h2>
+    <p class="lede">Claude reads your logbook and writes a short brief: what to say first, a timeline, the medicines to mention, and questions to ask.</p>
+    <div id="aiOffPrep" class="notice warn" hidden></div>
+    <div class="field">
+      <label for="prepAppt">Which appointment?</label>
+      <select id="prepAppt"></select>
+    </div>
+    <div class="field">
+      <label for="prepGoal">What's it about, and what do you want from it?</label>
+      <textarea id="prepGoal" rows="4" placeholder="e.g. Follow-up on my knee pain. It's worse on stairs. I'd like to ask about a scan and whether the tablets are still needed."></textarea>
+    </div>
+    <div class="row">
+      <button class="btn ai" id="prepGo" type="button">Write my brief</button>
+      <button class="btn" id="prepStop" type="button" hidden>Stop</button>
+    </div>
+    <div id="prepOut" class="ai-out" aria-live="polite" hidden></div>
+    <div id="prepTools" class="row" hidden>
+      <button class="btn" id="prepCopy" type="button">Copy</button>
+      <button class="btn" id="prepSave" type="button">Save to this appointment</button>
+      <button class="btn" id="prepFile" type="button">Save as a file</button>
+    </div>
+
+    <hr class="sep">
+    <h2 class="vh">Look at the whole picture</h2>
+    <p class="lede">For when appointments keep going round in circles. Claude reviews everything in your logbook and suggests what might tie it together, what hasn't been checked yet, and how to ask for it.</p>
+    <div class="field">
+      <label for="revQ">What's still unexplained or worrying you?</label>
+      <textarea id="revQ" rows="3" placeholder="e.g. Still exhausted even though my iron tablets are meant to be working. Hair thinning and pins and needles in my feet."></textarea>
+    </div>
+    <div class="row">
+      <button class="btn ai" id="revGo" type="button">Review my history</button>
+      <button class="btn" id="revStop" type="button" hidden>Stop</button>
+    </div>
+    <div id="revOut" class="ai-out" aria-live="polite" hidden></div>
+    <div id="revTools" class="row" hidden>
+      <button class="btn" id="revCopy" type="button">Copy</button>
+      <button class="btn" id="revSave" type="button">Save to my logbook</button>
+      <button class="btn" id="revFile" type="button">Save as a file</button>
+    </div>
+  </section>
+
+  <!-- ASK -->
+  <section id="v-ask" class="view" aria-label="Ask Claude" hidden>
+    <h2 class="vh">Talk it through</h2>
+    <p class="lede">Ask what could be behind a symptom, what a result or letter means, or how to push for a test. Claude can see your logbook. Chats aren't saved.</p>
+    <div id="aiOffAsk" class="notice warn" hidden></div>
+    <div class="chips" id="starters"></div>
+    <div class="chatlog" id="chatlog" aria-live="polite"></div>
+    <div class="composer">
+      <textarea id="chatIn" rows="2" placeholder="Type a question…" aria-label="Your question"></textarea>
+      <div id="attachNote" class="attach-note" hidden></div>
+      <div class="row" style="justify-content:space-between">
+        <div class="row">
+          <label class="btn ghost" id="attachLbl" for="chatFile" hidden>Add a photo</label>
+          <input type="file" id="chatFile" accept="image/*" multiple hidden>
+          <button class="btn ghost" id="chatClear" type="button">New chat</button>
+        </div>
+        <div class="row">
+          <button class="btn" id="chatStop" type="button" hidden>Stop</button>
+          <button class="btn ai" id="chatSend" type="button">Send</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Sections">
+  <div class="tabs-in">
+    <button class="tab" data-view="overview" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/></svg>Overview</button>
+    <button class="tab" data-view="diary" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6z"/><path d="M6 3v18M9.5 8h6M9.5 12h6"/></svg>Diary</button>
+    <button class="tab" data-view="records" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Records</button>
+    <button class="tab" data-view="prepare" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4"/></svg>Prepare</button>
+    <button class="tab" data-view="ask" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 4v-4H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>Ask</button>
+  </div>
+</nav>
+
+<div id="sheet" class="sheet" hidden>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-head"><h2 id="sheetTitle"></h2><button class="icon-btn" id="sheetClose" type="button" aria-label="Close">×</button></div>
+    <div id="sheetBody" style="display:flex;flex-direction:column;gap:14px"></div>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" hidden></div>
+<div id="auth" class="lock-screen" hidden>
+  <div class="auth-card">
+    <p class="eyebrow">Health logbook</p>
+    <h1 id="authTitle">Sign in</h1>
+    <form id="signinForm" class="auth-form" novalidate>
+      <div class="field"><label for="siEmail">Email</label><input type="text" id="siEmail" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+      <div class="field"><label for="siPass">Password</label><input type="password" id="siPass" autocomplete="current-password"></div>
+      <p class="lock-msg" id="siMsg" aria-live="assertive"></p>
+      <button class="btn primary" id="siGo" type="submit">Sign in</button>
+      <p class="fineprint">Forgotten your password? Ask the administrator to reset it.</p>
+    </form>
+    <form id="setupForm" class="auth-form" novalidate hidden>
+      <p class="none">Create the administrator account. You'll add everyone else from inside the app.</p>
+      <div class="field"><label for="suName">Your first name</label><input type="text" id="suName" autocomplete="given-name"></div>
+      <div class="field"><label for="suEmail">Email</label><input type="text" id="suEmail" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+      <div class="field"><label for="suPass">Choose a password</label><input type="password" id="suPass" autocomplete="new-password"><span class="hint">At least 8 characters</span></div>
+      <div class="field"><label for="suPass2">Type it again</label><input type="password" id="suPass2" autocomplete="new-password"></div>
+      <p class="lock-msg" id="suMsg" aria-live="assertive"></p>
+      <button class="btn primary" id="suGo" type="submit">Create administrator account</button>
+    </form>
+    <div id="authNote" hidden><p id="authNoteText" class="notice"></p><button class="btn" id="authSignOut" type="button">Sign out</button></div>
+    <button class="btn ghost" id="toSetup" type="button" hidden>First time here? Set up the app</button>
+    <button class="btn ghost" id="toSignin" type="button" hidden>Back to sign in</button>
+    <p class="fineprint">Each person's records are private to their own login. The administrator who runs the app's database could reach them, so only use it with people you trust.</p>
+  </div>
+</div>
+<div id="lock" class="lock-screen" hidden role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+  <div class="lock-card">
+    <p class="eyebrow">Health logbook</p>
+    <h2 id="lockTitle">Enter your PIN</h2>
+    <div class="pin-dots" id="pinDots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <p class="lock-msg" id="lockMsg" aria-live="assertive"></p>
+    <div class="keypad" id="keypad"></div>
+    <p class="fineprint" id="lockHelp">Forgot it? <button class="btn ghost" id="pinForgot" type="button" style="min-height:32px;padding:0 4px">Sign in with your password instead</button></p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const KINDS = {
+  allergy:{one:"Allergy", many:"Allergies", date:"Noted"},
+  medication:{one:"Medicine", many:"Medicines", date:"Started"},
+  condition:{one:"Condition or operation", many:"Conditions & operations", date:"Date"},
+  appointment:{one:"Appointment", many:"Appointments", date:"Date"},
+  symptom:{one:"Symptom", many:"Symptom diary", date:"When"},
+  result:{one:"Test result or letter", many:"Results & letters", date:"Date"},
+  note:{one:"Note", many:"Notes & reviews", date:"Date"},
+  due:{one:"Due date", many:"Due dates", date:"Next due"}
+};
+const ORDER = ["allergy","medication","condition","appointment","due","symptom","result","note"];
+const S = {db:null,col:null,user:null,sample:null,downloads:null,img:null,entries:[],profile:{},loaded:false,canWrite:true,aiOff:false,filter:"all",chat:[],chatFiles:[],prepCtl:null,chatCtl:null,prepText:"",prepFor:"",revCtl:null,revText:"",days:{},cal:null,selDay:null,notesFor:null};
+
+const GUIDE = "You are helping a person in the UK keep track of their own health and push their care forward with the NHS (GP, nurse, hospital, pharmacist), especially when appointments have gone round in circles. Use UK English and NHS terms. Be warm, plain-spoken, direct and practical.\n"
+  + "Do help them think through what might be going on: connect symptoms, results and history (for example past operations such as bariatric surgery and the deficiencies that commonly follow them), name the possible explanations a clinician would consider, roughly most to least likely, and say what tests, checks or referrals could confirm or rule each one out. Mention relevant NHS or NICE guidance where you know it, and give wording they can use to ask for a test or referral. Say how sure you are, and be clear these are possibilities to put to their clinician, not a diagnosis, because you can't examine them or order tests.\n"
+  + "Don't tell them to stop or change a prescribed medicine on their own; say to discuss it with their GP or pharmacist. Don't invent results or history that isn't in the logbook.\n"
+  + "If anything they describe could be an emergency (for example chest pain, signs of a stroke, severe difficulty breathing, heavy bleeding, black or bloody stools, fainting, sudden severe headache, or thoughts of harming themselves), say clearly at the very start to call 999, or NHS 111 if it's urgent but not life-threatening.";
+
+/* ---------- helpers ---------- */
+function h(tag, attrs, ...kids){
+  const el=document.createElement(tag);
+  for(const [k,v] of Object.entries(attrs||{})){
+    if(v==null||v===false) continue;
+    if(k==="class") el.className=v;
+    else if(k==="text") el.textContent=v;
+    else if(k.startsWith("on")) el.addEventListener(k.slice(2),v);
+    else el.setAttribute(k, v===true?"":v);
+  }
+  for(const c of kids.flat()){ if(c==null||c===false) continue; el.append(c.nodeType?c:document.createTextNode(String(c))); }
+  return el;
+}
+function todayISO(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function fmtDate(iso){ if(!iso) return ""; const [y,m,d]=String(iso).split("-").map(Number); if(!y) return String(iso); return (d?d+" ":"")+(m?MON[m-1]+" ":"")+y; }
+let toastT; function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,2600); }
+function status(msg){ const s=$("#status"); if(msg){s.textContent=msg;s.hidden=false;} else s.hidden=true; }
+function rangeText(e){ const lo=typeof e.low==="number", hi=typeof e.high==="number"; return lo&&hi? e.low+"–"+e.high : lo? "over "+e.low : hi? "under "+e.high : ""; }
+function flag(e){ if(typeof e.value!=="number") return ""; if(typeof e.low==="number"&&e.value<e.low) return "low"; if(typeof e.high==="number"&&e.value>e.high) return "high"; return ""; }
+function valueText(e){ const r=rangeText(e), f=flag(e); return e.value+(e.unit?" "+e.unit:"")+(r?" (normal "+r+")":"")+(f?" – "+f.toUpperCase():""); }
+const UNITS={days:"day",weeks:"week",months:"month",years:"year"};
+function everyText(e){ return e.everyN&&UNITS[e.everyUnit]? "every "+e.everyN+" "+UNITS[e.everyUnit]+(e.everyN>1?"s":"") : ""; }
+function addInterval(iso,n,unit){ const [y,m,d]=iso.split("-").map(Number); const t=new Date(y,m-1,d);
+  if(unit==="days") t.setDate(t.getDate()+n); else if(unit==="weeks") t.setDate(t.getDate()+7*n); else if(unit==="months") t.setMonth(t.getMonth()+n); else if(unit==="years") t.setFullYear(t.getFullYear()+n);
+  return isoOf(t.getFullYear(),t.getMonth(),t.getDate()); }
+function daysBetween(a,b){ const p=x=>{const [y,m,d]=x.split("-").map(Number);return Date.UTC(y,m-1,d);}; return Math.round((p(b)-p(a))/864e5); }
+function testKey(t){ return String(t||"").toLowerCase().replace(/\(.*?\)/g,"").replace(/[^a-z0-9]+/g," ").trim(); }
+function byDateDesc(a,b){ return (b.date||"").localeCompare(a.date||"") || (b.updatedAt||0)-(a.updatedAt||0); }
+function ofKind(k){ return S.entries.filter(e=>e.kind===k); }
+function subline(e){
+  const bits=[];
+  if(e.kind==="medication"){ if(e.dose) bits.push(e.dose); if(e.status==="stopped") bits.push("stopped"); }
+  if(e.kind==="condition" && e.status==="past") bits.push("resolved");
+  if(e.kind==="appointment"){ if(e.time) bits.push(e.time); if(e.place) bits.push(e.place); if(e.prep) bits.push("brief saved"); }
+  if(e.kind==="result" && typeof e.value==="number") bits.push(valueText(e));
+  if(e.kind==="due"){ const ev=everyText(e); if(ev) bits.push(ev); if(e.status==="done") bits.push("done"); else if(e.date&&e.date<todayISO()) bits.push("overdue"); }
+  if(e.details && e.kind!=="appointment") bits.push(e.details.length>90? e.details.slice(0,90)+"…" : e.details);
+  return bits.join(" · ");
+}
+
+/* tiny markdown: ## headings, - bullets, 1. lists, **bold** */
+function inline(s){ return s.split(/(\*\*[^*]+\*\*)/).filter(Boolean).map(p=> (p.length>4&&p.startsWith("**")&&p.endsWith("**"))? h("strong",{},p.slice(2,-2)) : document.createTextNode(p)); }
+function md(text){
+  const frag=document.createDocumentFragment(); let list=null, listType="";
+  for(const raw of String(text).split("\n")){
+    const line=raw.trimEnd();
+    let m;
+    if(/^#{1,4}\s+/.test(line)){ list=null; frag.append(h("h3",{},inline(line.replace(/^#{1,4}\s+/,"")))); }
+    else if((m=line.match(/^\s*[-*•]\s+(.*)$/))){ if(!list||listType!=="ul"){list=h("ul");listType="ul";frag.append(list);} list.append(h("li",{},inline(m[1]))); }
+    else if((m=line.match(/^\s*\d+[.)]\s+(.*)$/))){ if(!list||listType!=="ol"){list=h("ol");listType="ol";frag.append(list);} list.append(h("li",{},inline(m[1]))); }
+    else if(!line.trim()){ list=null; }
+    else { list=null; frag.append(h("p",{},inline(line))); }
+  }
+  return frag;
+}
+function aiErr(e){
+  switch(e&&e.code){
+    case "cancelled": return "";
+    case "not_granted": case "sampling_disabled": case "not_declared": case "capability_disabled": case "capability_removed":
+      disableAI("Your account can't use Claude in this app. Ask the administrator."); return "Your account can't use Claude in this app.";
+    case "rate_limited": return "Claude is busy, or you've reached today's limit. Try again later.";
+    case "session_expired": return "You've been signed out. Sign in again, then try once more.";
+    case "not_configured": return "Claude hasn't been switched on for this app yet. Ask the administrator to add the API key.";
+    case "no_credit": return "The app's Claude credit has run out. Ask the administrator to top it up.";
+    case "image_rejected": return "Claude couldn't read that picture. Try a clearer screenshot saved as JPEG or PNG.";
+    case "images_unavailable": return "Pictures can't be sent to Claude from this app. Type the details in instead.";
+    case "refused": return "Claude didn't answer that. Try wording it differently.";
+    case "prompt_too_large": return "That's too much to send in one go. Try fewer pictures or a shorter message.";
+    case "invalid_json": return "Claude's reply couldn't be turned into entries. Try again, or with fewer pictures.";
+    case "empty_completion": return "Claude didn't write anything back. Try asking in a different way.";
+    default: return "Couldn't reach Claude. Check your connection and try again.";
+  }
+}
+function disableAI(msg){
+  S.aiOff=true;
+  for(const id of ["#aiOffPrep","#aiOffAsk"]){ const n=$(id); n.textContent=msg; n.hidden=false; }
+  $("#prepGo").disabled=true; $("#revGo").disabled=true; $("#chatSend").disabled=true;
+}
+async function copyText(text, el){
+  try{ await navigator.clipboard.writeText(text); toast("Copied"); }
+  catch{ const r=document.createRange(); r.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("Text selected. Use your phone's Copy."); }
+}
+
+/* ---------- context for Claude ---------- */
+function buildContext(){
+  const p=S.profile||{}; const lines=[];
+  lines.push("Today's date: "+fmtDate(todayISO()));
+  if(p.name) lines.push("Name: "+p.name);
+  if(p.dob) lines.push("Date of birth: "+fmtDate(p.dob));
+  if(p.gp) lines.push("GP surgery: "+p.gp);
+  for(const k of ORDER){
+    const es=ofKind(k).sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+    if(!es.length) continue;
+    lines.push("\n"+KINDS[k].many.toUpperCase()+":");
+    for(const e of es){
+      const bits=[(e.kind==="due"?"next due ":"")+(e.date?fmtDate(e.date):"date unknown"), e.title];
+      if(e.kind==="due"){ const ev=everyText(e); if(ev) bits.push("repeats "+ev); if(e.lastDone) bits.push("last done "+fmtDate(e.lastDone)); }
+      if(e.time) bits.push(e.time);
+      if(e.dose) bits.push("dose: "+e.dose);
+      if(e.status) bits.push(e.status);
+      if(e.severity) bits.push("severity "+e.severity+"/10");
+      if(typeof e.value==="number") bits.push("result: "+valueText(e));
+      if(e.place) bits.push("with/at: "+e.place);
+      if(e.details) bits.push(String(e.details).slice(0, e.kind==="note"?1500:400));
+      lines.push("- "+bits.join(" | "));
+    }
+  }
+  const dd=Object.values(S.days||{}).filter(d=>d.date).sort((a,b)=>a.date.localeCompare(b.date)).slice(-150);
+  if(dd.length){
+    lines.push("\nDAILY DIARY (feeling and energy out of 5, where 1 is worst; period flow; weight):");
+    for(const d of dd){
+      const b=[fmtDate(d.date)];
+      if(d.feel) b.push("feeling "+d.feel+"/5 ("+FEEL[d.feel-1]+")");
+      if(d.energy) b.push("energy "+d.energy+"/5");
+      if(Array.isArray(d.bp)&&d.bp.length) b.push("BP "+d.bp.map(r=>r.sys+"/"+r.dia+(r.pulse?" pulse "+r.pulse:"")+(r.time?" at "+r.time:"")).join(", "));
+      if(d.period) b.push("period: "+d.period);
+      if(typeof d.weight==="number") b.push("weight "+d.weight+" kg");
+      if(d.notes) b.push(String(d.notes).slice(0,300));
+      if(b.length>1) lines.push("- "+b.join(" | "));
+    }
+  }
+  if(lines.length<2) lines.push("(The logbook is empty so far.)");
+  const txt=lines.join("\n");
+  return txt.length>80000? txt.slice(0,80000)+"\n(…logbook cut short)" : txt;
+}
+
+/* ---------- writes ---------- */
+function setReadOnly(){
+  S.canWrite=false; $("#roNote").hidden=false;
+  document.querySelectorAll('[data-act="add"],[data-act="import"],#editProfile,#bpAdd,#dayNotesSave').forEach(b=>b.disabled=true);
+}
+async function write(fn){
+  if(!S.col){ toast("Sign in to save your records."); return false; }
+  for(let attempt=0; attempt<2; attempt++){
+    try{ await fn(); return true; }
+    catch(e){
+      const c=e&&e.code;
+      if(c==="unavailable" && attempt===0){ await new Promise(r=>setTimeout(r,600+Math.random()*900)); continue; }
+      if(c==="invalid_argument"){ setReadOnly(); toast("This login can't save here."); }
+      else if(c==="quota_exceeded") toast("Your logbook is full. Delete some old entries to add more.");
+      else toast("Couldn't save. Check your connection and try again.");
+      return false;
+    }
+  }
+  return false;
+}
+function cleanBody(o){ const b={}; for(const [k,v] of Object.entries(o)){ if(v!==""&&v!=null&&!(typeof v==="number"&&isNaN(v))) b[k]=v; } return b; }
+async function saveEntry(body, id){
+  const now=Date.now();
+  const ref= id? S.col.doc(id) : S.col.doc();
+  return write(()=>ref.set(cleanBody({...body, updatedAt:now, createdAt: body.createdAt||now})));
+}
+
+/* ---------- views ---------- */
+const VIEWS=["overview","diary","records","prepare","ask"];
+function show(v){
+  if(!VIEWS.includes(v)) v="overview";
+  for(const x of VIEWS) $("#v-"+x).hidden = x!==v;
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-current", t.dataset.view===v?"page":"false"));
+  if(location.hash.slice(1)!==v){ try{ history.replaceState(null,"","#"+v); }catch{} }
+  window.scrollTo(0,0);
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>show(t.dataset.view)));
+window.addEventListener("hashchange",()=>show(location.hash.slice(1)));
+
+function itemRow(e, showTag){
+  const right = e.kind==="symptom"&&e.severity ? h("span",{class:"sev"+(Number(e.severity)>=7?" hi":"")},e.severity+"/10")
+              : showTag ? h("span",{class:"tag "+e.kind},KINDS[e.kind].one) : h("span");
+  const sub=subline(e);
+  return h("li",{}, h("button",{class:"item",type:"button",onclick:()=>openEntry(e)},
+    h("span",{class:"d"}, e.date?fmtDate(e.date):"—"),
+    h("span",{class:"t"}, e.title||"Untitled"),
+    right,
+    sub? h("span",{class:"s"},sub):null));
+}
+function fill(ul, items, emptyText){ ul.replaceChildren(...(items.length? items : [h("li",{class:"none"},emptyText)])); }
+
+function renderOverview(){
+  const p=S.profile||{};
+  $("#who").textContent = p.name? (p.name+"'s health") : "My health";
+  const empty = S.loaded && S.entries.length===0;
+  $("#empty").hidden=!empty;
+
+  const al=ofKind("allergy");
+  const band=$("#ovAllergies");
+  if(al.length){
+    band.hidden=false;
+    band.replaceChildren(h("div",{class:"alertband"}, h("span",{class:"lab"},"Allergies"), al.map(a=>h("button",{class:"chip",type:"button",onclick:()=>openEntry(a)},a.title))));
+  } else band.hidden=true;
+
+  const today=todayISO();
+  const next=ofKind("appointment").filter(a=>a.date && a.date>=today).sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||"")))[0];
+  const nb=$("#ovNext");
+  if(next){
+    nb.replaceChildren(
+      h("p",{class:"next-date"}, fmtDate(next.date)+(next.time?" · "+next.time:"")),
+      h("p",{class:"next-title"}, next.title),
+      next.place? h("p",{class:"none"},next.place):null,
+      h("div",{class:"row"},
+        h("button",{class:"btn ai",type:"button",onclick:()=>{ $("#prepAppt").value=next.id; show("prepare"); }}, next.prep?"See my brief":"Prepare for it"),
+        h("button",{class:"btn ghost",type:"button",onclick:()=>openEntry(next)},"Details")));
+  } else {
+    nb.replaceChildren(h("p",{class:"none"},"Nothing booked."), h("div",{}, h("button",{class:"btn ghost",type:"button",disabled:!S.canWrite||null,onclick:()=>openEntry(null,"appointment")},"Add an appointment")));
+  }
+  const dues=ofKind("due").filter(d=>d.status!=="done"&&d.date).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
+  fill($("#ovDue"), dues.map(d=>{
+    const gap=daysBetween(today,d.date);
+    const when= gap<0? "Overdue by "+(-gap)+" day"+(gap===-1?"":"s") : gap===0? "Due today" : gap<=14? "Due in "+gap+" day"+(gap===1?"":"s")+" · "+fmtDate(d.date) : fmtDate(d.date);
+    return h("li",{}, h("div",{class:"due-row"},
+      h("button",{class:"item two",type:"button",style:"padding:0;border:0",onclick:()=>openEntry(d)}, h("span",{class:"t"},d.title), h("span"), h("span",{class:"due-when"+(gap<0?" over":gap<=14?" soon":"")},when)),
+      h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>markDone(d)},"Done")));
+  }), "Nothing set. Add injections, infusions or repeat blood tests as due dates.");
+  fill($("#ovMeds"), ofKind("medication").filter(m=>m.status!=="stopped").sort((a,b)=>a.title.localeCompare(b.title)).map(e=>itemRow(e,false)), "None added yet.");
+  fill($("#ovConds"), ofKind("condition").filter(c=>c.status!=="past").sort(byDateDesc).map(e=>itemRow(e,false)), "None added yet.");
+  fill($("#ovSym"), ofKind("symptom").sort(byDateDesc).slice(0,5).map(e=>itemRow(e,false)), "Log symptoms as they happen. It makes appointments much easier.");
+}
+
+const SVGNS="http://www.w3.org/2000/svg";
+function sv(tag, attrs){ const el=document.createElementNS(SVGNS,tag); for(const [k,v] of Object.entries(attrs)){ if((k==="fill"||k==="stroke")&&String(v).startsWith("var(")) el.style[k]=v; else el.setAttribute(k,v); } return el; }
+function sparkline(pts){
+  const W=300,H=64,P=7;
+  const vals=pts.flatMap(p=>[p.value, typeof p.low==="number"?p.low:null, typeof p.high==="number"?p.high:null]).filter(v=>v!=null);
+  let lo=Math.min(...vals), hi=Math.max(...vals); if(lo===hi){ lo-=1; hi+=1; } const pad=(hi-lo)*0.12; lo-=pad; hi+=pad;
+  const ts=pts.map(p=>Date.parse(p.date)); const t0=Math.min(...ts), t1=Math.max(...ts);
+  const x=i=> pts.length===1? W/2 : P+(W-2*P)*((ts[i]-t0)/((t1-t0)||1));
+  const y=v=> H-P-(H-2*P)*((v-lo)/(hi-lo));
+  const s=sv("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":pts.map(p=>fmtDate(p.date)+": "+p.value).join(", ")});
+  const last=pts[pts.length-1];
+  if(typeof last.low==="number"||typeof last.high==="number"){
+    const top=y(typeof last.high==="number"?last.high:hi), bot=y(typeof last.low==="number"?last.low:lo);
+    s.append(sv("rect",{x:0,y:top,width:W,height:Math.max(1,bot-top),fill:"var(--soft)"}));
+  }
+  for(const gy of [P,H-P]) s.append(sv("line",{x1:0,x2:W,y1:gy,y2:gy,stroke:"var(--line)","stroke-width":"1","vector-effect":"non-scaling-stroke"}));
+  if(pts.length>1) s.append(sv("polyline",{points:pts.map((p,i)=>x(i)+","+y(p.value)).join(" "),fill:"none",stroke:"var(--accent)","stroke-width":"2","stroke-linejoin":"round","vector-effect":"non-scaling-stroke"}));
+  pts.forEach((p,i)=>{ const f=flag(p); const r=i===pts.length-1?4.5:3;
+    s.append(sv("circle",{cx:x(i),cy:y(p.value),r:r,fill:f?"var(--alert)":"var(--accent)",stroke:"var(--surface)","stroke-width":"1.5","vector-effect":"non-scaling-stroke"})); });
+  return s;
+}
+async function markDone(d){
+  const today=todayISO();
+  if(d.everyN&&d.everyUnit){
+    const next=addInterval(today,d.everyN,d.everyUnit);
+    const ok=await write(()=>S.col.doc(d.id).update({date:next,lastDone:today,updatedAt:Date.now()}));
+    if(ok) toast("Done. Next due "+fmtDate(next));
+  } else {
+    const ok=await write(()=>S.col.doc(d.id).update({status:"done",lastDone:today,updatedAt:Date.now()}));
+    if(ok) toast("Marked as done");
+  }
+}
+function renderTrends(){
+  const groups=new Map();
+  for(const e of ofKind("result")){ if(typeof e.value!=="number"||!e.date) continue; const k=testKey(e.title); if(!k) continue; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(e); }
+  const sysG=[], diaG=[];
+  for(const d of Object.values(S.days||{})) for(const r of (Array.isArray(d.bp)?d.bp:[])){
+    if(typeof r.sys==="number") sysG.push({_bp:true,date:d.date,title:"Blood pressure (top)",value:r.sys,unit:"mmHg",low:90,high:140});
+    if(typeof r.dia==="number") diaG.push({_bp:true,date:d.date,title:"Blood pressure (bottom)",value:r.dia,unit:"mmHg",low:60,high:90});
+  }
+  const wtG=[]; for(const d of Object.values(S.days||{})) if(typeof d.weight==="number") wtG.push({_bp:true,date:d.date,title:"Weight",value:d.weight,unit:"kg"});
+  if(sysG.length) groups.set("_bps",sysG); if(diaG.length) groups.set("_bpd",diaG); if(wtG.length) groups.set("_wt",wtG);
+  const list=[...groups.values()].map(g=>g.sort((a,b)=>a.date.localeCompare(b.date))).sort((a,b)=>b[b.length-1].date.localeCompare(a[a.length-1].date)).slice(0,8);
+  $("#ovTrends").hidden=!list.length;
+  $("#trendList").replaceChildren(...list.map(g=>{
+    const last=g[g.length-1], f=flag(last);
+    return h("button",{class:"trend",type:"button",onclick:()=>last._bp? openDay(last.date) : openEntry(last)},
+      h("div",{class:"trend-head"}, h("span",{class:"trend-name"},last.title), h("span",{class:"trend-val "+f}, last.value+(last.unit?" "+last.unit:"")+(f?" "+f:""))),
+      sparkline(g),
+      h("div",{class:"trend-meta"}, h("span",{},fmtDate(g[0].date)), h("span",{}, g.length>1? g.length+" results" : "1 result"), h("span",{},fmtDate(last.date))));
+  }));
+}
+
+function renderRecords(){
+  const counts={}; for(const e of S.entries) counts[e.kind]=(counts[e.kind]||0)+1;
+  const mk=(key,label,n)=>h("button",{class:"fchip",type:"button","aria-pressed":String(S.filter===key),onclick:()=>{S.filter=key;renderRecords();}}, label, h("span",{class:"n"},String(n||0)));
+  $("#filters").replaceChildren(mk("all","All",S.entries.length), ...ORDER.map(k=>mk(k,KINDS[k].many,counts[k])));
+  const list = (S.filter==="all"? S.entries.slice() : ofKind(S.filter)).sort(byDateDesc);
+  fill($("#recList"), list.map(e=>itemRow(e, S.filter==="all")), S.loaded? "Nothing here yet." : "Loading your records…");
+}
+
+function renderPrepSelect(){
+  const sel=$("#prepAppt"); const cur=sel.value;
+  const today=todayISO();
+  const appts=ofKind("appointment").sort((a,b)=>{ const fa=(a.date||"")>=today, fb=(b.date||"")>=today; if(fa!==fb) return fa?-1:1; return fa? (a.date||"").localeCompare(b.date||"") : (b.date||"").localeCompare(a.date||""); });
+  sel.replaceChildren(h("option",{value:""},"Not in my logbook yet"), ...appts.map(a=>h("option",{value:a.id}, (a.date?fmtDate(a.date)+" – ":"")+a.title)));
+  if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
+  updatePrepTools();
+}
+function renderAll(){ renderOverview(); renderTrends(); renderRecords(); renderPrepSelect(); renderDiary(); }
+
+/* ---------- sheet ---------- */
+let sheetReturn=null;
+function openSheet(title, nodes){
+  sheetReturn=document.activeElement;
+  $("#sheetTitle").textContent=title;
+  $("#sheetBody").replaceChildren(...nodes);
+  $("#sheet").hidden=false;
+  const f=$("#sheetBody").querySelector("input,select,textarea,button"); if(f) f.focus();
+}
+function closeSheet(){ $("#sheet").hidden=true; $("#sheetBody").replaceChildren(); if(sheetReturn&&sheetReturn.focus) sheetReturn.focus(); }
+$("#sheetClose").addEventListener("click",closeSheet);
+$("#sheet").addEventListener("click",e=>{ if(e.target.id==="sheet") closeSheet(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !$("#sheet").hidden) closeSheet(); });
+
+function field(id,label,input,hint){ return h("div",{class:"field"}, h("label",{for:id},label), input, hint? h("span",{class:"hint"},hint):null); }
+
+function openEntry(entry, presetKind, preset){
+  const e=entry||{kind:presetKind||"symptom", date: todayISO(), ...(preset||{})};
+  const isNew=!entry;
+  const body=[];
+  const kindSel=h("select",{id:"f-kind"}, ...ORDER.map(k=>h("option",{value:k},KINDS[k].one)));
+  kindSel.value=e.kind;
+  const extra=h("div",{style:"display:flex;flex-direction:column;gap:14px"});
+  const title=h("input",{type:"text",id:"f-title",value:e.title||"",autocomplete:"off"});
+  const date=h("input",{type:"date",id:"f-date",value:e.date||""});
+  const dateLab=h("label",{for:"f-date"},KINDS[e.kind].date);
+  const details=h("textarea",{id:"f-details",rows:"4"}); details.value=e.details||"";
+  const titleHints={symptom:"e.g. Tiredness, hair loss, dizzy when standing",medication:"e.g. Ferrous fumarate, B12 injections",condition:"e.g. Gastric sleeve, iron deficiency anaemia",allergy:"e.g. Penicillin",appointment:"e.g. GP review, haematology clinic",result:"Use the same name each time, e.g. Ferritin, Vitamin B12, Haemoglobin",note:"e.g. Phone call with the surgery",due:"e.g. B12 injection, Iron infusion, Annual bariatric bloods"};
+  const detailHints={symptom:"How it felt, how long, what helped or made it worse",medication:"What it's for, side effects you've noticed",condition:"Anything the doctor said about it",allergy:"What happens when you have it",appointment:"What was said, what happens next",result:"What the letter or doctor said about it",note:"Anything worth remembering",due:"Where it's done, who to call to book it"};
+  const detailLab=h("label",{for:"f-details"},"Notes");
+  const detailHint=h("span",{class:"hint"});
+  const titleHint=h("span",{class:"hint"});
+
+  function renderExtra(){
+    const k=kindSel.value; dateLab.textContent=KINDS[k].date;
+    titleHint.textContent=titleHints[k]; detailHint.textContent=detailHints[k];
+    const parts=[];
+    if(k==="medication"){
+      const dose=h("input",{type:"text",id:"f-dose",value:e.dose||"",placeholder:"e.g. 5mg once a day"});
+      const st=h("select",{id:"f-status"},h("option",{value:"current"},"Taking it now"),h("option",{value:"stopped"},"Stopped"));
+      st.value=e.status==="stopped"?"stopped":"current";
+      parts.push(h("div",{class:"fields2"}, field("f-dose","Dose and how often",dose), field("f-status","Status",st)));
+    }
+    if(k==="condition"){
+      const st=h("select",{id:"f-status"},h("option",{value:"ongoing"},"Ongoing"),h("option",{value:"past"},"Resolved"));
+      st.value=e.status==="past"?"past":"ongoing";
+      parts.push(field("f-status","Status",st));
+    }
+    if(k==="symptom"){
+      const sev=h("input",{type:"number",id:"f-sev",min:"1",max:"10",step:"1",value:e.severity||"",inputmode:"numeric"});
+      parts.push(field("f-sev","How bad, 1 to 10",sev,"1 is barely noticeable, 10 is the worst you can imagine"));
+    }
+    if(k==="due"){
+      const n=h("input",{type:"number",id:"f-every",min:"1",max:"99",step:"1",inputmode:"numeric",value:e.everyN?String(e.everyN):"",placeholder:"e.g. 12"});
+      const u=h("select",{id:"f-every-unit"},h("option",{value:""},"Doesn't repeat"),h("option",{value:"days"},"days"),h("option",{value:"weeks"},"weeks"),h("option",{value:"months"},"months"),h("option",{value:"years"},"years"));
+      u.value=e.everyUnit||(e.everyN?"weeks":"");
+      parts.push(h("div",{class:"fields2"}, field("f-every","Repeats every",n), field("f-every-unit","Unit",u)));
+      if(e.lastDone) parts.push(h("p",{class:"hint"},"Last done "+fmtDate(e.lastDone)));
+      parts.push(h("p",{class:"hint"},"Tap Done on the Overview when it's happened and the next date is worked out for you."));
+    }
+    if(k==="result"){
+      const num=(id,val,ph)=>h("input",{type:"number",id,step:"any",inputmode:"decimal",value:typeof val==="number"?String(val):"",placeholder:ph||""});
+      parts.push(h("div",{class:"fields2"},
+        field("f-val","Result (number)",num("f-val",e.value,"e.g. 9")),
+        field("f-unit","Unit",h("input",{type:"text",id:"f-unit",value:e.unit||"",placeholder:"e.g. ug/L"}))));
+      parts.push(h("div",{class:"fields2"},
+        field("f-low","Normal range from",num("f-low",e.low,"e.g. 15")),
+        field("f-high","to",num("f-high",e.high,"e.g. 150"))));
+      parts.push(h("p",{class:"hint"},"Leave the numbers blank for a letter. Blood tests with numbers show up as trends on the Overview."));
+    }
+    if(k==="appointment"){
+      const tm=h("input",{type:"time",id:"f-time",value:e.time||""});
+      const pl=h("input",{type:"text",id:"f-place",value:e.place||"",placeholder:"e.g. Dr Patel, Dymchurch Surgery"});
+      parts.push(h("div",{class:"fields2"}, field("f-time","Time",tm), field("f-place","With / where",pl)));
+      if(e.prep){
+        parts.push(h("div",{class:"prep-saved"}, h("strong",{},"Your saved brief"), md(e.prep),
+          h("div",{}, h("button",{class:"btn ghost",type:"button",onclick:()=>{closeSheet(); $("#prepAppt").value=e.id; showSavedBrief(e); show("prepare");}},"Open in Prepare"))));
+      }
+    }
+    extra.replaceChildren(...parts);
+  }
+  kindSel.addEventListener("change",renderExtra);
+
+  if(isNew) body.push(field("f-kind","Type",kindSel));
+  body.push(h("div",{class:"field"}, h("label",{for:"f-title"},"Name"), title, titleHint));
+  body.push(h("div",{class:"field"}, dateLab, date));
+  body.push(extra);
+  body.push(h("div",{class:"field"}, detailLab, details, detailHint));
+  if(e.source==="import") body.push(h("p",{class:"fineprint"},"Imported from a screenshot. Check it matches your record."));
+
+  const saveBtn=h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null},"Save");
+  saveBtn.addEventListener("click", async ()=>{
+    const k=kindSel.value; const t=title.value.trim();
+    if(!t){ title.focus(); toast("Give it a name first."); return; }
+    const v=id=>{ const n=document.getElementById(id); return n? n.value.trim() : ""; };
+    const rec={kind:k,title:t,date:date.value,details:details.value.trim(),source:e.source||"manual",createdAt:e.createdAt,prep:k==="appointment"?e.prep:undefined,prepAt:k==="appointment"?e.prepAt:undefined};
+    if(k==="medication"){ rec.dose=v("f-dose"); rec.status=v("f-status"); }
+    if(k==="condition"){ rec.status=v("f-status"); }
+    if(k==="symptom"){ const n=parseInt(v("f-sev"),10); if(n>=1&&n<=10) rec.severity=n; }
+    if(k==="appointment"){ rec.time=v("f-time"); rec.place=v("f-place"); }
+    if(k==="due"){ const n=parseInt(v("f-every"),10), u=v("f-every-unit"); if(n>=1&&u){ rec.everyN=n; rec.everyUnit=u; } rec.lastDone=e.lastDone; if(e.status==="done"&&date.value&&date.value>=todayISO()) rec.status=""; else rec.status=e.status; }
+    if(k==="result"){ const n=id=>{ const x=parseFloat(v(id)); return isFinite(x)?x:undefined; }; rec.value=n("f-val"); rec.unit=v("f-unit"); rec.low=n("f-low"); rec.high=n("f-high"); }
+    saveBtn.disabled=true;
+    const ok=await saveEntry(rec, entry&&entry.id);
+    saveBtn.disabled=false;
+    if(ok){ closeSheet(); toast(isNew?"Added":"Saved"); }
+  });
+  const actions=h("div",{class:"row",style:"justify-content:space-between"});
+  if(!isNew){
+    let armed=false;
+    const del=h("button",{class:"btn danger",type:"button",disabled:!S.canWrite||null},"Delete");
+    del.addEventListener("click", async ()=>{
+      if(!armed){ armed=true; del.textContent="Tap again to delete"; setTimeout(()=>{armed=false; del.textContent="Delete";},4000); return; }
+      del.disabled=true;
+      const ok=await write(()=>S.col.doc(entry.id).delete());
+      if(ok){ closeSheet(); toast("Deleted"); } else del.disabled=false;
+    });
+    actions.append(del);
+  } else actions.append(h("span"));
+  actions.append(saveBtn);
+  body.push(actions);
+  renderExtra();
+  openSheet(isNew? "New entry" : KINDS[e.kind].one, body);
+}
+
+function openProfile(){
+  const p=S.profile||{};
+  const nm=h("input",{type:"text",id:"p-name",value:p.name||"",autocomplete:"given-name"});
+  const dob=h("input",{type:"date",id:"p-dob",value:p.dob||""});
+  const gp=h("input",{type:"text",id:"p-gp",value:p.gp||"",placeholder:"e.g. Dymchurch Surgery"});
+  const save=h("button",{class:"btn primary",type:"button"},"Save");
+  save.addEventListener("click", async ()=>{
+    save.disabled=true;
+    const ok=await write(()=>S.col.doc("profile").set(cleanBody({...S.profile,name:nm.value.trim(),dob:dob.value,gp:gp.value.trim(),updatedAt:Date.now()})));
+    save.disabled=false; if(ok){ closeSheet(); toast("Saved"); }
+  });
+  const pinBox=h("div",{class:"field"}, h("span",{class:"flabel"},"PIN lock"),
+    h("span",{class:"hint"}, p.pinHash? "A PIN is set. The app asks for it when opened and after 5 minutes away." : "Ask for a 4-digit PIN whenever the app is opened on this or any device."),
+    p.pinHash? h("div",{class:"row"},
+        h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); pinVerify(()=>showLock("set",savePin)); }},"Change PIN"),
+        h("button",{class:"btn danger",type:"button",onclick:()=>{ closeSheet(); pinVerify(()=>savePin(null)); }},"Remove PIN"))
+      : h("div",{}, h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>{ closeSheet(); showLock("set",savePin); }},"Set a PIN")));
+  openSheet("About you",[field("p-name","First name",nm), field("p-dob","Date of birth",dob), field("p-gp","GP surgery",gp), h("div",{class:"row",style:"justify-content:flex-end"},save), h("hr",{class:"sep"}), pinBox, h("hr",{class:"sep"}),
+    h("div",{class:"field"}, h("span",{class:"flabel"},"Account"), h("span",{class:"hint"},"Signed in as "+(S.email||"")),
+      h("div",{class:"row"},
+        h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); openPassword(); }},"Change password"),
+        S.isAdmin? h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); openPeople(); }},"People") : null,
+        h("button",{class:"btn ghost",type:"button",onclick:()=>{ closeSheet(); sb.auth.signOut(); }},"Sign out")))]);
+}
+$("#editProfile").addEventListener("click",openProfile);
+
+/* ---------- PIN lock ---------- */
+function pinVerify(cb){ if(S.freshLogin) cb(); else showLock("verify",cb); }
+const LOCK={mode:null,buf:"",first:"",cb:null,fails:0,until:0,unlocked:false,hiddenAt:0};
+async function pinHash(pin){ const d=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("hl:"+(S.uid||"")+":"+pin)); return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,"0")).join(""); }
+function hintPin(on){ try{ on? localStorage.setItem("hl-pin","1") : localStorage.removeItem("hl-pin"); }catch{} }
+function hasPinHint(){ try{ return localStorage.getItem("hl-pin")==="1"; }catch{ return false; } }
+async function savePin(hash){
+  const ok=await write(()=>S.col.doc("profile").set(cleanBody({...S.profile,pinHash:hash||undefined,updatedAt:Date.now()})));
+  if(ok){ hintPin(!!hash); LOCK.unlocked=true; toast(hash?"PIN set":"PIN removed"); }
+}
+function drawDots(){ document.querySelectorAll("#pinDots i").forEach((d,i)=>d.classList.toggle("on",i<LOCK.buf.length)); }
+function setLockText(){
+  const t={unlock:"Enter your PIN",verify:"Enter your current PIN",set:LOCK.first?"Enter it again":"Choose a 4-digit PIN"}[LOCK.mode];
+  $("#lockTitle").textContent=t; $("#lockHelp").hidden=LOCK.mode==="set";
+}
+function showLock(mode, cb){
+  LOCK.mode=mode; LOCK.cb=cb||null; LOCK.buf=""; LOCK.first=""; $("#lockMsg").textContent="";
+  const keys=["1","2","3","4","5","6","7","8","9", mode==="unlock"?"":"Cancel","0","Delete"];
+  $("#keypad").replaceChildren(...keys.map(k=> k===""? h("span") : h("button",{type:"button",class:(k.length>1?"txt":""),"aria-label":k.length>1?k:"Digit "+k,onclick:()=>pinKey(k)},k)));
+  setLockText(); drawDots();
+  $("#lock").hidden=false; document.querySelector("main").inert=true; document.querySelector(".tabs").inert=true; document.querySelector(".top").inert=true;
+  const b=$("#keypad button"); if(b) b.focus();
+}
+function hideLock(){ $("#lock").hidden=true; LOCK.mode=null; for(const sel of ["main",".tabs",".top"]) document.querySelector(sel).inert=false; }
+async function pinKey(k){
+  if(k==="Cancel"){ hideLock(); return; }
+  if(k==="Delete"){ LOCK.buf=LOCK.buf.slice(0,-1); drawDots(); return; }
+  if(Date.now()<LOCK.until){ $("#lockMsg").textContent="Too many tries. Wait a few seconds."; return; }
+  if(LOCK.buf.length>=4) return;
+  LOCK.buf+=k; drawDots();
+  if(LOCK.buf.length<4) return;
+  const entered=LOCK.buf;
+  if(LOCK.mode==="set"){
+    if(!LOCK.first){ LOCK.first=entered; LOCK.buf=""; setTimeout(()=>{ setLockText(); drawDots(); },150); return; }
+    if(entered!==LOCK.first){ LOCK.first=""; LOCK.buf=""; $("#lockMsg").textContent="Those didn't match. Start again."; setTimeout(()=>{ setLockText(); drawDots(); },150); return; }
+    const cb=LOCK.cb, hsh=await pinHash(entered); hideLock(); if(cb) cb(hsh); return;
+  }
+  if(!S.profile||!S.profile.pinHash){ LOCK.buf=""; drawDots(); $("#lockMsg").textContent= S.loaded? "" : "Still loading. Try again in a moment."; if(S.loaded) hideLock(); return; }
+  const ok=(await pinHash(entered))===S.profile.pinHash;
+  if(ok){ LOCK.fails=0; const cb=LOCK.cb, mode=LOCK.mode; LOCK.unlocked=true; hideLock(); if(mode==="verify"&&cb) cb(); return; }
+  LOCK.fails++; LOCK.buf="";
+  if(LOCK.fails>=5){ LOCK.fails=0; LOCK.until=Date.now()+30000; $("#lockMsg").textContent="Too many tries. Wait 30 seconds."; }
+  else $("#lockMsg").textContent="Wrong PIN. Try again.";
+  setTimeout(drawDots,150);
+}
+function checkLock(){
+  const has=!!(S.profile&&S.profile.pinHash);
+  hintPin(has);
+  const btn=$("#lockBtn"); btn.classList.toggle("can",has); btn.title= has? "Lock the app now" : "Only your login can see your records";
+  if(has && !LOCK.unlocked && LOCK.mode!=="unlock" && LOCK.mode!=="set") showLock("unlock");
+  if(!has && LOCK.mode==="unlock") hideLock();
+}
+$("#pinForgot").addEventListener("click",()=>{ if(sb) sb.auth.signOut(); });
+$("#lockBtn").addEventListener("click",()=>{ if(S.profile&&S.profile.pinHash){ LOCK.unlocked=false; showLock("unlock"); } });
+document.addEventListener("keydown",e=>{ if($("#lock").hidden) return; if(/^[0-9]$/.test(e.key)) pinKey(e.key); else if(e.key==="Backspace") pinKey("Delete"); });
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){ LOCK.hiddenAt=Date.now(); return; }
+  if(S.profile&&S.profile.pinHash&&LOCK.unlocked&&Date.now()-LOCK.hiddenAt>5*60*1000){ LOCK.unlocked=false; showLock("unlock"); }
+});
+
+/* ---------- import documents, PDFs and photos ---------- */
+let pdfjsP=null;
+function loadPdfJs(){
+  if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if(!pdfjsP) pdfjsP=new Promise((res,rej)=>{
+    const sc=document.createElement("script");
+    sc.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    sc.onload=()=>{ const L=window.pdfjsLib||window["pdfjs-dist/build/pdf"]; if(!L){ pdfjsP=null; rej(new Error("no pdfjs")); return; } L.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; res(L); };
+    sc.onerror=()=>{ pdfjsP=null; rej(new Error("load")); };
+    document.head.append(sc);
+  });
+  return pdfjsP;
+}
+function canvasJpeg(c){ return new Promise(r=>c.toBlob(r,"image/jpeg",0.85)); }
+async function imageToJpeg(file, maxSide){
+  let src=null, w=0, hgt=0, url=null;
+  try{ src=await createImageBitmap(file); w=src.width; hgt=src.height; }catch{}
+  if(!src){
+    url=URL.createObjectURL(file);
+    src=await new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=url; });
+    if(src){ w=src.naturalWidth; hgt=src.naturalHeight; }
+  }
+  if(!src||!w){ if(url) URL.revokeObjectURL(url); return null; }
+  const sc=Math.min(1,maxSide/Math.max(w,hgt)); const c=document.createElement("canvas");
+  c.width=Math.round(w*sc); c.height=Math.round(hgt*sc); c.getContext("2d").drawImage(src,0,0,c.width,c.height);
+  if(url) URL.revokeObjectURL(url);
+  return canvasJpeg(c);
+}
+const isPdf=f=> f.type==="application/pdf" || /\.pdf$/i.test(f.name||"");
+const MAX_PAGES=30;
+
+function openImport(){
+  if(!S.sample || S.aiOff){ openSheet("Import documents",[h("p",{},"Importing needs Claude, which isn't available on this page right now. You can still add entries by hand.")]); return; }
+  const canImg=!!S.img;
+  let files=[], ctl=null;
+  const camIn=h("input",{type:"file",id:"imp-cam",accept:"image/*",capture:"environment",hidden:true});
+  const pickIn=h("input",{type:"file",id:"imp-files",multiple:true,accept:canImg?"image/*,application/pdf,.pdf":"application/pdf,.pdf",hidden:true});
+  const chosen=h("ul",{class:"list"});
+  const go=h("button",{class:"btn ai",type:"button",disabled:true},"Read with Claude");
+  const stop=h("button",{class:"btn",type:"button",hidden:true},"Stop");
+  const out=h("div",{style:"display:flex;flex-direction:column;gap:10px"});
+  function drawChosen(){
+    fill(chosen, files.map((f,i)=>h("li",{}, h("div",{class:"bp-row"},
+      h("span",{style:"min-width:0;overflow-wrap:anywhere"}, h("strong",{}, isPdf(f)?"PDF ":"Photo "), f.name||"photo"),
+      h("button",{class:"btn ghost",type:"button","aria-label":"Remove "+(f.name||"photo"),onclick:()=>{ files.splice(i,1); drawChosen(); }},"Remove")))), "Nothing added yet.");
+    go.disabled=!files.length;
+  }
+  function addFiles(list){ for(const f of list){ if(isPdf(f) || (canImg && /^image\//.test(f.type||"image/"))) files.push(f); } drawChosen(); }
+  camIn.addEventListener("change",()=>{ addFiles(camIn.files); camIn.value=""; });
+  pickIn.addEventListener("change",()=>{ addFiles(pickIn.files); pickIn.value=""; });
+  stop.addEventListener("click",()=>ctl&&ctl.abort());
+
+  go.addEventListener("click", async ()=>{
+    go.disabled=true; stop.hidden=false; ctl=new AbortController();
+    const say=t=>out.replaceChildren(h("p",{class:"thinking"},t));
+    const texts=[], images=[], skipped=[];
+    let pages=0;
+    try{
+      for(const [fi,f] of files.entries()){
+        if(ctl.signal.aborted) throw {code:"cancelled"};
+        if(isPdf(f)){
+          say("Opening "+(f.name||"PDF")+"…");
+          let lib; try{ lib=await loadPdfJs(); }catch{ skipped.push((f.name||"PDF")+" (PDF reader didn't load)"); continue; }
+          let doc; try{ doc=await lib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise; }catch{ skipped.push((f.name||"PDF")+" (couldn't open it, it may be password-protected)"); continue; }
+          for(let p=1; p<=doc.numPages && pages<MAX_PAGES; p++){
+            if(ctl.signal.aborted) throw {code:"cancelled"};
+            say("Reading "+(f.name||"PDF")+", page "+p+" of "+doc.numPages+"…");
+            const page=await doc.getPage(p); pages++;
+            const tc=await page.getTextContent().catch(()=>({items:[]}));
+            const txt=tc.items.map(i=>(i.str||"")+(i.hasEOL?"\n":" ")).join("").replace(/[ \t]+/g," ").trim();
+            if(txt.length>=80) texts.push({name:(f.name||"PDF")+" – page "+p, text:txt});
+            else if(canImg){
+              const vp1=page.getViewport({scale:1}); const scale=Math.min(2.5,1800/Math.max(vp1.width,vp1.height));
+              const vp=page.getViewport({scale}); const c=document.createElement("canvas"); c.width=Math.round(vp.width); c.height=Math.round(vp.height);
+              const ctx=c.getContext("2d"); ctx.fillStyle="#fff"; ctx.fillRect(0,0,c.width,c.height);
+              await page.render({canvasContext:ctx,viewport:vp}).promise;
+              const b=await canvasJpeg(c); if(b) images.push({name:(f.name||"PDF")+" – page "+p, blob:b});
+            } else skipped.push((f.name||"PDF")+" page "+p+" (scanned page, pictures not available here)");
+          }
+          if(doc.numPages>0 && pages>=MAX_PAGES) skipped.push("pages after "+MAX_PAGES+" (import the rest separately)");
+        } else {
+          say("Preparing photo "+(fi+1)+"…");
+          const b=await imageToJpeg(f,2000); pages++;
+          if(b) images.push({name:f.name||"photo "+(fi+1), blob:b}); else skipped.push((f.name||"a photo")+" (couldn't open the picture)");
+        }
+      }
+      if(!texts.length && !images.length){ out.replaceChildren(h("p",{class:"notice warn"},"Nothing could be read from those files."+(skipped.length?" Skipped: "+skipped.join("; ")+".":""))); return; }
+
+      const per=Math.max(1,(S.img&&S.img.maxCount)||5);
+      const batches=[]; for(let i=0;i<images.length;i+=per) batches.push(images.slice(i,i+per));
+      if(!batches.length) batches.push([]);
+      let textBlock=texts.map(t=>"=== "+t.name+" ===\n"+t.text).join("\n\n"); if(textBlock.length>150000) textBlock=textBlock.slice(0,150000)+"\n(…cut short)";
+      const existing=S.entries.map(e=>e.kind+": "+e.title+(e.date?" ("+e.date+")":"")).slice(-300).join("; ");
+      const docs=[], items=[];
+      for(let bi=0; bi<batches.length; bi++){
+        say(batches.length>1? "Claude is reading part "+(bi+1)+" of "+batches.length+"… This can take a minute." : "Claude is reading your paperwork… This can take a minute.");
+        const b=batches[bi];
+        const prompt = "You are reading someone's own health paperwork from the UK: pages of the NHS App (GP health record), letters downloaded from the NHS App, hospital or clinic letters, discharge summaries, test results or prescriptions. "
+          + (b.length? "The attached "+b.length+" image"+(b.length>1?"s are":" is")+" photos or screenshots ("+b.map(x=>x.name).join(", ")+"); photos may be at an angle. " : "")
+          + ((bi===0&&textBlock)? "Text taken from PDF files is below.\n\n"+textBlock+"\n\n" : "\n")
+          + "Reply with only one JSON object of this shape:\n"
+          + '{"documents":[one per distinct letter or document (not for plain lists of GP record entries): {"title": short name such as "Haematology clinic letter", "date": "YYYY-MM-DD" or "", "from": who sent it or where it is from, or "", "summary": a plain-English summary for the patient in 3 to 6 sentences: what it says, what any results or medical terms mean, and every action or next step mentioned (tests, follow-ups, medicine changes, referrals) with dates}],\n'
+          + ' "items":[every individual health record item you can clearly read: {"kind": one of "condition","medication","allergy","symptom","appointment","result","due", "title": short name, "date": "YYYY-MM-DD" (1st of the month if only month and year are shown, "" if none), "status": for conditions "ongoing" or "past", for medicines "current" or "stopped", otherwise "", "dose": for medicines strength and how to take it, otherwise "", "value": for a numeric test result the number only, otherwise null, "unit": its unit or "", "low": bottom of the normal range as a number or null, "high": top of the normal range as a number or null, "time": for an appointment "HH:MM" or "", "place": for an appointment who or where, or "", "everyN": for a repeating due item a whole number or null, "everyUnit": "days","weeks","months","years" or "", "details": one or two lines of other useful detail}]}\n'
+          + "Rules: never guess or invent anything you cannot read. Each blood test value is its own \"result\" item named by the test alone in standard UK wording (Ferritin, Vitamin B12, Folate, Haemoglobin, Vitamin D, MCV and so on) so results can be compared over time. Past operations, procedures and diagnoses are \"condition\". Anything that has to be done later (repeat bloods, an injection, a scan, a review) is \"due\", with its date set to when it is next due. A booked appointment with a date is \"appointment\". "
+          + "Skip items already in this logbook: "+(existing||"(nothing yet)")+". If nothing can be read, reply with {\"documents\":[],\"items\":[]}.";
+        const opts={signal:ctl.signal, modelTier:"default"}; if(b.length) opts.images=b.map(x=>x.blob);
+        const res=await S.sample.json(prompt,opts);
+        if(res&&Array.isArray(res.documents)) docs.push(...res.documents);
+        if(res&&Array.isArray(res.items)) items.push(...res.items);
+        if(Array.isArray(res)) items.push(...res);
+      }
+      const num=x=> typeof x==="number"&&isFinite(x)? x : undefined;
+      const str=(x,n)=> typeof x==="string"? x.trim().slice(0,n) : "";
+      const dt=x=> /^\d{4}-\d{2}-\d{2}$/.test(x||"")? x : "";
+      const cleanDocs=docs.filter(d=>d&&str(d.summary,4000)).map(d=>({title:str(d.title,200)||"Letter",date:dt(d.date),from:str(d.from,200),summary:str(d.summary,4000)}));
+      const cleanItems=items.filter(i=>i&&KINDS[i.kind]&&i.kind!=="note"&&str(i.title,200)).map(i=>{
+        const it={kind:i.kind,title:str(i.title,200),date:dt(i.date),details:str(i.details,1500)};
+        if(i.kind==="condition") it.status=["ongoing","past"].includes(i.status)?i.status:"";
+        if(i.kind==="medication"){ it.status=["current","stopped"].includes(i.status)?i.status:""; it.dose=str(i.dose,200); }
+        if(i.kind==="result"){ it.value=num(i.value); it.unit=str(i.unit,30); it.low=num(i.low); it.high=num(i.high); }
+        if(i.kind==="appointment"){ it.time=/^\d{2}:\d{2}$/.test(i.time||"")?i.time:""; it.place=str(i.place,200); }
+        if(i.kind==="due"){ const n=parseInt(i.everyN,10); if(n>=1&&n<=99&&UNITS[i.everyUnit]){ it.everyN=n; it.everyUnit=i.everyUnit; } }
+        return it;
+      });
+      showImportResults(out, cleanDocs, cleanItems, skipped);
+    }catch(e){
+      const msg=(e&&e.code)? aiErr(e) : "Something went wrong reading those files. Try fewer at a time."; out.replaceChildren(msg? h("p",{class:"notice warn"},msg) : h("p",{class:"none"},"Stopped."));
+    }finally{ stop.hidden=true; go.disabled=!files.length; }
+  });
+
+  const btns=h("div",{class:"row"});
+  if(canImg) btns.append(h("label",{class:"btn primary",for:"imp-cam"},"Take a photo"));
+  btns.append(h("label",{class:"btn",for:"imp-files"}, canImg? "Choose files or screenshots" : "Choose PDF files"));
+  openSheet("Import documents",[
+    h("p",{class:"none"},"Add PDFs downloaded from the NHS App (Documents section), screenshots of your GP record, or photos of letters and paperwork. Add as many pages as you like, then let Claude read them."),
+    camIn, pickIn, btns, chosen,
+    h("div",{class:"row"},go,stop),
+    out,
+    h("p",{class:"fineprint"},"Only what Claude reads out is kept, in your private logbook. The pictures and files themselves aren't stored.")
+  ]);
+  drawChosen();
+}
+function showImportResults(out, docs, items, skipped){
+  if(!docs.length && !items.length){ out.replaceChildren(h("p",{class:"notice"},"Claude couldn't find anything new in those pages. Try clearer photos in good light, or different pages.")); return; }
+  const dChecks=[], iChecks=[];
+  const docRows=docs.map((d,i)=>{ const cb=h("input",{type:"checkbox",id:"impd-"+i,checked:true}); dChecks.push(cb);
+    return h("div",{class:"imp-item"}, cb, h("div",{style:"display:flex;flex-direction:column;gap:4px;min-width:0"},
+      h("label",{for:"impd-"+i}, h("strong",{},d.title), h("span",{class:"none"}," · "+[d.date?fmtDate(d.date):"no date",d.from].filter(Boolean).join(" · "))),
+      h("div",{class:"ai-out",style:"padding:10px 12px"}, md(d.summary)))); });
+  const itemRows=items.map((it,i)=>{ const cb=h("input",{type:"checkbox",id:"impi-"+i,checked:true}); iChecks.push(cb);
+    const sub=[it.date?fmtDate(it.date):"no date", typeof it.value==="number"?valueText(it):"", it.dose, it.status, everyText(it), it.time, it.place, it.details].filter(Boolean).join(" · ");
+    return h("div",{class:"imp-item"}, cb, h("label",{for:"impi-"+i,style:"display:flex;flex-direction:column;gap:2px;min-width:0"},
+      h("span",{class:"tag "+it.kind},KINDS[it.kind].one), h("strong",{},it.title), h("span",{class:"none",style:"overflow-wrap:anywhere"},sub))); });
+  const save=h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null},"Save ticked");
+  save.addEventListener("click", async ()=>{
+    save.disabled=true; let n=0, total=dChecks.filter(c=>c.checked).length+iChecks.filter(c=>c.checked).length, failed=false;
+    for(let i=0;i<docs.length && !failed;i++){ if(!dChecks[i].checked) continue; save.textContent="Saving "+(n+1)+" of "+total+"…";
+      const d=docs[i]; if(!(await saveEntry({kind:"result",title:d.title,date:d.date,details:(d.from?"From: "+d.from+"\n\n":"")+d.summary,source:"import"}))) failed=true; else n++; }
+    for(let i=0;i<items.length && !failed;i++){ if(!iChecks[i].checked) continue; save.textContent="Saving "+(n+1)+" of "+total+"…";
+      if(!(await saveEntry({...items[i],source:"import"}))) failed=true; else n++; }
+    if(!n){ save.textContent="Save ticked"; save.disabled=false; return; }
+    out.replaceChildren(
+      h("p",{class:"notice"}, n+" thing"+(n===1?"":"s")+" added to your logbook."+(failed?" Some couldn't be saved; try those again.":"")),
+      h("div",{class:"row"},
+        h("button",{class:"btn ai",type:"button",onclick:()=>{ closeSheet(); show("prepare"); const q=$("#revQ"); q.scrollIntoView({block:"center"}); q.focus(); }},"Review my whole history"),
+        h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); show("records"); }},"See my records")));
+  });
+  out.replaceChildren(
+    skipped.length? h("p",{class:"fineprint"},"Skipped: "+skipped.join("; ")+".") : null,
+    docs.length? h("h3",{},"Letters and documents ("+docs.length+")") : null, ...docRows,
+    items.length? h("h3",{style:"margin-top:8px"},"Added to your history ("+items.length+")") : null, ...itemRows,
+    h("p",{class:"none"},"Untick anything that's wrong. You can edit entries later."),
+    h("div",{class:"row",style:"justify-content:flex-end"},save));
+}
+document.querySelectorAll('[data-act="add"]').forEach(b=>b.addEventListener("click",()=>openEntry(null)));
+document.querySelectorAll('[data-act="import"]').forEach(b=>b.addEventListener("click",openImport));
+
+/* ---------- prepare ---------- */
+function selectedAppt(){ const id=$("#prepAppt").value; return id? S.entries.find(e=>e.id===id) : null; }
+function updatePrepTools(){
+  const a=selectedAppt();
+  $("#prepSave").hidden = !a || !S.canWrite;
+  $("#prepFile").hidden = !S.downloads;
+}
+function showSavedBrief(a){
+  if(!a||!a.prep) return;
+  S.prepText=a.prep; S.prepFor=a.id;
+  const o=$("#prepOut"); o.hidden=false; o.replaceChildren(h("p",{class:"fineprint"},"Saved brief"+(a.prepAt?" from "+fmtDate(new Date(a.prepAt).toISOString().slice(0,10)):"")), md(a.prep));
+  $("#prepTools").hidden=false; updatePrepTools();
+}
+$("#prepAppt").addEventListener("change",()=>{
+  const a=selectedAppt();
+  if(a&&a.prep&&S.prepFor!==a.id) showSavedBrief(a);
+  updatePrepTools();
+});
+$("#prepGo").addEventListener("click", async ()=>{
+  if(!S.sample){ disableAI("Claude isn't available on this page right now."); return; }
+  const a=selectedAppt(); const goal=$("#prepGoal").value.trim();
+  if(!a && !goal){ $("#prepGoal").focus(); toast("Say what the appointment is about first."); return; }
+  const out=$("#prepOut"); out.hidden=false; out.replaceChildren(h("p",{class:"thinking"},"Claude is reading your logbook…"));
+  $("#prepTools").hidden=true; $("#prepGo").disabled=true; $("#prepStop").hidden=false;
+  S.prepCtl=new AbortController();
+  const apptText = a? [a.date?fmtDate(a.date):"", a.time, a.title, a.place, a.details].filter(Boolean).join(", ") : "Not in the logbook yet.";
+  const prompt = GUIDE + "\n\nTheir health logbook:\n" + buildContext()
+    + "\n\nThe appointment: " + apptText
+    + "\nWhat they say it's about and what they want from it: " + (goal||"(not given; work it out from the appointment and logbook)")
+    + "\n\nWrite a brief they can read in the waiting room or show the clinician. Use exactly these sections, each starting with a line '## Heading':\n"
+    + "## The short version\n(3 to 4 sentences they can say at the start: the main problem, how long it's been going on, what's been tried, and what they'd like from today.)\n"
+    + "## Timeline\n(dated bullet points of the relevant history from the logbook, oldest first.)\n"
+    + "## Medicines and allergies to mention\n"
+    + "## Questions to ask\n(5 to 8 specific questions as bullets.)\n"
+    + "## Before you go\n(2 to 4 bullets: things to note down, bring or check.)\n"
+    + "Use '- ' for bullets. Keep it under 400 words. Use only facts from the logbook and what they wrote; where something useful is missing, suggest noting it down rather than guessing.";
+  try{
+    const {text,truncated}=await S.sample(prompt,{signal:S.prepCtl.signal, cache:false, onText:({text})=>{ out.replaceChildren(md(text)); }});
+    S.prepText=text; S.prepFor=a?a.id:"";
+    out.replaceChildren(md(text));
+    if(truncated) out.append(h("p",{class:"fineprint"},"Claude ran out of room. Ask for less detail if anything's missing."));
+    $("#prepTools").hidden=false; $("#prepSave").textContent="Save to this appointment"; updatePrepTools();
+  }catch(e){
+    const msg=aiErr(e);
+    out.replaceChildren(...(e&&e.text&&e.code!=="refused"? [md(e.text)] : []), ...(msg?[h("p",{class:"notice warn"},msg)]:[]));
+    if(!out.childNodes.length) out.hidden=true;
+  }finally{ $("#prepGo").disabled=S.aiOff; $("#prepStop").hidden=true; }
+});
+$("#prepStop").addEventListener("click",()=>S.prepCtl&&S.prepCtl.abort());
+$("#prepCopy").addEventListener("click",()=>copyText(S.prepText,$("#prepOut")));
+$("#prepSave").addEventListener("click", async ()=>{
+  const a=selectedAppt(); if(!a||!S.prepText) return;
+  const ok=await write(()=>S.col.doc(a.id).update({prep:S.prepText, prepAt:Date.now(), updatedAt:Date.now()}));
+  if(ok){ toast("Saved to "+a.title); $("#prepSave").textContent="Saved"; }
+});
+$("#prepFile").addEventListener("click", async ()=>{
+  if(!S.downloads||!S.prepText) return;
+  try{ await S.downloads.save({filename:"appointment-brief-"+todayISO()+".txt", data:S.prepText}); }
+  catch(e){ if(e&&e.code&&!/declin|cancel/i.test(e.code)) toast("Couldn't save the file."); }
+});
+
+/* ---------- diary ---------- */
+const FEEL=["Awful","Poor","OK","Good","Great"];
+const ENERGY=["Exhausted","Low","Some","Good","Full"];
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const QUICK=["Headache","Dizzy","Light-headed","Tired","Nausea","Stomach pain","Pins and needles","Palpitations","Breathless","Low mood"];
+function isoOf(y,m,d){ return y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0"); }
+function longDate(iso){ const [y,m,d]=iso.split("-").map(Number); return new Date(y,m-1,d).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"}); }
+function bpOut(r){ return r.sys<90||r.dia<60||r.sys>=140||r.dia>=90; }
+function openDay(iso){ S.selDay=iso; const [y,m]=iso.split("-").map(Number); S.cal={y,m:m-1}; renderDiary(); show("diary"); }
+const dayQ={};
+function saveDay(date, patch){
+  if(!S.col){ toast("Sign in to save your diary."); return Promise.resolve(false); }
+  if(!S.canWrite){ toast("This login can't save here."); return Promise.resolve(false); }
+  const cur=S.days[date]||{kind:"day",date,createdAt:Date.now()};
+  const next={...cur,...patch,kind:"day",date,updatedAt:Date.now()};
+  S.days={...S.days,[date]:next}; renderDiary(); renderTrends();
+  const body=cleanBody(next);
+  dayQ[date]=(dayQ[date]||Promise.resolve()).then(()=>write(()=>S.col.doc("day-"+date).set(body)));
+  return dayQ[date];
+}
+function renderDiary(){
+  if(!S.cal){ const t=new Date(); S.cal={y:t.getFullYear(),m:t.getMonth()}; }
+  if(!S.selDay) S.selDay=todayISO();
+  const {y,m}=S.cal, today=todayISO();
+  $("#calTitle").textContent=MONTHS[m]+" "+y;
+  const offset=(new Date(y,m,1).getDay()+6)%7, dim=new Date(y,m+1,0).getDate();
+  const symCount={}; for(const e of ofKind("symptom")) if(e.date) symCount[e.date]=(symCount[e.date]||0)+1;
+  const dueOn={}; for(const e of ofKind("due")) if(e.date&&e.status!=="done") dueOn[e.date]=(dueOn[e.date]||[]).concat(e.title);
+  const cells=[]; for(let i=0;i<offset;i++) cells.push(h("span",{class:"cal-blank","aria-hidden":"true"}));
+  for(let d=1; d<=dim; d++){
+    const iso=isoOf(y,m,d), day=S.days[iso]||{}, n=symCount[iso]||0, hasBP=Array.isArray(day.bp)&&day.bp.length;
+    const dots=h("span",{class:"dots","aria-hidden":"true"}); for(let i=0;i<Math.min(n,3);i++) dots.append(h("i")); if(hasBP) dots.append(h("i",{class:"bp"})); if(day.period) dots.append(h("i",{class:"per"})); if(dueOn[iso]) dots.append(h("i",{class:"due"}));
+    const label=longDate(iso)+(day.feel?", felt "+FEEL[day.feel-1].toLowerCase():"")+(n?", "+n+" symptom"+(n>1?"s":""):"")+(hasBP?", blood pressure logged":"")+(day.period?", period "+day.period:"")+(dueOn[iso]?", due: "+dueOn[iso].join(", "):"");
+    cells.push(h("button",{type:"button",class:"cday"+(day.feel?" f"+day.feel:"")+(iso===today?" today":"")+(iso>today?" future":""),"aria-pressed":String(iso===S.selDay),"aria-label":label,onclick:()=>{ S.selDay=iso; renderDiary(); }}, h("span",{},String(d)), dots));
+  }
+  $("#calGrid").replaceChildren(...cells);
+  renderDay();
+}
+function scaleButtons(el, labels, current, onPick){
+  el.replaceChildren(...labels.map((l,i)=>h("button",{type:"button","data-v":String(i+1),"aria-pressed":String(current===i+1),disabled:!S.canWrite||null,onclick:()=>onPick(current===i+1?null:i+1)}, h("b",{},String(i+1)), l)));
+}
+function renderDay(){
+  const iso=S.selDay, day=S.days[iso]||{};
+  $("#dayTitle").textContent=longDate(iso)+(iso===todayISO()?" (today)":"");
+  $("#dayToday").hidden = iso===todayISO();
+  scaleButtons($("#feelScale"), FEEL, day.feel, v=>saveDay(iso,{feel:v}));
+  scaleButtons($("#energyScale"), ENERGY, day.energy, v=>saveDay(iso,{energy:v}));
+  const PER=[["none","None"],["light","Light"],["medium","Medium"],["heavy","Heavy"]];
+  $("#periodScale").replaceChildren(...PER.map(([v,l])=>h("button",{type:"button","aria-pressed":String((day.period||"none")===v),disabled:!S.canWrite||null,onclick:()=>saveDay(iso,{period:v==="none"?null:v})},l)));
+  const w=$("#dayWeight");
+  if(S.notesFor!==iso || document.activeElement!==w){ if(S.notesFor!==iso || !w.dataset.dirty){ w.value=typeof day.weight==="number"?String(day.weight):""; w.dataset.dirty=""; $("#weightSt").textContent=""; } }
+  const syms=ofKind("symptom").filter(e=>e.date===iso);
+  fill($("#daySym"), syms.map(e=>h("li",{}, h("button",{class:"item two",type:"button",onclick:()=>openEntry(e)},
+      h("span",{class:"t"},e.title),
+      e.severity? h("span",{class:"sev"+(e.severity>=7?" hi":"")},e.severity+"/10") : h("span"),
+      e.details? h("span",{class:"s"},e.details.length>90?e.details.slice(0,90)+"…":e.details):null))), "None logged for this day.");
+  const freq={}; for(const e of ofKind("symptom")){ const k=e.title.trim(); freq[k]=(freq[k]||0)+1; }
+  const mine=Object.entries(freq).sort((a,b)=>b[1]-a[1]).map(x=>x[0]).slice(0,6);
+  const seen=new Set(), chips=[];
+  for(const t of [...mine,...QUICK]){ const k=t.toLowerCase(); if(seen.has(k)) continue; seen.add(k); chips.push(t); if(chips.length>=10) break; }
+  $("#symQuick").replaceChildren(...chips.map(t=>h("button",{class:"fchip",type:"button",disabled:!S.canWrite||null,onclick:()=>openEntry(null,"symptom",{title:t,date:iso})},t)),
+    h("button",{class:"fchip",type:"button",disabled:!S.canWrite||null,onclick:()=>openEntry(null,"symptom",{date:iso})},"Something else…"));
+  const bp=Array.isArray(day.bp)?day.bp:[];
+  fill($("#dayBP"), bp.map((r,i)=>h("li",{}, h("div",{class:"bp-row"},
+      h("span",{}, h("span",{class:"bp-num"+(bpOut(r)?" out":"")}, r.sys+"/"+r.dia), r.pulse? h("span",{class:"none"}," · pulse "+r.pulse):null, r.time? h("span",{class:"none"}," · "+r.time):null, bpOut(r)? h("span",{class:"none"}, r.sys<90||r.dia<60?" · low":" · high"):null),
+      h("button",{class:"btn ghost",type:"button","aria-label":"Remove reading "+r.sys+"/"+r.dia,disabled:!S.canWrite||null,onclick:()=>saveDay(iso,{bp:bp.filter((_,j)=>j!==i)})},"Remove")))), "No readings for this day.");
+  const notes=$("#dayNotes");
+  if(S.notesFor!==iso || document.activeElement!==notes){
+    if(S.notesFor!==iso || !notes.dataset.dirty){ notes.value=day.notes||""; notes.dataset.dirty=""; $("#notesState").textContent=""; }
+    S.notesFor=iso;
+  }
+}
+$("#dayWeight").addEventListener("input",()=>{ $("#dayWeight").dataset.dirty="1"; $("#weightSt").textContent=""; });
+$("#weightSave").addEventListener("click", async ()=>{
+  const w=$("#dayWeight"), raw=w.value.trim(), n=parseFloat(raw);
+  if(raw && !(n>=20&&n<=300)){ w.focus(); toast("Enter your weight in kg, e.g. 68.4"); return; }
+  const ok=await saveDay(S.selDay,{weight: raw? Math.round(n*10)/10 : null});
+  if(ok){ w.dataset.dirty=""; $("#weightSt").textContent= raw? "Saved ("+Math.floor(Math.round(n*2.20462)/14)+" st "+(Math.round(n*2.20462)%14)+" lb)" : "Cleared"; }
+});
+$("#calPrev").addEventListener("click",()=>{ let {y,m}=S.cal; m--; if(m<0){m=11;y--;} S.cal={y,m}; renderDiary(); });
+$("#calNext").addEventListener("click",()=>{ let {y,m}=S.cal; m++; if(m>11){m=0;y++;} S.cal={y,m}; renderDiary(); });
+$("#dayToday").addEventListener("click",()=>openDay(todayISO()));
+$("#logToday").addEventListener("click",()=>openDay(todayISO()));
+$("#dayNotes").addEventListener("blur",()=>{ const n=$("#dayNotes"); if(n.dataset.dirty&&S.notesFor) saveDay(S.notesFor,{notes:n.value.trim()}).then(ok=>{ if(ok){ n.dataset.dirty=""; $("#notesState").textContent="Saved"; } }); });
+$("#dayNotes").addEventListener("input",()=>{ $("#dayNotes").dataset.dirty="1"; $("#notesState").textContent="Not saved yet"; });
+$("#dayNotesSave").addEventListener("click", async ()=>{
+  const iso=S.selDay, n=$("#dayNotes");
+  const ok=await saveDay(iso,{notes:n.value.trim()});
+  if(ok){ n.dataset.dirty=""; $("#notesState").textContent="Saved"; }
+});
+$("#bpAdd").addEventListener("click", ()=>{
+  const sys=parseInt($("#bpSys").value,10), dia=parseInt($("#bpDia").value,10), pulse=parseInt($("#bpPulse").value,10), time=$("#bpTime").value;
+  if(!(sys>=40&&sys<=260)){ $("#bpSys").focus(); toast("Enter the top number, e.g. 95."); return; }
+  if(!(dia>=20&&dia<=160)){ $("#bpDia").focus(); toast("Enter the bottom number, e.g. 60."); return; }
+  const r={sys,dia}; if(pulse>=20&&pulse<=250) r.pulse=pulse; if(time) r.time=time;
+  const day=S.days[S.selDay]||{}; const bp=[...(Array.isArray(day.bp)?day.bp:[]), r].sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+  saveDay(S.selDay,{bp});
+  for(const id of ["#bpSys","#bpDia","#bpPulse","#bpTime"]) $(id).value="";
+  toast("Reading added");
+});
+
+/* ---------- whole-history review ---------- */
+$("#revGo").addEventListener("click", async ()=>{
+  if(!S.sample){ disableAI("Claude isn't available on this page right now."); return; }
+  if(!S.entries.length){ toast("Add some of your history first."); return; }
+  const q=$("#revQ").value.trim();
+  const out=$("#revOut"); out.hidden=false; out.replaceChildren(h("p",{class:"thinking"},"Claude is going through your whole history. This can take a minute or two…"));
+  $("#revTools").hidden=true; $("#revGo").disabled=true; $("#revStop").hidden=false;
+  S.revCtl=new AbortController();
+  const prompt = GUIDE + "\n\nTheir full health logbook:\n" + buildContext()
+    + "\n\nWhat's still unexplained or worrying them: " + (q||"(not given; look for anything unresolved)")
+    + "\n\nAct like a thorough second pair of eyes reviewing the whole history to help them break out of going round in circles. Use exactly these sections, each starting with a line '## Heading':\n"
+    + "## What stands out\n(the patterns, trends and links across symptoms, results, medicines and past operations, with dates.)\n"
+    + "## Possible explanations to raise\n(the explanations a clinician would consider, roughly most to least likely, each with one line on why it fits and what would argue against it.)\n"
+    + "## Tests and checks worth asking about\n(specific tests, repeat tests, reviews or referrals that would confirm or rule things out, noting any that look overdue or missing from the logbook, and relevant NICE or bariatric follow-up guidance where it applies.)\n"
+    + "## How to ask\n(2 to 4 short sentences they could say to the GP to move things on, such as asking for a specific test, a medication review, or a referral, and asking for the reason to be noted if it's declined.)\n"
+    + "## Keep tracking\n(2 to 4 bullets of what to log from now on.)\n"
+    + "Use '- ' for bullets. Keep it under 650 words. Say how confident you are, and remember this is to take to their clinician, not a diagnosis.";
+  try{
+    const {text,truncated}=await S.sample(prompt,{signal:S.revCtl.signal, cache:false, modelTier:"complex", onText:({text})=>{ out.replaceChildren(md(text)); }});
+    S.revText=text; out.replaceChildren(md(text));
+    if(truncated) out.append(h("p",{class:"fineprint"},"Claude ran out of room. Try asking about one problem at a time."));
+    $("#revTools").hidden=false; $("#revSave").hidden=!S.canWrite; $("#revSave").textContent="Save to my logbook"; $("#revFile").hidden=!S.downloads;
+  }catch(e){
+    const msg=aiErr(e);
+    out.replaceChildren(...(e&&e.text&&e.code!=="refused"? [md(e.text)] : []), ...(msg?[h("p",{class:"notice warn"},msg)]:[]));
+    if(!out.childNodes.length) out.hidden=true;
+  }finally{ $("#revGo").disabled=S.aiOff; $("#revStop").hidden=true; }
+});
+$("#revStop").addEventListener("click",()=>S.revCtl&&S.revCtl.abort());
+$("#revCopy").addEventListener("click",()=>copyText(S.revText,$("#revOut")));
+$("#revSave").addEventListener("click", async ()=>{
+  if(!S.revText) return;
+  const ok=await saveEntry({kind:"note", title:"History review", date:todayISO(), details:S.revText, source:"claude"});
+  if(ok){ toast("Saved to Notes & reviews"); $("#revSave").textContent="Saved"; $("#revSave").disabled=true; setTimeout(()=>$("#revSave").disabled=false,1500); }
+});
+$("#revFile").addEventListener("click", async ()=>{
+  if(!S.downloads||!S.revText) return;
+  try{ await S.downloads.save({filename:"history-review-"+todayISO()+".txt", data:S.revText}); }
+  catch(e){ if(e&&e.code&&!/declin|cancel/i.test(e.code)) toast("Couldn't save the file."); }
+});
+
+/* ---------- ask ---------- */
+const STARTERS=[
+  ["What could be causing this?","What could be causing this, given my history? "],
+  ["Explain a letter","Can you explain this letter in plain English and tell me what I should ask about it?"],
+  ["Describe a symptom","Help me describe a symptom clearly for my GP. Ask me questions one at a time."],
+  ["What's changed lately?","Looking at my logbook, what's changed in the last few months that I should mention to my GP?"],
+  ["Explain a word","What does this medical word mean: "]
+];
+$("#starters").replaceChildren(...STARTERS.map(([l,t])=>h("button",{class:"fchip",type:"button",onclick:()=>{ const c=$("#chatIn"); c.value=t; c.focus(); if(l==="Explain a letter"&&!$("#attachLbl").hidden) toast("Add a photo of the letter, then Send."); }},l)));
+function addBubble(role, content){
+  const b=h("div",{class:"bubble "+(role==="user"?"me":"claude")});
+  if(role==="user") b.textContent=content; else b.append(md(content));
+  $("#chatlog").append(b); b.scrollIntoView({block:"end",behavior:"smooth"}); return b;
+}
+$("#chatFile").addEventListener("change",()=>{
+  const max=(S.img&&S.img.maxCount)||1;
+  S.chatFiles=[...$("#chatFile").files].slice(0,max);
+  const n=$("#attachNote"); n.hidden=!S.chatFiles.length;
+  n.textContent=S.chatFiles.length? S.chatFiles.length+" photo"+(S.chatFiles.length>1?"s":"")+" attached" : "";
+});
+async function sendChat(){
+  if(!S.sample){ disableAI("Claude isn't available on this page right now."); return; }
+  const box=$("#chatIn"); const text=box.value.trim(); const files=S.chatFiles;
+  if(!text && !files.length) return;
+  const shown=(text||"(photo)")+(files.length?"\n[ "+files.length+" photo"+(files.length>1?"s":"")+" attached ]":"");
+  addBubble("user", shown);
+  S.chat.push({role:"user", content:(text||"Please look at this.")+(files.length?"\n\n(I've attached "+files.length+" photo"+(files.length>1?"s":"")+".)":"")});
+  box.value=""; S.chatFiles=[]; $("#chatFile").value=""; $("#attachNote").hidden=true;
+  const bub=h("div",{class:"bubble claude"}, h("span",{class:"thinking"},"Thinking…")); $("#chatlog").append(bub); bub.scrollIntoView({block:"end",behavior:"smooth"});
+  $("#chatSend").disabled=true; $("#chatStop").hidden=false;
+  S.chatCtl=new AbortController();
+  const rules=GUIDE+"\n\nHere is their health logbook:\n"+buildContext()+"\n\nAnswer their questions, using the logbook where it's relevant. If they share a photo of a letter or result, explain it in plain English, define medical terms, and point out anything worth asking the doctor about. Keep answers fairly short (under 250 words) unless they ask for more, and ask a follow-up question when the answer depends on details the logbook lacks. Use '## ' headings and '- ' bullets only when they help.";
+  const turns=S.chat.slice(-20);
+  try{
+    const opts={signal:S.chatCtl.signal, cache:false, onText:({text})=>{ bub.replaceChildren(md(text)); }};
+    if(files.length) opts.images=files;
+    const {text:reply}=await S.sample([{role:"user",content:rules}, ...turns], opts);
+    bub.replaceChildren(md(reply));
+    S.chat.push({role:"assistant",content:reply});
+  }catch(e){
+    const msg=aiErr(e);
+    bub.replaceChildren(...(e&&e.text&&e.code!=="refused"?[md(e.text)]:[]), msg? h("span",{class:"err"},msg) : h("span",{class:"err"},"Stopped."));
+    if(e&&e.text&&e.code!=="refused") S.chat.push({role:"assistant",content:e.text});
+  }finally{ $("#chatSend").disabled=S.aiOff; $("#chatStop").hidden=true; }
+}
+$("#chatSend").addEventListener("click",sendChat);
+$("#chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); sendChat(); }});
+$("#chatStop").addEventListener("click",()=>S.chatCtl&&S.chatCtl.abort());
+$("#chatClear").addEventListener("click",()=>{ S.chatCtl&&S.chatCtl.abort(); S.chat=[]; $("#chatlog").replaceChildren(); });
+
+/* ---------- server connection (Supabase + Claude API) ---------- */
+const SB_URL="https://vfdgvbsspivwerowbzil.supabase.co";
+const SB_KEY="sb_publishable_mnzAqhX0GowmB4KvBlJoKg_dMCbv2RB";
+const FN=SB_URL+"/functions/v1";
+let sb=null;
+
+function makeStore(uid){
+  const cache=new Map(), subs=new Set();
+  const emit=()=>{ const docs=[...cache.entries()].map(([id,body])=>({id,data:()=>body})); const s={docs,metadata:{fromCache:false,hasPendingWrites:false}}; subs.forEach(l=>{ try{ l.next(s); }catch(e){ console.error(e); } }); };
+  const mapErr=e=>{ const m=(e&&e.message)||""; if(e&&e.code==="42501"||/row-level security/i.test(m)) return {code:"invalid_argument",message:m}; if(!e||!e.code||/fetch|network|Load failed/i.test(m)) return {code:"unavailable",message:m}; return {code:"failed",message:m}; };
+  async function load(){
+    const all=[];
+    for(let from=0;;from+=1000){ const {data,error}=await sb.from("docs").select("id,body").eq("user_id",uid).range(from,from+999); if(error) throw mapErr(error); all.push(...data); if(data.length<1000) break; }
+    cache.clear(); for(const r of all) cache.set(r.id,r.body); emit();
+  }
+  function docRef(id){
+    id=id||("e"+crypto.randomUUID().replace(/-/g,"").slice(0,24));
+    return { id, path:id,
+      async set(body){ const {error}=await sb.from("docs").upsert({user_id:uid,id,body,updated_at:new Date().toISOString()}); if(error) throw mapErr(error); cache.set(id,body); emit(); },
+      async update(patch){ const cur=cache.get(id); if(!cur) throw {code:"failed"}; const body={...cur}; for(const [k,v] of Object.entries(patch)){ if(v==null) delete body[k]; else body[k]=v; } return docRef(id).set(body); },
+      async delete(){ const {error}=await sb.from("docs").delete().eq("user_id",uid).eq("id",id); if(error) throw mapErr(error); cache.delete(id); emit(); }
+    };
+  }
+  const col={ doc:docRef, onSnapshot(next,error){ const l={next,error}; subs.add(l); load().catch(e=>{ if(error) error(e); }); return ()=>subs.delete(l); } };
+  return { collection:()=>col, reload:()=>load().catch(()=>{}) };
+}
+
+function blobToB64(b){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(",")[1]); r.onerror=rej; r.readAsDataURL(b); }); }
+async function imageBlock(b){
+  let blob=b;
+  if(!/^image\/(jpeg|png|webp|gif)$/.test(b.type||"") || b.size>1.5e6){ const j=await imageToJpeg(b,1600); if(j) blob=j; }
+  return {type:"image",source:{type:"base64",media_type:blob.type||"image/jpeg",data:await blobToB64(blob)}};
+}
+function parseJsonLoose(t){
+  try{ return JSON.parse(t); }catch{}
+  const f=t.match(/```(?:json)?\s*([\s\S]*?)```/); if(f){ try{ return JSON.parse(f[1]); }catch{} }
+  const starts=["{","["].map(c=>t.indexOf(c)).filter(i=>i>=0); const a=starts.length?Math.min(...starts):-1; const b=Math.max(t.lastIndexOf("}"),t.lastIndexOf("]"));
+  if(a>=0&&a<b){ try{ return JSON.parse(t.slice(a,b+1)); }catch{} }
+  throw {code:"invalid_json",text:t};
+}
+function makeSample(){
+  async function call(input, opts, json){
+    opts=opts||{};
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session) throw {code:"session_expired"};
+    const turns = typeof input==="string"? [{role:"user",content:input}] : input;
+    const msgs=[]; for(const m of turns){ const last=msgs[msgs.length-1]; if(last&&last.role===m.role) last.content+="\n\n"+m.content; else msgs.push({role:m.role,content:String(m.content)}); }
+    const imgs=opts.images? [...(opts.images instanceof Blob?[opts.images]:opts.images)] : [];
+    if(imgs.length){ const blocks=[]; for(const b of imgs.slice(0,5)) blocks.push(await imageBlock(b)); const last=msgs[msgs.length-1]; last.content=[...blocks,{type:"text",text:last.content}]; }
+    if(opts.signal&&opts.signal.aborted) throw {code:"cancelled"};
+    let res;
+    try{ res=await fetch(FN+"/claude",{method:"POST",headers:{Authorization:"Bearer "+session.access_token,apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({messages:msgs,tier:opts.modelTier||"default",json:!!json}),signal:opts.signal}); }
+    catch(e){ throw {code: opts.signal&&opts.signal.aborted? "cancelled" : "upstream_error"}; }
+    if(!res.ok){ let j={}; try{ j=await res.json(); }catch{} throw {code: j.code || (res.status===401?"session_expired":res.status===413?"prompt_too_large":res.status===429?"rate_limited":"upstream_error"), message:j.message||""}; }
+    const reader=res.body.getReader(), dec=new TextDecoder(); let raw="", text="";
+    try{
+      for(;;){ const {value,done}=await reader.read(); if(done) break; raw+=dec.decode(value,{stream:true});
+        const z=raw.indexOf("\u0000"); const vis=z>=0? raw.slice(0,z) : raw;
+        if(vis.length>text.length){ const delta=vis.slice(text.length); text=vis; if(opts.onText) try{ opts.onText({text,delta}); }catch(e){ console.error(e); } } }
+    }catch(e){ throw {code: opts.signal&&opts.signal.aborted? "cancelled":"upstream_error", text}; }
+    const z=raw.indexOf("\u0000"), tail= z>=0? raw.slice(z+1) : "";
+    if(tail.startsWith("ERR:")) throw {code:tail.slice(4).trim()||"upstream_error", text};
+    if(!tail.startsWith("END:")) throw {code:"upstream_error", text};
+    if(!text.trim()) throw {code:"empty_completion"};
+    const truncated=/max_tokens/.test(tail);
+    if(json){ if(truncated) throw {code:"invalid_json",text}; return {value:parseJsonLoose(text)}; }
+    return {text,truncated};
+  }
+  const fn=(i,o)=>call(i,o,false);
+  fn.json=(i,o)=>call(i,o,true).then(r=>r.value);
+  fn.limits=async()=>({maxPromptBytes:262144, images:{maxCount:5,maxInputBytes:30e6,mediaTypes:["image/jpeg","image/png","image/webp","image/gif","image/heic","image/heif"]}});
+  return fn;
+}
+function makeDownloads(){
+  return { async save({filename,data}){
+    const blob=data instanceof Blob? data : new Blob([data],{type:"text/plain;charset=utf-8"});
+    const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=filename; document.body.append(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),5000); return {saved:true};
+  } };
+}
+async function fnCall(name, body, method){
+  const headers={apikey:SB_KEY,"Content-Type":"application/json"};
+  if(sb){ const {data:{session}}=await sb.auth.getSession(); if(session) headers.Authorization="Bearer "+session.access_token; }
+  const r=await fetch(FN+"/"+name,{method:method||"POST",headers,body:method==="GET"?undefined:JSON.stringify(body||{})});
+  let j={}; try{ j=await r.json(); }catch{}
+  if(!r.ok) throw {code:j.code||"failed", message:j.message||"Something went wrong. Try again."};
+  return j;
+}
+
+/* ---------- sign in / setup ---------- */
+function showAuth(mode, msg){
+  hideLock();
+  $("#auth").hidden=false; for(const sel of ["main",".tabs",".top"]) document.querySelector(sel).inert=true;
+  $("#signinForm").hidden = mode!=="signin";
+  $("#setupForm").hidden = mode!=="setup";
+  $("#authNote").hidden = !(mode==="notmember"||mode==="error");
+  $("#toSetup").hidden = true; $("#toSignin").hidden = mode!=="setup";
+  $("#authTitle").textContent = {signin:"Sign in",setup:"Set up Health Logbook",notmember:"Not set up yet",error:"Can't connect"}[mode];
+  if(mode==="notmember"){ $("#authNoteText").textContent="This account hasn't been added to Health Logbook. Ask the administrator to add you."; $("#authSignOut").hidden=false; }
+  if(mode==="error"){ $("#authNoteText").textContent=msg||"Check your internet connection and reload."; $("#authSignOut").hidden=true; }
+  for(const id of ["#siMsg","#suMsg"]) $(id).textContent="";
+  if(mode==="signin"){ fnCall("setup",null,"GET").then(j=>{ if(j.needed) $("#toSetup").hidden=false; }).catch(()=>{}); setTimeout(()=>$("#siEmail").focus(),50); }
+}
+function hideAuth(){ $("#auth").hidden=true; for(const sel of ["main",".tabs",".top"]) document.querySelector(sel).inert=false; }
+$("#toSetup").addEventListener("click",()=>showAuth("setup"));
+$("#toSignin").addEventListener("click",()=>showAuth("signin"));
+$("#authSignOut").addEventListener("click",()=>sb&&sb.auth.signOut());
+$("#signinForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const btn=$("#siGo"), msg=$("#siMsg"); msg.textContent=""; btn.disabled=true; btn.textContent="Signing in…";
+  const {data,error}=await sb.auth.signInWithPassword({email:$("#siEmail").value.trim(),password:$("#siPass").value});
+  btn.disabled=false; btn.textContent="Sign in";
+  if(error){ msg.textContent=/invalid/i.test(error.message)?"That email and password don't match.":/fetch|network/i.test(error.message)?"Can't reach the server. Check your connection.":error.message; return; }
+  $("#siPass").value=""; LOCK.unlocked=true; S.freshLogin=true; startSession(data.user);
+});
+$("#setupForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const msg=$("#suMsg"), btn=$("#suGo"); msg.textContent="";
+  const email=$("#suEmail").value.trim(), pass=$("#suPass").value;
+  if(pass.length<8){ msg.textContent="Use at least 8 characters for the password."; return; }
+  if(pass!==$("#suPass2").value){ msg.textContent="The two passwords don't match."; return; }
+  btn.disabled=true; btn.textContent="Setting up…";
+  try{
+    await fnCall("setup",{email,password:pass,name:$("#suName").value.trim()});
+    const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+    if(error) throw {message:"Account created. Now sign in."};
+    LOCK.unlocked=true; S.freshLogin=true; startSession(data.user);
+  }catch(err){ msg.textContent=err.message||"Couldn't set up. Try again."; }
+  finally{ btn.disabled=false; btn.textContent="Create administrator account"; }
+});
+
+/* ---------- account and people ---------- */
+function randomPassword(){ const set="abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"; const a=new Uint32Array(10); crypto.getRandomValues(a); return [...a].map(x=>set[x%set.length]).join(""); }
+function openPassword(){
+  const p1=h("input",{type:"password",id:"np1",autocomplete:"new-password"}), p2=h("input",{type:"password",id:"np2",autocomplete:"new-password"});
+  const msg=h("p",{class:"lock-msg"}); const go=h("button",{class:"btn primary",type:"button"},"Change password");
+  go.addEventListener("click", async ()=>{
+    if(p1.value.length<8){ msg.textContent="Use at least 8 characters."; return; }
+    if(p1.value!==p2.value){ msg.textContent="The two passwords don't match."; return; }
+    go.disabled=true; const {error}=await sb.auth.updateUser({password:p1.value}); go.disabled=false;
+    if(error){ msg.textContent=error.message; return; } closeSheet(); toast("Password changed");
+  });
+  openSheet("Change password",[field("np1","New password",p1,"At least 8 characters"), field("np2","Type it again",p2), msg, h("div",{class:"row",style:"justify-content:flex-end"},go)]);
+}
+async function openPeople(){
+  openSheet("People",[h("p",{class:"thinking"},"Loading…")]);
+  let list;
+  try{ list=await fnCall("admin",{action:"list"}); }catch(e){ $("#sheetBody").replaceChildren(h("p",{class:"notice warn"},e.message)); return; }
+  const nm=h("input",{type:"text",id:"ap-name",placeholder:"e.g. Dave"}), em=h("input",{type:"text",id:"ap-email",inputmode:"email",autocomplete:"off",placeholder:"their email address"});
+  const pw=h("input",{type:"text",id:"ap-pass",value:randomPassword(),autocomplete:"off"});
+  const msg=h("div",{}); const add=h("button",{class:"btn primary",type:"button"},"Add person");
+  add.addEventListener("click", async ()=>{
+    add.disabled=true; msg.replaceChildren();
+    try{
+      await fnCall("admin",{action:"add",name:nm.value.trim(),email:em.value.trim(),password:pw.value});
+      const creds="Health Logbook\n"+location.href.split("#")[0]+"\nEmail: "+em.value.trim()+"\nPassword: "+pw.value;
+      const box=h("pre",{style:"white-space:pre-wrap;margin:0;font-family:var(--f-mono);font-size:.85rem"},creds);
+      msg.replaceChildren(h("div",{class:"notice"}, h("p",{},"Added. Send them these details (they can change the password under About you → Change password):"), box,
+        h("div",{class:"row",style:"margin-top:8px"}, h("button",{class:"btn",type:"button",onclick:()=>copyText(creds,box)},"Copy details"), h("button",{class:"btn ghost",type:"button",onclick:openPeople},"Done"))));
+      nm.value=""; em.value=""; pw.value=randomPassword();
+    }catch(e){ msg.replaceChildren(h("p",{class:"notice warn"},e.message)); }
+    finally{ add.disabled=false; }
+  });
+  const rows=list.people.map(p=>{
+    const sub=[p.is_admin?"Administrator":"", p.last_sign_in_at?"last in "+fmtDate(p.last_sign_in_at.slice(0,10)):"hasn't signed in yet", p.usage30.calls? p.usage30.calls+" Claude requests this month, about $"+p.usage30.usd.toFixed(2) : "no Claude use this month"].filter(Boolean).join(" · ");
+    const area=h("div",{});
+    const reset=h("button",{class:"btn ghost",type:"button"},"Reset password");
+    reset.addEventListener("click",()=>{
+      const np=h("input",{type:"text",id:"rp-"+p.user_id,value:randomPassword(),autocomplete:"off"}); const ok=h("button",{class:"btn",type:"button"},"Set password"); const m=h("p",{class:"hint"});
+      ok.addEventListener("click", async ()=>{ ok.disabled=true; try{ await fnCall("admin",{action:"reset",user_id:p.user_id,password:np.value}); m.textContent="Done. Give them the new password: "+np.value; }catch(e){ m.textContent=e.message; } finally{ ok.disabled=false; } });
+      area.replaceChildren(h("div",{class:"row"},np,ok),m);
+    });
+    const btns=h("div",{class:"row"},reset);
+    if(p.user_id!==list.me){
+      let armed=false; const rm=h("button",{class:"btn ghost",type:"button",style:"color:var(--alert)"},"Remove");
+      rm.addEventListener("click", async ()=>{
+        if(!armed){ armed=true; rm.textContent="Tap again: deletes their records too"; setTimeout(()=>{armed=false; rm.textContent="Remove";},5000); return; }
+        rm.disabled=true; try{ await fnCall("admin",{action:"remove",user_id:p.user_id}); toast("Removed"); openPeople(); }catch(e){ toast(e.message); rm.disabled=false; }
+      });
+      btns.append(rm);
+    }
+    return h("div",{class:"imp-item",style:"grid-template-columns:1fr"}, h("div",{style:"display:flex;flex-direction:column;gap:4px;min-width:0"},
+      h("strong",{style:"overflow-wrap:anywhere"},(p.name?p.name+" · ":"")+p.email), h("span",{class:"none"},sub), btns, area));
+  });
+  $("#sheetTitle").textContent="People";
+  $("#sheetBody").replaceChildren(
+    h("p",{class:"none"},"Everyone has their own private logbook. You can add people, reset a password or remove someone here."),
+    ...rows,
+    h("hr",{class:"sep"}),
+    h("h3",{},"Add a person"),
+    field("ap-name","Name",nm), field("ap-email","Email",em), field("ap-pass","Starting password",pw,"Made up for you. Change it if you like (8+ characters)."),
+    h("div",{class:"row",style:"justify-content:flex-end"},add), msg);
+}
+
+/* ---------- boot ---------- */
+async function startSession(user){
+  hideAuth();
+  S.uid=user.id; S.email=user.email;
+  const {data:mem,error}=await sb.from("members").select("is_admin,name").eq("user_id",user.id).maybeSingle();
+  if(error){ showAuth("error","Can't reach the server right now. Check your connection and reload."); return; }
+  if(!mem){ showAuth("notmember"); return; }
+  S.isAdmin=!!mem.is_admin; S.memberName=mem.name||"";
+  if(hasPinHint() && !LOCK.unlocked) showLock("unlock");
+  S.store=makeStore(user.id); S.col=S.store.collection(); S.canWrite=true; $("#roNote").hidden=true;
+  status("Loading your records…");
+  const timer=setTimeout(()=>{ if(!S.loaded) status("Your records can't be reached yet. Check your connection; they'll appear when it's back."); },10000);
+  if(S.unsub) S.unsub();
+  S.unsub=S.col.onSnapshot(snap=>{
+    const es=[], days={}; let prof={};
+    for(const d of snap.docs){ const v=d.data(); if(!v) continue; if(d.id==="profile") prof=v; else if(v.kind==="day"&&v.date) days[v.date]=v; else if(KINDS[v.kind]) es.push({...v,id:d.id}); }
+    S.entries=es; S.profile=prof; S.days=days;
+    if(!prof.name && S.memberName) S.profile={...prof,name:S.memberName};
+    checkLock();
+    S.loaded=true; clearTimeout(timer); status("");
+    renderAll();
+  }, e=>{
+    clearTimeout(timer); S.loaded=true;
+    status("Your records couldn't be loaded. Check your connection and reload the page.");
+    renderAll();
+  });
+}
+function onSignedOut(){
+  if(S.unsub) S.unsub(); S.unsub=null; S.store=null; S.col=null; S.uid=null;
+  S.entries=[]; S.days={}; S.profile={}; S.loaded=false; S.chat=[]; $("#chatlog").replaceChildren();
+  LOCK.unlocked=false; hideLock(); renderAll(); showAuth("signin");
+}
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden && S.store) S.store.reload(); });
+async function boot(){
+  show(location.hash.slice(1)||"overview");
+  renderAll();
+  if(!window.supabase||!window.supabase.createClient){ showAuth("error","The app couldn't load. Check your internet connection and reload."); return; }
+  sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+  S.sample=makeSample(); S.downloads=makeDownloads();
+  try{ const lim=await S.sample.limits(); S.img=lim.images; }catch{}
+  $("#attachLbl").hidden=false; $("#chatFile").accept="image/*";
+  updatePrepTools();
+  sb.auth.onAuthStateChange(ev=>{ if(ev==="SIGNED_OUT") onSignedOut(); });
+  const {data:{session}}=await sb.auth.getSession();
+  if(session) startSession(session.user); else showAuth("signin");
+}
+boot();
+
+</script>
+</body>
+</html>
