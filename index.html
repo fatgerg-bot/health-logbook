@@ -233,6 +233,134 @@ textarea{resize:vertical;min-height:90px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:.92rem;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
 .fineprint{font-size:.82rem;color:var(--muted);max-width:62ch}
 @media (prefers-reduced-motion: no-preference){.sheet-card{animation:up .22s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
+
+/* ---------- visual refresh (v2) ---------- */
+:root{
+  --r:18px; --card:0 1px 2px rgba(22,48,42,.05),0 6px 20px rgba(22,48,42,.07);
+  --hero-a:#1E6B57; --hero-b:#3C9A7C; --hero-ink:#FFFFFF; --glass:rgba(255,255,255,.16); --glass-2:rgba(255,255,255,.26);
+  --warn-ic:#C2477A; --due-soft:#FBEFD9;
+  --sev-lo:#DCEFE5; --sev-mid:#FBEBCF; --sev-hi:#F8D9D4;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --card:none; --hero-a:#174A3D; --hero-b:#21695A; --glass:rgba(255,255,255,.09); --glass-2:rgba(255,255,255,.17);
+  --warn-ic:#F08AB4; --due-soft:#3A2E17; --sev-lo:#1F4235; --sev-mid:#4A3B1E; --sev-hi:#5E2B26;
+}}
+:root[data-theme="dark"]{
+  --card:none; --hero-a:#174A3D; --hero-b:#21695A; --glass:rgba(255,255,255,.09); --glass-2:rgba(255,255,255,.17);
+  --warn-ic:#F08AB4; --due-soft:#3A2E17; --sev-lo:#1F4235; --sev-mid:#4A3B1E; --sev-hi:#5E2B26;
+}
+.top{background:var(--bg);border-bottom:0}
+body::before{background:var(--bg)}
+.top-in{padding-block:16px 6px}
+#who{font-size:1.75rem}
+main{padding-top:10px}
+.view{gap:16px}
+
+.panel{border:1px solid transparent;box-shadow:var(--card);border-radius:var(--r);padding:16px 18px;gap:12px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .panel{border-color:var(--line)}}
+:root[data-theme="dark"] .panel{border-color:var(--line)}
+.ph{display:flex;align-items:center;gap:10px;min-width:0}
+.ph h2{font-size:1.08rem;flex:1;min-width:0}
+.ic{flex:none;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--soft);color:var(--accent)}
+.ic svg{width:19px;height:19px}
+.ic.ai{background:var(--ai-soft);color:var(--ai)}
+.ic.due{background:var(--due-soft);color:var(--due)}
+.ic.warn{background:var(--alert-soft);color:var(--warn-ic)}
+.ph .more{background:none;border:0;color:var(--accent);font-weight:700;font-size:.9rem;cursor:pointer;padding:6px 4px;min-height:36px}
+.ph .legend{margin-left:auto}
+.btn.small{min-height:36px;padding:0 14px;font-size:.88rem}
+
+/* today's check-in */
+.checkin{position:relative;overflow:hidden;border-radius:22px;padding:18px 16px 14px;color:var(--hero-ink);
+  background:radial-gradient(120% 90% at 100% 0%,var(--hero-b) 0%,transparent 60%),linear-gradient(160deg,var(--hero-a),var(--hero-a));
+  box-shadow:0 10px 30px rgba(30,107,87,.28);display:flex;flex-direction:column;gap:14px}
+.checkin::after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-60px;bottom:-90px;background:var(--glass);pointer-events:none}
+.checkin > *{position:relative;z-index:1}
+.ci-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ci-eyebrow{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;opacity:.8}
+.checkin h2{font-size:1.4rem;line-height:1.2;margin-top:2px}
+.ci-link{background:var(--glass);color:inherit;border:0;border-radius:99px;padding:7px 12px;font-weight:700;font-size:.85rem;cursor:pointer;white-space:nowrap}
+.faces{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.face{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 7px;border-radius:14px;border:0;background:var(--glass);color:inherit;cursor:pointer;transition:transform .12s ease,background .12s ease}
+.face .emo{font-size:1.75rem;line-height:1;filter:saturate(.95)}
+.face .fl{font-size:.74rem;font-weight:700;opacity:.92}
+.face[aria-pressed="true"]{background:#FFFFFF;color:#16302A;transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.18)}
+.faces:has(.face[aria-pressed="true"]) .face[aria-pressed="false"] .emo{opacity:.55}
+.face:disabled{cursor:default}
+.ci-block{display:flex;flex-direction:column;gap:8px}
+.ci-lab{font-size:.85rem;font-weight:700;opacity:.9}
+.ci-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ci-chip{min-height:36px;padding:0 13px;border-radius:99px;border:1px solid var(--glass-2);background:var(--glass);color:inherit;font-size:.88rem;cursor:pointer}
+.ci-chip.other{background:transparent;border-style:dashed}
+.ci-chip:active{background:var(--glass-2)}
+.ci-logged{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ci-done{min-height:32px;padding:0 11px;border-radius:99px;border:0;background:#FFFFFF;color:#16302A;font-size:.84rem;font-weight:700;cursor:pointer}
+.ci-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--glass-2);padding-top:12px}
+.week{display:flex;gap:4px}
+.wd{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;color:inherit;padding:0;cursor:pointer;width:30px}
+.wf{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:1rem;background:var(--glass)}
+.wf.blank{background:transparent;border:1.5px dashed var(--glass-2)}
+.wl{font-size:.68rem;font-weight:700;opacity:.8}
+.wd.now .wl{opacity:1;text-decoration:underline;text-underline-offset:3px}
+.ci-more{background:none;border:0;color:inherit;font-weight:700;font-size:.86rem;cursor:pointer;padding:6px 0;opacity:.95;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--glass-2)}
+
+/* quick actions */
+.quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.qa{display:flex;align-items:center;gap:10px;padding:12px;border-radius:16px;border:1px solid transparent;background:var(--surface);box-shadow:var(--card);cursor:pointer;text-align:left;min-width:0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .qa{border-color:var(--line)}}
+:root[data-theme="dark"] .qa{border-color:var(--line)}
+.qa:disabled{opacity:.5}
+.qi{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink)}
+.qi.ai{background:var(--ai);color:var(--surface)}
+.qi svg{width:21px;height:21px}
+.qt{display:flex;flex-direction:column;min-width:0}
+.qt b{font-size:.95rem}
+.qt small{font-size:.76rem;color:var(--muted);line-height:1.25}
+
+/* next appointment */
+.appt{display:flex;gap:14px;align-items:center}
+.datebox{flex:none;width:58px;height:62px;border-radius:14px;background:var(--ai-soft);color:var(--ai);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.datebox b{font-family:var(--f-display);font-weight:400;font-size:1.65rem}
+.datebox span{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-top:3px}
+.appt-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.next-date{font-family:var(--f-body);color:var(--muted);font-size:.88rem}
+#ovNext{display:flex;flex-direction:column;gap:12px}
+
+/* coming up */
+.due-row{gap:12px}
+.due-dot{flex:none;width:10px;height:10px;border-radius:50%;background:var(--line)}
+.due-dot.soon{background:var(--due)}
+.due-dot.over{background:var(--alert)}
+
+/* trends as tiles */
+.trends{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:640px){.trends{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.trend{background:var(--bg);border-radius:14px;padding:10px 12px 9px;gap:2px;border:1px solid transparent}
+.trend.flagged{border-color:var(--alert-soft);background:linear-gradient(var(--alert-soft),var(--bg) 70%)}
+.trend-name{font-size:.8rem;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trend-val{display:flex;align-items:baseline;gap:2px;flex-wrap:wrap;font-family:var(--f-body)}
+.trend-val b{font-family:var(--f-display);font-weight:400;font-size:1.35rem;line-height:1.2}
+.trend-val small{font-size:.74rem;color:var(--muted)}
+.fl-badge{margin-left:auto;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--alert);background:var(--alert-soft);border-radius:99px;padding:2px 7px}
+.trend svg{margin-top:2px}
+.trend-meta{font-size:.7rem;display:block}
+#trendMore{align-self:center}
+
+/* quick symptom sheet */
+.sevgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.sevb{min-height:54px;border-radius:14px;border:0;font-family:var(--f-mono);font-size:1.15rem;cursor:pointer;color:var(--ink)}
+.sevb.lo{background:var(--sev-lo)}.sevb.mid{background:var(--sev-mid)}.sevb.hi{background:var(--sev-hi)}
+.sevb.on{outline:3px solid var(--ink);outline-offset:1px}
+.sevkey{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}
+
+/* diary feel scale with faces */
+.scale button .emo{font-size:1.35rem;line-height:1.1}
+.scale.feel button{min-height:60px}
+
+/* tab bar */
+.tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
+.tab svg{width:54px;height:30px;padding:4px 16px;border-radius:99px;transition:background .15s ease}
+.tab[aria-current="page"] svg{background:var(--soft)}
 </style>
 </head>
 <body>
@@ -240,7 +368,7 @@ textarea{resize:vertical;min-height:90px}
 <header class="top">
   <div class="wrap top-in">
     <div>
-      <p class="eyebrow">Health logbook</p>
+      <p class="eyebrow" id="topDate">Health logbook</p>
       <h1 id="who">My health</h1>
     </div>
     <button class="lock" id="lockBtn" type="button" title="Only your login can see your records"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>Private to you</button>
@@ -253,10 +381,26 @@ textarea{resize:vertical;min-height:90px}
 
   <!-- OVERVIEW -->
   <section id="v-overview" class="view" aria-label="Overview">
-    <div class="row">
-      <button class="btn primary" id="logToday" type="button">How are you today?</button>
-      <button class="btn" data-act="add" type="button">Add an entry</button>
-      <button class="btn" data-act="import" type="button">Import documents or photos</button>
+    <article class="checkin" id="checkin" aria-labelledby="ciTitle">
+      <div class="ci-head">
+        <div><p class="ci-eyebrow">Today's check-in</p><h2 id="ciTitle">How are you feeling?</h2></div>
+        <button class="ci-link" id="logToday" type="button">Diary ›</button>
+      </div>
+      <div class="faces" id="ciFaces" role="group" aria-label="How you feel today"></div>
+      <div class="ci-block">
+        <p class="ci-lab">Any symptoms today?</p>
+        <div class="ci-chips" id="ciChips"></div>
+        <div class="ci-logged" id="ciLogged" hidden></div>
+      </div>
+      <div class="ci-foot">
+        <div class="week" id="ciWeek" aria-label="The last 7 days"></div>
+        <button class="ci-more" id="ciMore" type="button">+ Blood pressure, weight, period</button>
+      </div>
+    </article>
+
+    <div class="quick">
+      <button class="qa" data-act="add" type="button"><span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span class="qt"><b>Add an entry</b><small>Type it in yourself</small></span></button>
+      <button class="qa" data-act="import" type="button"><span class="qi ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8a2 2 0 0 1 2-2h2l1.5-2h5L16 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg></span><span class="qt"><b>Import</b><small>Photos, letters, NHS App</small></span></button>
     </div>
 
     <div id="empty" class="empty" hidden>
@@ -271,17 +415,21 @@ textarea{resize:vertical;min-height:90px}
 
     <div id="ovAllergies" hidden></div>
 
+    <div class="grid2" id="ovGrid">
+      <article class="panel"><div class="ph"><span class="ic ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></span><h2>Next appointment</h2></div><div id="ovNext"></div></article>
+      <article class="panel" id="ovDuePanel"><div class="ph"><span class="ic due"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span><h2>Coming up</h2></div><ul class="list" id="ovDue"></ul></article>
+    </div>
+
     <article class="panel" id="ovTrends" hidden>
-      <div class="row" style="justify-content:space-between"><h2>Trends</h2><span class="legend"><span class="band-key"></span>normal range</span></div>
+      <div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 18l5-6 4 3 7-9"/></svg></span><h2>Trends</h2><span class="legend"><span class="band-key"></span>normal</span></div>
       <div id="trendList" class="trends"></div>
+      <button class="btn ghost" id="trendMore" type="button" hidden></button>
     </article>
 
-    <div class="grid2" id="ovGrid">
-      <article class="panel" id="ovDuePanel"><h2>Coming up</h2><ul class="list" id="ovDue"></ul></article>
-      <article class="panel"><h2>Next appointment</h2><div id="ovNext"></div></article>
-      <article class="panel"><h2>Current medicines</h2><ul class="list" id="ovMeds"></ul></article>
-      <article class="panel"><h2>Ongoing conditions</h2><ul class="list" id="ovConds"></ul></article>
-      <article class="panel"><h2>Recent symptoms</h2><ul class="list" id="ovSym"></ul></article>
+    <div class="grid2">
+      <article class="panel"><div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="9" width="17" height="7" rx="3.5" transform="rotate(-35 12 12.5)"/><path d="M9.7 8.6l4.1 5.8"/></svg></span><h2>Current medicines</h2></div><ul class="list" id="ovMeds"></ul></article>
+      <article class="panel"><div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><h2>Ongoing conditions</h2></div><ul class="list" id="ovConds"></ul></article>
+      <article class="panel"><div class="ph"><span class="ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg></span><h2>Recent symptoms</h2><button class="more" type="button" id="symAll">All ›</button></div><ul class="list" id="ovSym"></ul></article>
     </div>
 
     <div class="row"><button class="btn ghost" id="editProfile" type="button">About you, PIN, account and people</button></div>
@@ -677,9 +825,48 @@ function itemRow(e, showTag){
 }
 function fill(ul, items, emptyText){ ul.replaceChildren(...(items.length? items : [h("li",{class:"none"},emptyText)])); }
 
+function greeting(){ const hr=new Date().getHours(); return hr<12?"Good morning":hr<18?"Good afternoon":"Good evening"; }
+function renderCheckin(){
+  const p=S.profile||{}, iso=todayISO(), day=(S.days||{})[iso]||{}, ro=!S.canWrite||null;
+  $("#ciTitle").textContent = day.feel? "Feeling "+FEEL[day.feel-1].toLowerCase()+" today" : "How are you feeling?";
+  $("#ciFaces").replaceChildren(...FEEL.map((l,i)=>h("button",{type:"button",class:"face","data-v":String(i+1),"aria-pressed":String(day.feel===i+1),disabled:ro,
+    onclick:()=>{ const v=day.feel===i+1?null:i+1; saveDay(iso,{feel:v}); if(v) toast("Saved: "+l.toLowerCase()+" today"); }},
+    h("span",{class:"emo","aria-hidden":"true"},FACE[i]), h("span",{class:"fl"},l))));
+  const freq={}; for(const e of ofKind("symptom")){ const k=(e.title||"").trim(); if(k) freq[k]=(freq[k]||0)+1; }
+  const seen=new Set(), chips=[];
+  for(const t of [...Object.entries(freq).sort((a,b)=>b[1]-a[1]).map(x=>x[0]).slice(0,5),...QUICK]){ const k=t.toLowerCase(); if(seen.has(k)) continue; seen.add(k); chips.push(t); if(chips.length>=6) break; }
+  $("#ciChips").replaceChildren(...chips.map(t=>h("button",{class:"ci-chip",type:"button",disabled:ro,onclick:()=>quickSymptom(t,iso)},t)),
+    h("button",{class:"ci-chip other",type:"button",disabled:ro,onclick:()=>openEntry(null,"symptom",{date:iso})},"+ Something else"));
+  const todays=ofKind("symptom").filter(e=>e.date===iso);
+  const lg=$("#ciLogged"); lg.hidden=!todays.length;
+  lg.replaceChildren(h("span",{class:"ci-lab"},"Logged today:"), ...todays.map(e=>h("button",{class:"ci-done",type:"button",onclick:()=>openEntry(e)}, "✓ "+e.title+(e.severity?" "+e.severity+"/10":""))));
+  const cells=[];
+  for(let o=6;o>=0;o--){ const d=new Date(); d.setDate(d.getDate()-o); const di=isoOf(d.getFullYear(),d.getMonth(),d.getDate()); const dd=(S.days||{})[di]||{};
+    cells.push(h("button",{type:"button",class:"wd"+(o===0?" now":""),"aria-label":longDate(di)+(dd.feel?": "+FEEL[dd.feel-1]:": not logged"),onclick:()=>openDay(di)},
+      h("span",{class:"wf"+(dd.feel?"":" blank"),"aria-hidden":"true"}, dd.feel?FACE[dd.feel-1]:""), h("span",{class:"wl","aria-hidden":"true"}, d.toLocaleDateString("en-GB",{weekday:"narrow"})))); }
+  $("#ciWeek").replaceChildren(...cells);
+}
+function quickSymptom(title, iso){
+  iso=iso||todayISO();
+  const now=new Date(), tm=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+  const btns=Array.from({length:10},(_,i)=>h("button",{type:"button",class:"sevb "+(i<3?"lo":i<6?"mid":"hi"),"aria-label":(i+1)+" out of 10"},String(i+1)));
+  btns.forEach((b,i)=>b.addEventListener("click", async ()=>{
+    btns.forEach(x=>x.disabled=true); b.classList.add("on");
+    const ok=await saveEntry({kind:"symptom",title,date:iso,time:iso===todayISO()?tm:undefined,severity:i+1,source:"manual"});
+    if(ok){ closeSheet(); toast(title+" logged · "+(i+1)+"/10"); } else btns.forEach(x=>x.disabled=false);
+  }));
+  openSheet(title, [
+    h("p",{class:"lede"},"How bad is it? Tap a number to log it for "+(iso===todayISO()?"today at "+tm:longDate(iso))+"."),
+    h("div",{class:"sevgrid"},...btns),
+    h("div",{class:"sevkey"},h("span",{},"Barely there"),h("span",{},"Worst ever")),
+    h("button",{class:"btn ghost",type:"button",style:"align-self:flex-start",onclick:()=>{ closeSheet(); openEntry(null,"symptom",{title,date:iso}); }},"Add notes with it instead")]);
+}
 function renderOverview(){
   const p=S.profile||{};
-  $("#who").textContent = p.name? (p.name+"'s health") : "My health";
+  const first=(p.name||"").trim().split(/\s+/)[0];
+  $("#who").textContent = greeting()+(first?", "+first:"");
+  $("#topDate").textContent = new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  renderCheckin();
   const empty = S.loaded && S.entries.length===0;
   $("#empty").hidden=!empty;
 
@@ -694,10 +881,14 @@ function renderOverview(){
   const next=ofKind("appointment").filter(a=>a.date && a.date>=today).sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||"")))[0];
   const nb=$("#ovNext");
   if(next){
+    const [ny,nm,nd]=next.date.split("-").map(Number), gap=daysBetween(today,next.date);
     nb.replaceChildren(
-      h("p",{class:"next-date"}, fmtDate(next.date)+(next.time?" · "+next.time:"")),
-      h("p",{class:"next-title"}, next.title),
-      next.place? h("p",{class:"none"},next.place):null,
+      h("div",{class:"appt"},
+        h("div",{class:"datebox","aria-hidden":"true"}, h("b",{},String(nd)), h("span",{},MON[nm-1])),
+        h("div",{class:"appt-txt"},
+          h("p",{class:"next-title"}, next.title),
+          h("p",{class:"next-date"}, (gap===0?"Today":gap===1?"Tomorrow":"In "+gap+" days")+" · "+new Date(ny,nm-1,nd).toLocaleDateString("en-GB",{weekday:"short"})+(next.time?" "+next.time:"")),
+          next.place? h("p",{class:"none"},next.place):null)),
       h("div",{class:"row"},
         h("button",{class:"btn ai",type:"button",onclick:()=>{ $("#prepAppt").value=next.id; show("prepare"); }}, next.prep?"See my brief":"Prepare for it"),
         h("button",{class:"btn ghost",type:"button",onclick:()=>openEntry(next)},"Details")));
@@ -709,18 +900,19 @@ function renderOverview(){
     const gap=daysBetween(today,d.date);
     const when= gap<0? "Overdue by "+(-gap)+" day"+(gap===-1?"":"s") : gap===0? "Due today" : gap<=14? "Due in "+gap+" day"+(gap===1?"":"s")+" · "+fmtDate(d.date) : fmtDate(d.date);
     return h("li",{}, h("div",{class:"due-row"},
-      h("button",{class:"item two",type:"button",style:"padding:0;border:0",onclick:()=>openEntry(d)}, h("span",{class:"t"},d.title), h("span"), h("span",{class:"due-when"+(gap<0?" over":gap<=14?" soon":"")},when)),
-      h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>markDone(d)},"Done")));
+      h("span",{class:"due-dot"+(gap<0?" over":gap<=14?" soon":""),"aria-hidden":"true"}),
+      h("button",{class:"item two",type:"button",style:"padding:0;border:0;flex:1",onclick:()=>openEntry(d)}, h("span",{class:"t"},d.title), h("span"), h("span",{class:"due-when"+(gap<0?" over":gap<=14?" soon":"")},when)),
+      h("button",{class:"btn small",type:"button",disabled:!S.canWrite||null,onclick:()=>markDone(d)},"Done")));
   }), "Nothing set. Add injections, infusions or repeat blood tests as due dates.");
-  fill($("#ovMeds"), ofKind("medication").filter(m=>m.status!=="stopped").sort((a,b)=>a.title.localeCompare(b.title)).map(e=>itemRow(e,false)), "None added yet.");
+  fill($("#ovMeds"), ofKind("medication").filter(m=>m.status!=="stopped").sort((a,b)=>a.title.localeCompare(b.title)).map(e=>h("li",{}, h("button",{class:"item two",type:"button",onclick:()=>openEntry(e)}, h("span",{class:"t"},e.title), h("span"), e.dose? h("span",{class:"s"},e.dose):null))), "None added yet.");
   fill($("#ovConds"), ofKind("condition").filter(c=>c.status!=="past").sort(byDateDesc).map(e=>itemRow(e,false)), "None added yet.");
   fill($("#ovSym"), ofKind("symptom").sort(byDateDesc).slice(0,5).map(e=>itemRow(e,false)), "Log symptoms as they happen. It makes appointments much easier.");
 }
 
 const SVGNS="http://www.w3.org/2000/svg";
 function sv(tag, attrs){ const el=document.createElementNS(SVGNS,tag); for(const [k,v] of Object.entries(attrs)){ if((k==="fill"||k==="stroke")&&String(v).startsWith("var(")) el.style[k]=v; else el.setAttribute(k,v); } return el; }
-function sparkline(pts){
-  const W=300,H=64,P=7;
+function sparkline(pts, compact){
+  const W=compact?150:300,H=compact?46:64,P=compact?6:7;
   const vals=pts.flatMap(p=>[p.value, typeof p.low==="number"?p.low:null, typeof p.high==="number"?p.high:null]).filter(v=>v!=null);
   let lo=Math.min(...vals), hi=Math.max(...vals); if(lo===hi){ lo-=1; hi+=1; } const pad=(hi-lo)*0.12; lo-=pad; hi+=pad;
   const ts=pts.map(p=>Date.parse(p.date)); const t0=Math.min(...ts), t1=Math.max(...ts);
@@ -734,7 +926,7 @@ function sparkline(pts){
   }
   for(const gy of [P,H-P]) s.append(sv("line",{x1:0,x2:W,y1:gy,y2:gy,stroke:"var(--line)","stroke-width":"1","vector-effect":"non-scaling-stroke"}));
   if(pts.length>1) s.append(sv("polyline",{points:pts.map((p,i)=>x(i)+","+y(p.value)).join(" "),fill:"none",stroke:"var(--accent)","stroke-width":"2","stroke-linejoin":"round","vector-effect":"non-scaling-stroke"}));
-  pts.forEach((p,i)=>{ const f=flag(p); const r=i===pts.length-1?4.5:3;
+  pts.forEach((p,i)=>{ const f=flag(p); const r=i===pts.length-1?(compact?4:4.5):(compact?2.6:3);
     s.append(sv("circle",{cx:x(i),cy:y(p.value),r:r,fill:f?"var(--alert)":"var(--accent)",stroke:"var(--surface)","stroke-width":"1.5","vector-effect":"non-scaling-stroke"})); });
   return s;
 }
@@ -759,14 +951,17 @@ function renderTrends(){
   }
   const wtG=[]; for(const d of Object.values(S.days||{})) if(typeof d.weight==="number") wtG.push({_bp:true,date:d.date,title:"Weight",value:d.weight,unit:"kg"});
   if(sysG.length) groups.set("_bps",sysG); if(diaG.length) groups.set("_bpd",diaG); if(wtG.length) groups.set("_wt",wtG);
-  const list=[...groups.values()].map(g=>g.sort((a,b)=>a.date.localeCompare(b.date))).sort((a,b)=>b[b.length-1].date.localeCompare(a[a.length-1].date)).slice(0,8);
-  $("#ovTrends").hidden=!list.length;
+  const all=[...groups.values()].map(g=>g.sort((a,b)=>a.date.localeCompare(b.date))).sort((a,b)=>(flag(b[b.length-1])?1:0)-(flag(a[a.length-1])?1:0) || b[b.length-1].date.localeCompare(a[a.length-1].date));
+  const SHOW=6, list= S.trendsAll? all.slice(0,40) : all.slice(0,SHOW);
+  $("#ovTrends").hidden=!all.length;
+  const more=$("#trendMore"); more.hidden=all.length<=SHOW; more.textContent= S.trendsAll? "Show fewer" : "Show all "+Math.min(all.length,40)+" tests";
   $("#trendList").replaceChildren(...list.map(g=>{
     const last=g[g.length-1], f=flag(last);
-    return h("button",{class:"trend",type:"button",onclick:()=>last._bp? openDay(last.date) : openEntry(last)},
-      h("div",{class:"trend-head"}, h("span",{class:"trend-name"},last.title), h("span",{class:"trend-val "+f}, last.value+(last.unit?" "+last.unit:"")+(f?" "+f:""))),
-      sparkline(g),
-      h("div",{class:"trend-meta"}, h("span",{},fmtDate(g[0].date)), h("span",{}, g.length>1? g.length+" results" : "1 result"), h("span",{},fmtDate(last.date))));
+    return h("button",{class:"trend"+(f?" flagged":""),type:"button",onclick:()=>last._bp? openDay(last.date) : openEntry(last)},
+      h("span",{class:"trend-name"},last.title),
+      h("span",{class:"trend-val"}, h("b",{},String(last.value)), last.unit? h("small",{}," "+last.unit):null, f? h("span",{class:"fl-badge"},f):null),
+      sparkline(g,true),
+      h("span",{class:"trend-meta"}, fmtDate(last.date)));
   }));
 }
 
@@ -886,7 +1081,7 @@ function openEntry(entry, presetKind, preset){
     const rec={kind:k,title:t,date:date.value,details:details.value.trim(),source:e.source||"manual",createdAt:e.createdAt,prep:k==="appointment"?e.prep:undefined,prepAt:k==="appointment"?e.prepAt:undefined};
     if(k==="medication"){ rec.dose=v("f-dose"); rec.status=v("f-status"); }
     if(k==="condition"){ rec.status=v("f-status"); }
-    if(k==="symptom"){ const n=parseInt(v("f-sev"),10); if(n>=1&&n<=10) rec.severity=n; }
+    if(k==="symptom"){ const n=parseInt(v("f-sev"),10); if(n>=1&&n<=10) rec.severity=n; if(e.time) rec.time=e.time; }
     if(k==="appointment"){ rec.time=v("f-time"); rec.place=v("f-place"); }
     if(k==="due"){ const n=parseInt(v("f-every"),10), u=v("f-every-unit"); if(n>=1&&u){ rec.everyN=n; rec.everyUnit=u; } rec.lastDone=e.lastDone; if(e.status==="done"&&date.value&&date.value>=todayISO()) rec.status=""; else rec.status=e.status; }
     if(k==="result"){ const n=id=>{ const x=parseFloat(v(id)); return isFinite(x)?x:undefined; }; rec.value=n("f-val"); rec.unit=v("f-unit"); rec.low=n("f-low"); rec.high=n("f-high"); }
@@ -1239,6 +1434,7 @@ $("#prepFile").addEventListener("click", async ()=>{
 
 /* ---------- diary ---------- */
 const FEEL=["Awful","Poor","OK","Good","Great"];
+const FACE=["😣","🙁","😐","🙂","😄"];
 const ENERGY=["Exhausted","Low","Some","Good","Full"];
 const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
 const QUICK=["Headache","Dizzy","Light-headed","Tired","Nausea","Stomach pain","Pins and needles","Palpitations","Breathless","Low mood"];
@@ -1252,7 +1448,7 @@ function saveDay(date, patch){
   if(!S.canWrite){ toast("This login can't save here."); return Promise.resolve(false); }
   const cur=S.days[date]||{kind:"day",date,createdAt:Date.now()};
   const next={...cur,...patch,kind:"day",date,updatedAt:Date.now()};
-  S.days={...S.days,[date]:next}; renderDiary(); renderTrends();
+  S.days={...S.days,[date]:next}; renderDiary(); renderTrends(); renderCheckin();
   const body=cleanBody(next);
   dayQ[date]=(dayQ[date]||Promise.resolve()).then(()=>write(()=>S.col.doc("day-"+date).set(body)));
   return dayQ[date];
@@ -1275,14 +1471,14 @@ function renderDiary(){
   $("#calGrid").replaceChildren(...cells);
   renderDay();
 }
-function scaleButtons(el, labels, current, onPick){
-  el.replaceChildren(...labels.map((l,i)=>h("button",{type:"button","data-v":String(i+1),"aria-pressed":String(current===i+1),disabled:!S.canWrite||null,onclick:()=>onPick(current===i+1?null:i+1)}, h("b",{},String(i+1)), l)));
+function scaleButtons(el, labels, current, onPick, icons){
+  el.replaceChildren(...labels.map((l,i)=>h("button",{type:"button","data-v":String(i+1),"aria-pressed":String(current===i+1),disabled:!S.canWrite||null,onclick:()=>onPick(current===i+1?null:i+1)}, icons? h("span",{class:"emo","aria-hidden":"true"},icons[i]) : h("b",{},String(i+1)), l)));
 }
 function renderDay(){
   const iso=S.selDay, day=S.days[iso]||{};
   $("#dayTitle").textContent=longDate(iso)+(iso===todayISO()?" (today)":"");
   $("#dayToday").hidden = iso===todayISO();
-  scaleButtons($("#feelScale"), FEEL, day.feel, v=>saveDay(iso,{feel:v}));
+  scaleButtons($("#feelScale"), FEEL, day.feel, v=>saveDay(iso,{feel:v}), FACE);
   scaleButtons($("#energyScale"), ENERGY, day.energy, v=>saveDay(iso,{energy:v}));
   const PER=[["none","None"],["light","Light"],["medium","Medium"],["heavy","Heavy"]];
   $("#periodScale").replaceChildren(...PER.map(([v,l])=>h("button",{type:"button","aria-pressed":String((day.period||"none")===v),disabled:!S.canWrite||null,onclick:()=>saveDay(iso,{period:v==="none"?null:v})},l)));
@@ -1297,7 +1493,7 @@ function renderDay(){
   const mine=Object.entries(freq).sort((a,b)=>b[1]-a[1]).map(x=>x[0]).slice(0,6);
   const seen=new Set(), chips=[];
   for(const t of [...mine,...QUICK]){ const k=t.toLowerCase(); if(seen.has(k)) continue; seen.add(k); chips.push(t); if(chips.length>=10) break; }
-  $("#symQuick").replaceChildren(...chips.map(t=>h("button",{class:"fchip",type:"button",disabled:!S.canWrite||null,onclick:()=>openEntry(null,"symptom",{title:t,date:iso})},t)),
+  $("#symQuick").replaceChildren(...chips.map(t=>h("button",{class:"fchip",type:"button",disabled:!S.canWrite||null,onclick:()=>quickSymptom(t,iso)},t)),
     h("button",{class:"fchip",type:"button",disabled:!S.canWrite||null,onclick:()=>openEntry(null,"symptom",{date:iso})},"Something else…"));
   const bp=Array.isArray(day.bp)?day.bp:[];
   fill($("#dayBP"), bp.map((r,i)=>h("li",{}, h("div",{class:"bp-row"},
@@ -1320,6 +1516,9 @@ $("#calPrev").addEventListener("click",()=>{ let {y,m}=S.cal; m--; if(m<0){m=11;
 $("#calNext").addEventListener("click",()=>{ let {y,m}=S.cal; m++; if(m>11){m=0;y++;} S.cal={y,m}; renderDiary(); });
 $("#dayToday").addEventListener("click",()=>openDay(todayISO()));
 $("#logToday").addEventListener("click",()=>openDay(todayISO()));
+$("#ciMore").addEventListener("click",()=>openDay(todayISO()));
+$("#symAll").addEventListener("click",()=>{ S.filter="symptom"; renderRecords(); show("records"); });
+$("#trendMore").addEventListener("click",()=>{ S.trendsAll=!S.trendsAll; renderTrends(); });
 $("#dayNotes").addEventListener("blur",()=>{ const n=$("#dayNotes"); if(n.dataset.dirty&&S.notesFor) saveDay(S.notesFor,{notes:n.value.trim()}).then(ok=>{ if(ok){ n.dataset.dirty=""; $("#notesState").textContent="Saved"; } }); });
 $("#dayNotes").addEventListener("input",()=>{ $("#dayNotes").dataset.dirty="1"; $("#notesState").textContent="Not saved yet"; });
 $("#dayNotesSave").addEventListener("click", async ()=>{
