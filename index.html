@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.8">
+<meta name="app-version" content="2026-11-04.9">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -744,6 +744,22 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 .ml-rr .fchip{flex:1}
 .nb-tot{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:7px;font-size:.84rem}
 
+/* heart episodes and pain map */
+.ci-chip.hp{border-color:rgba(255,255,255,.55);font-weight:700}
+.sevrow{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+.sevrow .sevb{min-height:40px;border-radius:10px;font-size:.95rem;padding:0}
+.bmap-wrap{display:flex;justify-content:center}
+.bmap{width:100%;max-width:180px;height:auto;touch-action:manipulation}
+.bz{fill:var(--bg);stroke:var(--line);stroke-width:1.2;cursor:pointer;transition:fill .15s}
+.bz:hover{stroke:var(--accent)}
+.bz:focus{outline:none;stroke:var(--accent);stroke-width:2}
+.bz.on{fill:var(--alert);fill-opacity:.9;stroke:var(--alert)}
+.bz-lab{font-size:7px;fill:var(--muted);font-family:var(--f-body,inherit)}
+.bz-where{font-weight:700;text-align:center;font-size:.92rem}
+.bz-tabs{grid-template-columns:repeat(2,minmax(0,1fr));max-width:240px;margin:0 auto;width:100%}
+.bz-tabs .pf{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.bz-tabs .pf[aria-pressed="true"]{background:var(--soft);border-color:var(--accent);color:var(--accent)}
+
 /* poo tracker */
 .bss-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .bss-b{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px 5px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;min-width:0}
@@ -1202,6 +1218,7 @@ function subline(e){
   if(e.kind==="appointment"){ if(e.time) bits.push(e.time); if(e.place) bits.push(e.place); if(e.prep) bits.push("brief saved"); }
   if(e.kind==="result" && typeof e.value==="number") bits.push(valueText(e));
   if(e.kind==="due"){ const ev=everyText(e); if(ev) bits.push(ev); if(e.status==="done") bits.push("done"); else if(e.date&&e.date<todayISO()) bits.push("overdue"); }
+  if(e.kind==="symptom"){ const sd=symDesc(e); if(sd) bits.push(sd); }
   if(e.details && e.kind!=="appointment") bits.push(e.details.length>90? e.details.slice(0,90)+"…" : e.details);
   return bits.join(" · ");
 }
@@ -1457,6 +1474,7 @@ function buildContext(){
       if(e.dose) bits.push("dose: "+e.dose);
       if(e.status) bits.push(e.status);
       if(e.severity) bits.push("severity "+e.severity+"/10");
+      if(e.kind==="symptom"){ const sd=symDesc(e); if(sd) bits.push(sd); }
       if(typeof e.value==="number") bits.push("result: "+valueText(e));
       if(e.place) bits.push("with/at: "+e.place);
       if(e.details) bits.push(String(e.details).slice(0, e.kind==="note"?2000:e.kind==="result"?1500:600));
@@ -1786,9 +1804,9 @@ function dayEvents(iso){
   const d=(S.days||{})[iso]||{}, ev=[];
   if(d.sleepLog&&d.sleepLog.wake) ev.push({time:d.sleepLog.wake,type:"wake",title:"Woke up",sub: typeof d.sleepMin==="number"? "Slept "+durTxt(d.sleepMin) : ""});
   for(const x of dayLog(iso)) ev.push({...x,_log:true,sub: x.type==="stool"? [(x.flags||[]).map(f=>(STOOL_FLAGS.find(z=>z[0]===f)||[f,f])[1].toLowerCase()).join(", "), x.details||""].filter(Boolean).join(" · ") : [x.type==="meal"&&x.desc? x.desc : x.details||"", nutLine(x.n)].filter(Boolean).join(" · ")});
-  for(const e of ofKind("symptom").filter(e=>e.date===iso)) ev.push({time:e.time||"",type:"symptom",title:e.title+(e.severity?" "+e.severity+"/10":""),entry:e});
+  for(const e of ofKind("symptom").filter(e=>e.date===iso)) ev.push({time:e.time||"",type:"symptom",title:e.title+(e.severity?" "+e.severity+"/10":""),sub:symDesc(e),entry:e});
   const meals=ev.filter(x=>x.type==="meal"&&x.time).map(x=>hm2m(x.time));
-  for(const x of ev) if(x.type==="symptom"&&x.time){ const t=hm2m(x.time); const prev=meals.filter(m=>m<=t).sort((a,b)=>b-a)[0]; if(prev!=null&&t-prev<=240) x.sub=durTxt(t-prev)+" after eating"; }
+  for(const x of ev) if(x.type==="symptom"&&x.time){ const t=hm2m(x.time); const prev=meals.filter(m=>m<=t).sort((a,b)=>b-a)[0]; if(prev!=null&&t-prev<=240) x.sub=durTxt(t-prev)+" after eating"+(x.sub?" · "+x.sub:""); }
   return ev.sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));
 }
 function afterEatingPatterns(days){
@@ -1796,7 +1814,7 @@ function afterEatingPatterns(days){
   for(let i=0;i<days;i++){
     const iso=addDays(today,-i), meals=dayLog(iso).filter(x=>x.type==="meal"&&x.time).map(x=>hm2m(x.time));
     if(!meals.length) continue;
-    const evs=[...ofKind("symptom").filter(e=>e.date===iso&&e.time), ...dayLog(iso).filter(x=>x.type==="stool"&&x.bristol>=6&&x.time).map(x=>({title:"Loose poo",time:x.time}))];
+    const evs=[...ofKind("symptom").filter(e=>e.date===iso&&e.time).map(e=>Array.isArray(e.areas)&&e.areas.length? {...e,title:"Pain: "+e.areas.map(a=>(BZ_NAME[a]||a).toLowerCase()).join(", ")} : e), ...dayLog(iso).filter(x=>x.type==="stool"&&x.bristol>=6&&x.time).map(x=>({title:"Loose poo",time:x.time}))];
     for(const e of evs){
       const t=hm2m(e.time), k=e.title.trim(), b=by[k]=by[k]||{n:0,after:0,gaps:[]}; b.n++;
       const prev=meals.filter(m=>m<=t).sort((a,b)=>b-a)[0];
@@ -2125,11 +2143,169 @@ function trackersBox(){
     sw("log","Day log","Log things as the day goes, with times. Spots symptoms that follow meals.",!!t.log,v=>setT("log",v)),
     sw("food","Food and nutrition","Meals by photo, barcode or description, with calories, protein and more.",!!t.food,v=>setT("food",v)),
     sw("sleep","Sleep diary","Bedtime, time to fall asleep, night wakings and hours slept.",!!t.sleep,v=>setT("sleep",v)),
+    sw("heart","Heart episodes","Palpitations logged in detail: how long, what it felt like, pulse, what was going on.",t.heart!==false,v=>setT("heart",v)),
+    sw("pain","Pain map","Tap where it hurts on a body picture, with what kind of pain.",t.pain!==false,v=>setT("pain",v)),
     sw("stool","Poo tracker","Bristol chart and colour, with an optional photo Claude looks at. Flags warning signs.",!!t.stool,v=>setT("stool",v)),
     p.sex==="male"? null : sw("period","Period tracker","Cycle ring, predictions and period days.",!p.periodOff,v=>saveProfilePatch({periodOff:v?undefined:true}).then(()=>renderAll())),
     tg);
   drawTargets();
   return box;
+}
+
+/* ---------- heart episodes and pain map ---------- */
+const HE_DUR=["Seconds","Under 5 min","5–30 min","Over 30 min","Still going"];
+const HE_FEEL=["Racing","Pounding","Fluttering","Skipped or extra beats","Irregular"];
+const HE_CTX=["Resting","Lying down","Being active","Just eaten","Had caffeine","Had alcohol","Stressed or upset","Just woken"];
+const HE_WITH=["Dizzy","Breathless","Chest pain","Fainted or nearly","Sweaty","Felt sick"];
+const PN_KIND=["Sharp","Stabbing","Dull ache","Burning","Cramping","Tight or pressure","Throbbing","Comes and goes"];
+const PN_CTX=["After eating","When moving","Lying down","At rest","Breathing in","Woke me up"];
+/* body zones on a 120×250 figure, drawn as the person faces you (their right on your left) */
+const BZ_ALL=[
+  ["head","Head","c",60,20,14],["neck","Neck","r",53,34,14,9],
+  ["r-shoulder","Right shoulder","r",26,44,16,14],["l-shoulder","Left shoulder","r",78,44,16,14],
+  ["r-arm","Right upper arm","r",25,60,13,34],["l-arm","Left upper arm","r",82,60,13,34],
+  ["r-fore","Right forearm and hand","r",22,96,13,42],["l-fore","Left forearm and hand","r",85,96,13,42],
+  ["r-thigh","Right thigh","r",43,124,16,46],["l-thigh","Left thigh","r",61,124,16,46],
+  ["r-knee","Right knee","r",43,172,16,14],["l-knee","Left knee","r",61,172,16,14],
+  ["r-shin","Right lower leg and foot","r",44,188,15,50],["l-shin","Left lower leg and foot","r",61,188,15,50]];
+const BZ_FRONT=[
+  ["r-chest","Right chest","r",42,44,18,24],["l-chest","Left chest","r",60,44,18,24],
+  ["ru-tum","Upper right tummy (under ribs)","r",42,68,12,20],["upper-tum","Upper tummy (middle)","r",54,68,12,20],["lu-tum","Upper left tummy","r",66,68,12,20],
+  ["rl-tum","Lower right tummy","r",42,88,18,20],["ll-tum","Lower left tummy","r",60,88,18,20],
+  ["pelvis","Pelvis or groin","r",42,108,36,14]];
+const BZ_BACK=[
+  ["ur-back","Upper right back","r",42,44,18,24],["ul-back","Upper left back","r",60,44,18,24],
+  ["mr-back","Middle right back (kidney area)","r",42,68,18,20],["ml-back","Middle left back (kidney area)","r",60,68,18,20],
+  ["low-back","Lower back","r",42,88,36,20],["buttocks","Buttocks or hips","r",42,108,36,14]];
+const BZ_NAME=Object.fromEntries([...BZ_ALL,...BZ_FRONT,...BZ_BACK].map(z=>[z[0],z[1]]));
+const CHEST_Z=new Set(["l-chest","r-chest","upper-tum"]);
+function heDesc(e){ const p=e.ep||{}; return [p.dur, (p.feel||[]).join(", ").toLowerCase(), (p.ctx||[]).join(", ").toLowerCase(), (p.with||[]).length?"with "+p.with.join(", ").toLowerCase():"", p.pulse?"pulse "+p.pulse+" bpm":""].filter(Boolean).join(" · "); }
+function pnDesc(e){ return [(e.areas||[]).map(a=>(BZ_NAME[a]||a).toLowerCase()).join(", "), (e.pkind||[]).join(", ").toLowerCase(), (e.pctx||[]).join(", ").toLowerCase()].filter(Boolean).join(" · "); }
+function symDesc(e){ return e&&e.ep? heDesc(e) : e&&Array.isArray(e.areas)? pnDesc(e) : ""; }
+function isHeart(t){ return /palpitation|heart (flutter|tremor|racing)|racing heart/i.test(String(t||"")); }
+function isPain(t){ return /^pain\b/i.test(String(t||"").trim()); }
+function hpOn(){ const t=(S.profile||{}).trackers||{}; return {heart:t.heart!==false, pain:t.pain!==false}; }
+function multiChips(opts, sel, onChange){
+  const box=h("div",{class:"chips wrapchips",role:"group"});
+  const draw=()=>box.replaceChildren(...opts.map(o=>{ const on=sel.includes(o); return h("button",{type:"button",class:"fchip"+(on?" on":""),"aria-pressed":String(on),onclick:()=>{ const i=sel.indexOf(o); if(i>=0) sel.splice(i,1); else sel.push(o); draw(); onChange&&onChange(); }}, (on?"✓ ":"")+o); }));
+  draw(); return box;
+}
+function oneChips(opts, get, set){
+  const box=h("div",{class:"chips wrapchips",role:"group"});
+  const draw=()=>box.replaceChildren(...opts.map(o=>h("button",{type:"button",class:"fchip"+(get()===o?" on":""),"aria-pressed":String(get()===o),onclick:()=>{ set(get()===o?null:o); draw(); }}, o)));
+  draw(); return box;
+}
+function sevRow(get, set){
+  const box=h("div",{class:"sevrow",role:"group","aria-label":"How bad, 1 to 10"});
+  const draw=()=>box.replaceChildren(...Array.from({length:10},(_,i)=>h("button",{type:"button",class:"sevb "+(i<3?"lo":i<6?"mid":"hi")+(get()===i+1?" on":""),"aria-pressed":String(get()===i+1),"aria-label":(i+1)+" out of 10",onclick:()=>{ set(get()===i+1?null:i+1); draw(); }}, String(i+1))));
+  draw(); return h("div",{}, box, h("div",{class:"sevkey"},h("span",{},"Barely there"),h("span",{},"Worst ever")));
+}
+function warnBox(){ return h("div",{class:"st-warn",hidden:true}); }
+function setWarn(box, list){ box.hidden=!list.length; box.replaceChildren(...list.map(t=>h("p",{},t))); }
+function entrySheetFoot(e, isNew, save){
+  return h("div",{class:"row",style:"justify-content:space-between"},
+    isNew? h("span") : h("button",{class:"btn danger",type:"button",onclick:async ev=>{ if(!confirmTwice(ev.currentTarget)) return; const ok=await write(()=>S.col.doc(e.id).delete()); if(ok){ closeSheet(); toast("Deleted"); } }},"Delete"),
+    save);
+}
+function heartRecent(){ const from=addDays(todayISO(),-29); return ofKind("symptom").filter(e=>e.date&&e.date>=from&&(e.ep||isHeart(e.title))); }
+function openHeart(iso, entry){
+  iso=(entry&&entry.date)||iso||todayISO();
+  const isNew=!entry, e=JSON.parse(JSON.stringify(entry||{kind:"symptom",title:"Palpitations",date:iso}));
+  const ep=e.ep=e.ep||{}; ep.feel=ep.feel||[]; ep.ctx=ep.ctx||[]; ep.with=ep.with||[];
+  const tm=h("input",{type:"time",id:"he-time",value:e.time||nowHM()});
+  const pulse=h("input",{type:"number",id:"he-pulse",inputmode:"numeric",min:"20",max:"250",placeholder:"e.g. 120",value:ep.pulse||""});
+  const det=h("textarea",{id:"he-det",rows:"2",placeholder:"Anything else (optional)"}); det.value=e.details||"";
+  const warn=warnBox();
+  const check=()=>{ const w=new Set(ep.with), out=[];
+    if(w.has("Chest pain")||w.has("Fainted or nearly")||w.has("Breathless")) out.push("Palpitations with chest pain, fainting or blacking out, or bad breathlessness: call 999 now.");
+    else if(ep.dur==="Still going"||ep.dur==="Over 30 min") out.push("If it doesn't settle, or keeps coming back, contact your GP today or call NHS 111.");
+    const p=+pulse.value; if(!out.length&&p&&(p>150||p<40)) out.push("A pulse of "+p+" at rest is worth getting checked: contact your GP today or call NHS 111.");
+    setWarn(warn,out); };
+  pulse.addEventListener("input",check);
+  const ecg=(((S.days||{})[iso]||{}).ecg||[]);
+  const save=h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null},"Save");
+  save.addEventListener("click", async ()=>{
+    save.disabled=true;
+    const body={...e,kind:"symptom",title:e.title||"Palpitations",date:iso,time:tm.value||undefined,source:e.source||"manual",details:det.value.trim()||undefined,
+      ep:{dur:ep.dur||undefined,feel:ep.feel.length?ep.feel:undefined,ctx:ep.ctx.length?ep.ctx:undefined,with:ep.with.length?ep.with:undefined,pulse:pulse.value?Math.round(+pulse.value):undefined}};
+    delete body.id;
+    const ok=await saveEntry(body, entry&&entry.id); save.disabled=false;
+    if(ok){ closeSheet(); const n=heartRecent().length+(isNew?1:0); toast(isNew? "Heart episode logged"+(n>1?" · "+n+" in the last 30 days":"") : "Saved"); }
+  });
+  openSheet(isNew?"Heart episode":"Edit heart episode",[
+    h("p",{class:"none"},"Log it while it's fresh. Doctors ask exactly these questions, and nothing here is required."),
+    h("div",{class:"fields2"}, h("div",{class:"field"}, h("label",{for:"he-time"},"Started at"), tm), h("div",{class:"field"}, h("label",{for:"he-pulse"},"Pulse (beats a minute)"), pulse)),
+    h("p",{class:"hint"},"No watch? Count beats at your wrist for 30 seconds and double it."),
+    h("p",{class:"flabel"},"How long did it last?"), oneChips(HE_DUR,()=>ep.dur,v=>{ ep.dur=v; check(); }),
+    h("p",{class:"flabel"},"What did it feel like?"), multiChips(HE_FEEL,ep.feel),
+    h("p",{class:"flabel"},"What was going on?"), multiChips(HE_CTX,ep.ctx),
+    h("p",{class:"flabel"},"Anything else with it?"), multiChips(HE_WITH,ep.with,check),
+    warn,
+    h("p",{class:"flabel"},"How bad was it?"), sevRow(()=>e.severity,v=>{ e.severity=v; }),
+    h("div",{class:"field"}, h("label",{for:"he-det"},"Notes"), det),
+    ecg.length? h("p",{class:"hint"},"⌚ ECG on this day: "+ecg.map(x=>x.time+" "+x.result).join(", ")) : h("p",{class:"hint"},"Took an ECG on a Kardia or watch? Add the PDF in Records → Upload so it sits with this."),
+    entrySheetFoot(e,isNew,save)]);
+  check();
+}
+function painHistory(){ const from=addDays(todayISO(),-89), c={}; for(const e of ofKind("symptom")) if(e.date&&e.date>=from) for(const a of (e.areas||[])) c[a]=(c[a]||0)+1; return c; }
+function bodyMap(view, sel, hist, onTap){
+  const s=sv("svg",{viewBox:"0 0 120 250",class:"bmap",role:"group","aria-label":(view==="back"?"Back":"Front")+" of body. Tap where it hurts."});
+  const zones=[...BZ_ALL,...(view==="back"?BZ_BACK:BZ_FRONT)];
+  for(const [id,name,shape,x,y,a,b] of zones){
+    const X= view==="back"? (shape==="c"? 120-x : 120-x-a) : x;
+    const on=sel.includes(id), n=hist[id]||0;
+    const el= shape==="c"? sv("circle",{cx:X,cy:y,r:a}) : sv("rect",{x:X,y,width:a,height:b,rx:Math.min(6,a/2.4)});
+    el.setAttribute("class","bz"+(on?" on":""));
+    if(!on&&n) el.setAttribute("style","fill:var(--warn-ic);fill-opacity:"+Math.min(.45,.1+n*.07));
+    el.setAttribute("tabindex","0"); el.setAttribute("role","button"); el.setAttribute("aria-pressed",String(on)); el.setAttribute("aria-label",name+(n?", logged "+n+" times recently":""));
+    const t=sv("title",{}); t.textContent=name; el.append(t);
+    el.addEventListener("click",()=>onTap(id)); el.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); onTap(id); } });
+    s.append(el);
+  }
+  const lab=(x,txt,anchor)=>{ const t=sv("text",{x,y:247,"text-anchor":anchor,class:"bz-lab"}); t.textContent=txt; s.append(t); };
+  if(view==="back"){ lab(4,"Your left","start"); lab(116,"Your right","end"); } else { lab(4,"Your right","start"); lab(116,"Your left","end"); }
+  return s;
+}
+function openPain(iso, entry){
+  iso=(entry&&entry.date)||iso||todayISO();
+  const isNew=!entry, e=JSON.parse(JSON.stringify(entry||{kind:"symptom",title:"Pain",date:iso}));
+  e.areas=e.areas||[]; e.pkind=e.pkind||[]; e.pctx=e.pctx||[];
+  let view= e.areas.some(a=>BZ_BACK.some(z=>z[0]===a))&&!e.areas.some(a=>BZ_FRONT.some(z=>z[0]===a))? "back" : "front";
+  const hist=painHistory();
+  const mapBox=h("div",{class:"bmap-wrap"}), where=h("p",{class:"bz-where"}), warn=warnBox();
+  const tm=h("input",{type:"time",id:"pn-time",value:e.time||nowHM()});
+  const det=h("textarea",{id:"pn-det",rows:"2",placeholder:"Anything else (optional)"}); det.value=e.details||"";
+  const tabs=h("div",{class:"pflow bz-tabs"});
+  function draw(){
+    tabs.replaceChildren(...[["front","Front"],["back","Back"]].map(([v,l])=>h("button",{type:"button",class:"pf","aria-pressed":String(view===v),onclick:()=>{ view=v; draw(); }}, l)));
+    mapBox.replaceChildren(bodyMap(view,e.areas,hist,id=>{ const i=e.areas.indexOf(id); if(i>=0) e.areas.splice(i,1); else e.areas.push(id); draw(); }));
+    where.textContent= e.areas.length? "Where: "+e.areas.map(a=>BZ_NAME[a]).join(", ") : "Tap where it hurts. You can pick more than one place.";
+    const out=[];
+    if(e.areas.some(a=>CHEST_Z.has(a))) out.push("Chest pain that's sudden, feels heavy or tight, or spreads to your arms, back, neck or jaw, or comes with sweating, feeling sick or breathlessness: call 999.");
+    if(e.areas.includes("ru-tum")&&e.pctx.includes("After eating")) out.push("Pain under the right ribs after eating can come from the gallbladder. Mention it to your GP, and call 111 if you also have a high temperature or yellow skin or eyes.");
+    setWarn(warn,out);
+  }
+  const save=h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null},"Save");
+  save.addEventListener("click", async ()=>{
+    if(!e.areas.length){ toast("Tap where it hurts first."); return; }
+    save.disabled=true;
+    const body={...e,kind:"symptom",title:"Pain",date:iso,time:tm.value||undefined,source:e.source||"manual",details:det.value.trim()||undefined,
+      areas:e.areas, pkind:e.pkind.length?e.pkind:undefined, pctx:e.pctx.length?e.pctx:undefined};
+    delete body.id;
+    const ok=await saveEntry(body, entry&&entry.id); save.disabled=false;
+    if(ok){ closeSheet(); toast(isNew? "Pain logged · "+e.areas.map(a=>BZ_NAME[a].toLowerCase()).join(", ") : "Saved"); }
+  });
+  openSheet(isNew?"Where does it hurt?":"Edit pain",[
+    tabs, mapBox, where,
+    Object.keys(hist).length? h("p",{class:"hint"},"Shaded: where you've logged pain in the last 3 months.") : null,
+    warn,
+    h("p",{class:"flabel"},"How bad is it?"), sevRow(()=>e.severity,v=>{ e.severity=v; }),
+    h("p",{class:"flabel"},"What kind of pain?"), multiChips(PN_KIND,e.pkind),
+    h("p",{class:"flabel"},"When is it worse?"), multiChips(PN_CTX,e.pctx,draw),
+    h("div",{class:"fields2"}, h("div",{class:"field"}, h("label",{for:"pn-time"},"Time"), tm)),
+    h("div",{class:"field"}, h("label",{for:"pn-det"},"Notes"), det),
+    entrySheetFoot(e,isNew,save)].filter(Boolean));
+  draw();
 }
 
 /* ---------- bowel (poo) tracker ---------- */
@@ -2383,9 +2559,13 @@ function renderCheckin(){
   $("#ciFaces").replaceChildren(...FEEL.map((l,i)=>h("button",{type:"button",class:"face","data-v":String(i+1),"aria-pressed":String(day.feel===i+1),disabled:ro,
     onclick:()=>{ const v=day.feel===i+1?null:i+1; ciPicked("feel"); saveDay(iso,{feel:v}); }},
     h("span",{class:"emo","aria-hidden":"true"},FACE[i]), h("span",{class:"fl"},l))));
-  const chips=symptomChips(8);
-  $("#ciChips").replaceChildren(...chips.map(t=>h("button",{class:"ci-chip",type:"button",disabled:ro,onclick:()=>quickSymptom(t,iso)},t)),
-    h("button",{class:"ci-chip other",type:"button",disabled:ro,onclick:()=>openEntry(null,"symptom",{date:iso})},"+ Something else"));
+  const chips=symptomChips(8), hp=hpOn();
+  const chipL=t=> hp.heart&&isHeart(t)? "💓 "+t : hp.pain&&isPain(t)? "📍 "+t : t;
+  $("#ciChips").replaceChildren(...[
+    hp.heart&&!chips.some(isHeart)? h("button",{class:"ci-chip hp",type:"button",disabled:ro,onclick:()=>openHeart(iso)},"💓 Heart episode") : null,
+    ...chips.map(t=>h("button",{class:"ci-chip"+(chipL(t)!==t?" hp":""),type:"button",disabled:ro,onclick:()=>quickSymptom(t,iso)},chipL(t))),
+    hp.pain&&!chips.some(isPain)? h("button",{class:"ci-chip hp",type:"button",disabled:ro,onclick:()=>openPain(iso)},"📍 Where it hurts") : null,
+    h("button",{class:"ci-chip other",type:"button",disabled:ro,onclick:()=>openEntry(null,"symptom",{date:iso})},"+ Something else")].filter(Boolean));
   const todays=ofKind("symptom").filter(e=>e.date===iso);
   const lg=$("#ciLogged"); lg.hidden=!todays.length;
   lg.replaceChildren(h("span",{class:"ci-lab"},"Logged today:"), ...todays.map(e=>h("button",{class:"ci-done",type:"button",onclick:()=>openEntry(e)}, "✓ "+e.title+(e.severity?" "+e.severity+"/10":""))));
@@ -2410,6 +2590,8 @@ function renderCheckin(){
 }
 function quickSymptom(title, iso){
   iso=iso||todayISO();
+  if(hpOn().heart&&isHeart(title)) return openHeart(iso);
+  if(hpOn().pain&&isPain(title)) return openPain(iso);
   const now=new Date(), tm=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
   const btns=Array.from({length:10},(_,i)=>h("button",{type:"button",class:"sevb "+(i<3?"lo":i<6?"mid":"hi"),"aria-label":(i+1)+" out of 10"},String(i+1)));
   btns.forEach((b,i)=>b.addEventListener("click", async ()=>{
@@ -2572,6 +2754,7 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !$("#sheet").hid
 function field(id,label,input,hint){ return h("div",{class:"field"}, h("label",{for:id},label), input, hint? h("span",{class:"hint"},hint):null); }
 
 function openEntry(entry, presetKind, preset){
+  if(entry&&entry.kind==="symptom"){ if(entry.ep) return openHeart(null,entry); if(Array.isArray(entry.areas)&&entry.areas.length) return openPain(null,entry); }
   const e=entry||{kind:presetKind||"symptom", date: todayISO(), ...(preset||{})};
   const isNew=!entry;
   const body=[];
@@ -2727,6 +2910,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-04.9", items:[["💓","Heart episodes: tap Palpitations (or 💓 Heart episode) to log how long it lasted, what it felt like, your pulse and what was going on. Doctors ask exactly this."],["📍","Pain map: tap where it hurts on a body picture, front or back, and say what kind of pain. Places you've logged before are shaded."],["⚠️","Chest pain, fainting or bad breathlessness with either one flags when to call 999."]]},
  {v:"2026-11-04.8", items:[["💩","New optional poo tracker: tap the Bristol chart picture that matches, or take a photo and Claude suggests the type and colour. Photos are never saved."],["⚠️","Warning signs like blood or black, tar-like poo are flagged with what to do."],["🔗","Loose poo soon after meals now shows up in the after-eating patterns."]]},
  {v:"2026-11-04.7", items:[["📖","Recipes: tick \"This is a recipe\", paste the ingredients, say how many portions it makes and how many you had. Claude works out one portion and saves it to My recipes."],["🧮","Enter the day's nutrition as one total, for example from another app."],["🛠️","Fixed long recipes or meals sometimes failing to work out."]]},
  {v:"2026-11-04.6", items:[["⌚","Sync from Apple Health: sleep, heart rate, HRV, blood oxygen, steps and ECG from a watch, ring or band arrive automatically. Set it up in Settings → Phones and devices."],["📈","New timeline rows: resting heart rate, highest heart rate, HRV, blood oxygen, deep sleep and steps."]]},
@@ -3245,6 +3429,7 @@ function tlLanes(){
   const L=[{id:"mood",name:"Mood",type:"strip"},{id:"energy",name:"Energy",type:"strip"},{id:"sleep",name:"Sleep",type:"strip"},{id:"eat",name:"Eating",type:"strip"},{id:"stress",name:"Stress",type:"strip"}];
   if(periodOn()) L.push({id:"period",name:"Period",type:"period"});
   L.push({id:"stool",name:"Poo (Bristol type)",type:"stool"});
+  L.push({id:"heart",name:"Heart episodes",type:"heart"});
   L.push({id:"sym",name:"Symptoms",type:"sym"},{id:"weight",name:"Weight",type:"line",unit:"kg"},{id:"bp",name:"Blood pressure",type:"bp",unit:"mmHg"});
   L.push({id:"sleeph",name:"Hours slept",type:"line",unit:"h",fn:d=>typeof d.sleepMin==="number"? Math.round(d.sleepMin/6)/10 : (d.dev&&d.dev.sleep&&d.dev.sleep.asleep? Math.round(d.dev.sleep.asleep/6)/10 : (typeof d.sleepH==="number"? d.sleepH : null))},
          {id:"rhr",name:"Resting heart rate",type:"line",unit:"bpm",fn:d=>d.dev&&d.dev.hr&&d.dev.hr.rest!=null? Math.round(d.dev.hr.rest) : null},
@@ -3303,7 +3488,7 @@ function tlDayData(iso){
   if(d.period&&periodOn()) out.push(["Period", d.period[0].toUpperCase()+d.period.slice(1)]);
   if(typeof d.weight==="number") out.push(["Weight", d.weight+" kg"]);
   for(const r of (Array.isArray(d.bp)?d.bp:[])) out.push(["Blood pressure", r.sys+"/"+r.dia+(r.time?" at "+r.time:"")]);
-  for(const e of ofKind("symptom").filter(e=>e.date===iso)) out.push(["Symptom", e.title+(e.severity?" "+e.severity+"/10":"")+(e.time?" at "+e.time:"")]);
+  for(const e of ofKind("symptom").filter(e=>e.date===iso)) out.push(["Symptom", e.title+(e.severity?" "+e.severity+"/10":"")+(e.time?" at "+e.time:"")+(symDesc(e)?" · "+symDesc(e):"")]);
   for(const e of ofKind("result").filter(e=>e.date===iso&&typeof e.value==="number")) { const f=flag(e); out.push(["Result", e.title+" "+e.value+(e.unit?" "+e.unit:"")+(f?" ("+f+")":"")]); }
   for(const e of tlEvents(iso,iso)) out.push([{appt:"Appointment",med:"Medicine",cond:"Condition"}[e.type], e.label]);
   if(d.notes) out.push(["Notes", d.notes.length>120? d.notes.slice(0,120)+"…" : d.notes]);
@@ -3368,6 +3553,16 @@ function drawTimeline(lanes, from, to){
       if(!n) tlEmpty(svg,W,y,H.sym,"No poo logged in this range.");
       summary.push("Poo log (Bristol type 1 hard to 7 watery): "+(n? Object.entries(by).sort().map(([d,a])=>d.slice(5)+" "+a.map(x=>(x.time||"")+" type "+x.bristol+(x.colour&&x.colour!=="brown"?" "+x.colour:"")+((x.flags||[]).length?" ("+x.flags.join("/")+")":"")).join("; ")).join(" | ") : "none"));
       y+=H.sym;
+    } else if(L.type==="heart"){
+      const by={}; for(const e of ofKind("symptom")) if(e.date&&inR(e.date)&&(e.ep||isHeart(e.title))) (by[e.date]=by[e.date]||[]).push(e);
+      const n=Object.values(by).reduce((a,v)=>a+v.length,0);
+      label(L.name, n? n+" logged" : "");
+      svg.append(sv("rect",{x:PL,y,width:W-PL-PR,height:H.sym,rx:4,fill:"var(--bg)"}));
+      for(const [d,arr] of Object.entries(by)){ const bad=arr.some(e=>((e.ep||{}).with||[]).some(w=>w==="Chest pain"||w==="Fainted or nearly"||w==="Breathless"));
+        svg.append(sv("circle",{cx:X(d),cy:y+H.sym/2,r:Math.min(8,3.5+arr.length*1.3),fill:bad?"var(--alert)":"var(--warn-ic)","fill-opacity":bad?.95:.8})); }
+      if(!n) tlEmpty(svg,W,y,H.sym,"No heart episodes logged in this range.");
+      summary.push("Heart episodes / palpitations: "+(n? Object.entries(by).sort().map(([d,a])=>d.slice(5)+" "+a.map(e=>(e.time||"")+(e.severity?" "+e.severity+"/10":"")+(symDesc(e)?" ("+symDesc(e)+")":"")).join("; ")).join(" | ") : "none"));
+      y+=H.sym;
     } else if(L.type==="sym"){
       const by={}; for(const e of ofKind("symptom")) if(e.date&&inR(e.date)) (by[e.date]=by[e.date]||[]).push(e);
       const total=Object.values(by).reduce((a,v)=>a+v.length,0);
@@ -3376,7 +3571,7 @@ function drawTimeline(lanes, from, to){
       for(const [d,arr] of Object.entries(by)){ const sev=Math.max(0,...arr.map(e=>e.severity||0)); const r=Math.min(8, 3+arr.length*1.3);
         svg.append(sv("circle",{cx:X(d),cy:y+H.sym/2,r,fill:sev>=7?"var(--alert)":"var(--warn-ic)","fill-opacity":sev>=7?.95:.7})); }
       if(!total) tlEmpty(svg,W,y,H.sym,"No symptoms logged in this range.");
-      summary.push("Symptoms: "+(total? Object.entries(by).sort().map(([d,a])=>d.slice(5)+" "+a.map(e=>e.title+(e.severity?" "+e.severity+"/10":"")+(e.time?" at "+e.time:"")).join("; ")).join(" | ") : "none"));
+      summary.push("Symptoms: "+(total? Object.entries(by).sort().map(([d,a])=>d.slice(5)+" "+a.map(e=>e.title+(e.severity?" "+e.severity+"/10":"")+(e.time?" at "+e.time:"")+(symDesc(e)?" ("+symDesc(e)+")":"")).join("; ")).join(" | ") : "none"));
       y+=H.sym;
     } else if(L.type==="line"||L.type==="bp"){
       let series=[];
