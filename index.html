@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.14">
+<meta name="app-version" content="2026-11-04.15">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -165,7 +165,7 @@ textarea{resize:vertical;min-height:90px}
 .attach-note{font-size:.85rem;color:var(--muted)}
 
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
-.tabs-in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
+.tabs-in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
 .tab{background:none;border:0;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:.78rem;color:var(--muted);cursor:pointer}
 .tab svg{width:22px;height:22px}
 .tab[aria-current="page"]{color:var(--accent);font-weight:700}
@@ -796,6 +796,110 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 :root[data-theme="dark"] .gf-st.out{background:#3A2A1F;color:#F3E9E1}
 :root[data-theme="dark"] .gf-st.out small{color:#D8C2B0}
 
+/* ---- new layout: Home hero, things, tiles, Track, + button ---- */
+body.on-home .top{display:none}
+.home-hero{margin:-10px calc(-1 * max(16px,env(safe-area-inset-left,0px))) 0;padding:14px max(16px,env(safe-area-inset-left,0px)) 18px;background:var(--soft);border-radius:0 0 30px 30px;display:flex;flex-direction:column;gap:10px}
+.hh-top{display:flex;justify-content:space-between;align-items:center}
+.hh-date{margin:0;font-size:.76rem;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.home-hero .hbtn{background:var(--surface)}
+.hh-main{display:flex;align-items:flex-end;gap:6px}
+.hh-main .dq{margin-bottom:-6px}
+.hh-bub{background:var(--surface)!important;border-radius:20px 20px 20px 6px!important;box-shadow:0 2px 10px rgba(22,48,42,.08);margin-bottom:34px}
+.hh-bub::before{display:none}
+.hh-bub .dq-hi{font-family:var(--f-display);font-weight:400!important;font-size:1.22rem!important;line-height:1.2}
+.hh-faces .face{background:var(--surface);color:var(--ink);box-shadow:0 2px 6px rgba(22,48,42,.08);padding:10px 2px 8px;border:2px solid transparent}
+.hh-faces .face[aria-pressed="true"]{background:var(--surface);border-color:var(--accent);box-shadow:0 6px 16px rgba(22,48,42,.16)}
+.hh-faces .face .emo{font-size:1.9rem}
+.dq-things{display:flex;flex-direction:column;gap:10px}
+.th-h{margin:0;font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.th-card{background:var(--surface);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 2px 10px rgba(22,48,42,.06)}
+.th-card.tip{background:var(--ai-soft);box-shadow:none}
+.th-row{display:flex;gap:10px;align-items:flex-start}
+.th-t{margin:0;flex:1;font-size:.95rem;line-height:1.4;padding-top:6px}
+.th-ic{width:36px;height:36px;border-radius:18px;flex:none;display:grid;place-items:center;background:#FBEFD9;color:#8A5200}
+.th-card.appt .th-ic{background:var(--ai-soft);color:var(--ai)}
+.th-card.tip .th-ic{background:var(--surface);color:var(--ai)}
+.th-card .row{gap:8px}
+.ci-fold{padding:0!important}
+.ci-toggle{width:100%;display:flex;align-items:center;gap:10px;padding:16px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit}
+.ct-t{flex:1;display:flex;flex-direction:column;gap:2px}
+.ct-h{font-family:var(--f-display);font-size:1.25rem}
+.ct-s{font-size:.84rem;opacity:.85}
+.ct-c{font-size:1.4rem;transition:transform .2s}
+.ci-fold.open .ct-c{transform:rotate(90deg)}
+.ci-body{padding:0 16px 14px;display:flex;flex-direction:column;gap:12px}
+.ci-body .ci-head{display:none}
+.ci-body .ci-foot .week{display:none}
+.home-tiles{display:flex;flex-direction:column;gap:10px}
+.tiles-h{margin:4px 0 0;font-family:var(--f-display);font-weight:400;font-size:1.35rem}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tile{position:relative;min-height:96px;border-radius:18px;border:0;background:var(--surface);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font:inherit;font-size:.86rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(22,48,42,.06);padding:8px 4px;text-align:center}
+.tile:active{transform:scale(.97)}
+.tile-ic{width:44px;height:44px;border-radius:14px;display:grid;place-items:center}
+.c-g .tile-ic{background:var(--soft);color:var(--accent)}
+.c-r .tile-ic{background:var(--alert-soft);color:var(--alert)}
+.c-p .tile-ic{background:var(--ai-soft);color:var(--ai)}
+.c-b .tile-ic{background:#F3E9E1;color:#7A4E2D}
+.c-a .tile-ic{background:#FBEFD9;color:#8A5200}
+.c-k .tile-ic{background:#FBE6EF;color:#A3305F}
+.tile-b{position:absolute;top:8px;right:8px;min-width:20px;height:20px;border-radius:10px;background:var(--alert);color:#fff;font-size:.7rem;display:grid;place-items:center;padding:0 5px;box-sizing:border-box}
+.fab{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:7;width:62px;height:62px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);box-shadow:0 8px 22px rgba(22,48,42,.32);display:grid;place-items:center;cursor:pointer}
+.fab svg{width:28px;height:28px}
+.fab:active{transform:scale(.94)}
+@media (min-width:800px){ .fab{right:calc(50% - 360px)} }
+.add-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.add-t{min-height:100px;border-radius:18px;border:0;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font:inherit;font-size:.86rem;font-weight:700;cursor:pointer;padding:8px 4px;text-align:center}
+.add-t .tile-ic{background:var(--surface)!important}
+.trk-seg{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.tseg{flex:none;min-height:40px;padding:0 16px;border-radius:20px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:.92rem;font-weight:700;cursor:pointer}
+.tseg.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.trk-pat{background:var(--surface)}
+.trk-pat .dq-lines p{margin:0 0 4px;font-size:.92rem}
+
+.ci-intim{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.in-btn{align-self:flex-start}
+.ci-chip.on{background:#FFFFFF;color:#16302A;font-weight:700}
+.cyc-intim{margin:0;text-align:center;font-size:.9rem;color:var(--muted)}
+
+/* Dr Quackers idle antics */
+.dq-cig,.dq-puff,.dq-cough,.dq-scritch line{opacity:0}
+.dq-ember{fill:#FF5A1F}
+.dq-scritch line{stroke:#4A3410;stroke-width:2.5;stroke-linecap:round}
+.dq-tail{transform-box:view-box;transform-origin:44px 160px}
+.dq-cough{font-family:var(--f-body);font-size:19px;font-weight:700;font-style:italic;fill:#5A4A8A}
+.dq-puff{fill:#C9D1D5;transform-box:fill-box;transform-origin:center}
+.dq.look .dq-pup{animation:dqLook 2.2s ease-in-out}
+@keyframes dqLook{20%,40%{transform:translate(-5px,0)}60%,80%{transform:translate(5px,-1px)}}
+.dq.scratch .dq-wingL{animation:dqScratch 2.6s ease-in-out}
+@keyframes dqScratch{15%{transform:rotate(58deg)}22%{transform:rotate(46deg)}29%{transform:rotate(60deg)}36%{transform:rotate(46deg)}43%{transform:rotate(60deg)}50%{transform:rotate(46deg)}57%{transform:rotate(60deg)}64%{transform:rotate(46deg)}80%{transform:rotate(55deg)}100%{transform:none}}
+.dq.scratch .dq-body{animation:dqLean 2.6s ease-in-out}
+@keyframes dqLean{15%,80%{transform:rotate(4deg) translateX(3px)}}
+.dq.scratch .dq-eyes{animation:dqHalf 2.6s ease-in-out}
+@keyframes dqHalf{15%,80%{transform:scaleY(.45)}}
+.dq.scratch .dq-tail{animation:dqWag .26s ease-in-out 8 .3s}
+@keyframes dqWag{50%{transform:rotate(-10deg)}}
+.dq.scratch .dq-scritch line{animation:dqScritch .52s ease-in-out 4 .35s}
+@keyframes dqScritch{50%{opacity:1}}
+.dq.scratch .dq-browL{transform:translateY(-8px)}
+.dq.smoke .dq-cig{animation:dqCig 6.4s ease-in-out forwards}
+@keyframes dqCig{0%{opacity:0;transform:translateX(8px)}8%,70%{opacity:1;transform:none}84%{opacity:1;transform:translate(6px,40px) rotate(40deg)}92%,100%{opacity:0;transform:translate(6px,60px) rotate(60deg)}}
+.dq.smoke .dq-ember{animation:dqEmber .9s ease-in-out 5}
+@keyframes dqEmber{50%{fill:#FFC23D}}
+.dq.smoke .dq-puff{animation:dqPuff 1.7s ease-out forwards}
+.dq.smoke .dq-puff.p1{animation-delay:.9s}.dq.smoke .dq-puff.p2{animation-delay:1.9s}.dq.smoke .dq-puff.p3{animation-delay:2.9s}
+@keyframes dqPuff{0%{opacity:0;transform:translate(0,0) scale(.4)}20%{opacity:.85}100%{opacity:0;transform:translate(10px,-58px) scale(2.2)}}
+.dq.smoke .dq-body{animation:dqCough 6.4s ease-in-out}
+@keyframes dqCough{66%{transform:none}69%{transform:translate(-3px,1px) rotate(-3deg)}72%{transform:translate(3px,-2px) rotate(3deg)}75%{transform:translate(-3px,1px) rotate(-3deg)}78%{transform:translate(3px,-2px) rotate(2deg)}82%{transform:none}}
+.dq.smoke .dq-eyes{animation:dqSqueeze 6.4s ease-in-out}
+@keyframes dqSqueeze{66%,84%{transform:scaleY(1)}70%,80%{transform:scaleY(.2)}}
+.dq.smoke .dq-cough{animation:dqCoughT 6.4s ease-in-out}
+@keyframes dqCoughT{0%,66%{opacity:0;transform:translateY(4px)}70%,82%{opacity:1;transform:none}90%,100%{opacity:0}}
+.dq.smoke .dq-mouth{animation:dqCoughM 6.4s ease-in-out}
+.dq.smoke .dq-low{animation:dqCoughJ 6.4s ease-in-out}
+@keyframes dqCoughM{0%,66%,84%,100%{transform:scaleY(.04)}70%,74%,78%{transform:scaleY(1)}72%,76%{transform:scaleY(.3)}}
+@keyframes dqCoughJ{0%,66%,84%,100%{transform:none}70%,74%,78%{transform:translateY(11px)}72%,76%{transform:translateY(3px)}}
+@media (prefers-reduced-motion:reduce){ .dq.look .dq-pup,.dq.scratch *,.dq.smoke *{animation:none!important} }
+
 /* Dr Quackers */
 .dq{overflow:visible;flex:none}
 .dq-shadow{fill:rgba(0,0,0,.1)}
@@ -985,15 +1089,22 @@ details.fold[open] .fchev{transform:rotate(90deg)}
   <div id="status" class="notice" hidden></div>
   <div id="roNote" class="notice warn" hidden>Your changes couldn't be saved. Sign out and back in, or ask the administrator if it keeps happening.</div>
 
-  <!-- OVERVIEW -->
-  <section id="v-overview" class="view" aria-label="Overview">
-    <article class="panel dq-card" id="dqCard" hidden aria-label="Welcome from Dr Quackers" aria-live="polite"></article>
-    <article class="checkin" id="checkin" aria-labelledby="ciTitle">
+  <!-- HOME -->
+  <section id="v-overview" class="view" aria-label="Home">
+    <div class="home-hero">
+      <div class="hh-top"><p class="hh-date" id="hhDate"></p><div class="top-btns"><button class="hbtn lock" id="hhLock" type="button" aria-label="Private to you"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg></button><button class="hbtn" id="hhGear" type="button" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button></div></div>
+      <div class="hh-main" id="dqCard" aria-live="polite"></div>
+      <div class="faces hh-faces" id="ciFaces" role="group" aria-label="How you feel today"></div>
+    </div>
+    <div id="ovAllergies" hidden></div>
+    <div class="dq-things" id="dqThings" hidden></div>
+    <article class="checkin ci-fold" id="checkin" aria-label="Today's check-in">
+      <button class="ci-toggle" id="ciToggle" type="button" aria-expanded="false" aria-controls="ciBody"><span class="ct-t"><span class="ct-h">Today's check-in</span><span class="ct-s" id="ciTogSum">Energy, symptoms, period, sleep and more</span></span><span class="ct-c" aria-hidden="true">›</span></button>
+      <div class="ci-body" id="ciBody" hidden>
       <div class="ci-head">
         <div><p class="ci-eyebrow">Today's check-in<span class="ci-doneb" id="ciDoneB" hidden> · Done ✓</span></p><h2 id="ciTitle">How are you feeling?</h2></div>
         <button class="ci-link" id="logToday" type="button">Diary ›</button>
       </div>
-      <div class="ci-block" data-sec="feel"><div class="faces" id="ciFaces" role="group" aria-label="How you feel today"></div></div>
       <div class="ci-block" data-sec="energy">
         <p class="ci-lab">Energy today?</p>
         <div class="pflow five" id="ciEnergy" role="group" aria-label="Energy today"></div>
@@ -1009,6 +1120,7 @@ details.fold[open] .fchev{transform:rotate(90deg)}
         <p class="ci-lab">Period today?</p>
         <div class="pflow" id="ciFlow" role="group" aria-label="Period flow today"></div>
         <p class="ci-pstat keep" id="ciPstat"></p>
+        <div class="ci-intim" id="ciIntim"></div>
       </div>
       <button class="ci-expand" id="ciXBtn" type="button" aria-expanded="false" aria-controls="ciX"><span>More about today</span><span class="ci-xsum" id="ciXSum">Sleep, eating, medicines, stress</span><span class="ci-chev" aria-hidden="true">›</span></button>
       <div class="ci-x" id="ciX" hidden>
@@ -1022,13 +1134,32 @@ details.fold[open] .fchev{transform:rotate(90deg)}
         <div class="week" id="ciWeek" aria-label="The last 7 days"></div>
         <button class="ci-more" id="ciMore" type="button">+ Blood pressure, weight, notes</button>
       </div>
+          </div>
     </article>
 
     <article class="panel lgcard" id="logCard" hidden aria-labelledby="logH">
-      <div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M7 4v16"/><circle cx="7" cy="7" r="2"/><circle cx="7" cy="14" r="2"/><path d="M11 7h8M11 14h6"/></svg></span><h2 id="logH">Today's log</h2><button class="more" type="button" id="logDiary">Diary ›</button></div>
+      <div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M7 4v16"/><circle cx="7" cy="7" r="2"/><circle cx="7" cy="14" r="2"/><path d="M11 7h8M11 14h6"/></svg></span><h2 id="logH">Today so far</h2><button class="more" type="button" id="logDiary">Diary ›</button></div>
       <div class="lg-body" id="logBody"></div>
     </article>
 
+    <section class="home-tiles" aria-labelledby="tilesH"><h2 class="tiles-h" id="tilesH">My health</h2><div class="tiles" id="homeTiles"></div></section>
+
+    <div id="empty" class="empty" hidden>
+      <h2>Start your logbook</h2>
+      <ol>
+        <li>In the NHS App, download letters from <strong>Documents</strong>, and screenshot your <strong>GP health record</strong> pages (allergies, medicines, conditions, test results).</li>
+        <li>Tap <strong>Import documents or photos</strong>. Add the PDFs and screenshots, or photograph paper letters. Dr Quackers reads them, summarises each letter and lists what it found for you to check.</li>
+        <li>Add anything else by hand: symptoms as they happen, upcoming appointments, what the doctor said.</li>
+      </ol>
+      <p class="fineprint">For your complete record, you can ask your GP surgery for a copy (a subject access request). It's free.</p>
+    </div>
+
+    <p class="fineprint">This logbook helps you keep track and prepare for appointments. It isn't medical advice. In an emergency call 999. For urgent help that isn't an emergency, call NHS 111.</p>
+  </section>
+
+  <!-- TRACK -->
+  <section id="v-track" class="view" aria-label="Track" hidden>
+    <div class="trk-seg" role="group" aria-label="Track views"></div>
     <article class="panel wkcard" id="wkCard" aria-labelledby="wkH">
       <div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6"/></svg></span><h2 id="wkH">Your week</h2><button class="more" type="button" id="wkTl">Timeline ›</button></div>
       <div class="wk-rings" id="wkRings" role="group" aria-label="Last 7 days"></div>
@@ -1037,15 +1168,25 @@ details.fold[open] .fchev{transform:rotate(90deg)}
       <p class="fineprint" id="wkNote"></p>
     </article>
 
+    <article class="panel trk-pat" id="trkPat" hidden></article>
+
     <article class="panel cyc" id="cycCard" hidden aria-labelledby="cycH">
       <div class="ph"><span class="ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 8 8" stroke-width="3.2" stroke-linecap="round"/></svg></span><h2 id="cycH">Cycle</h2><button class="more" type="button" id="cycDiary">Calendar ›</button></div>
       <div class="cyc-wrap"><div class="ring" id="cycRing"></div></div>
       <div class="cyc-key" aria-hidden="true"><span><i class="k per"></i>Period</span><span><i class="k exp"></i>Expected</span><span><i class="k fert"></i>Fertile (estimate)</span><span><i class="k now"></i>Today</span></div>
       <div class="cyc-stats" id="cycStats"></div>
+      <p class="cyc-intim" id="cycIntim" hidden></p>
       <div class="cyc-hist" id="cycHist"></div>
       <p class="fineprint" id="cycNote"></p>
     </article>
 
+    <article class="panel" id="ovTrends" hidden>
+      <div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 18l5-6 4 3 7-9"/></svg></span><h2>Trends</h2><span class="legend"><span class="band-key"></span>normal</span></div>
+      <div id="trendList" class="trends"></div>
+      <button class="btn ghost" id="trendMore" type="button" hidden></button>
+    </article>
+
+    <div hidden>
     <button class="tl-hero" id="tlOpen" type="button" aria-label="Open your health timeline">
       <span class="tlh-head"><span class="tlh-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h9M4 12h14M4 18h6"/><circle cx="16" cy="6" r="2"/><circle cx="13" cy="18" r="2"/></svg></span>
         <span class="tlh-t"><b>Your health timeline</b><small>See how mood, symptoms, periods, sleep and blood tests connect</small></span></span>
@@ -1058,52 +1199,12 @@ details.fold[open] .fchev{transform:rotate(90deg)}
       <button class="qa" data-act="import" type="button"><span class="qi ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8a2 2 0 0 1 2-2h2l1.5-2h5L16 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg></span><span class="qt"><b>Import</b><small>Photos, letters, NHS App</small></span></button>
     </div>
 
-    <div id="empty" class="empty" hidden>
-      <h2>Start your logbook</h2>
-      <ol>
-        <li>In the NHS App, download letters from <strong>Documents</strong>, and screenshot your <strong>GP health record</strong> pages (allergies, medicines, conditions, test results).</li>
-        <li>Tap <strong>Import documents or photos</strong>. Add the PDFs and screenshots, or photograph paper letters. Dr Quackers reads them, summarises each letter and lists what it found for you to check.</li>
-        <li>Add anything else by hand: symptoms as they happen, upcoming appointments, what the doctor said.</li>
-      </ol>
-      <p class="fineprint">For your complete record, you can ask your GP surgery for a copy (a subject access request). It's free.</p>
     </div>
-
-    <div id="ovAllergies" hidden></div>
-
-    <div class="grid2" id="ovGrid">
-      <article class="panel"><div class="ph"><span class="ic ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></span><h2>Next appointment</h2></div><div id="ovNext"></div></article>
-      <article class="panel" id="ovDuePanel"><div class="ph"><span class="ic due"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span><h2>Coming up</h2></div><ul class="list" id="ovDue"></ul></article>
-    </div>
-
-    <article class="panel" id="ovTrends" hidden>
-      <div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 18l5-6 4 3 7-9"/></svg></span><h2>Trends</h2><span class="legend"><span class="band-key"></span>normal</span></div>
-      <div id="trendList" class="trends"></div>
-      <button class="btn ghost" id="trendMore" type="button" hidden></button>
-    </article>
-
-    <div class="grid2">
-      <details class="panel fold" data-fold="meds">
-        <summary class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="9" width="17" height="7" rx="3.5" transform="rotate(-35 12 12.5)"/><path d="M9.7 8.6l4.1 5.8"/></svg></span><span class="fh"><h2>Current medicines</h2><span class="fpv" id="ovMedsPv"></span></span><span class="fcount" id="ovMedsN"></span><span class="fchev" aria-hidden="true">›</span></summary>
-        <ul class="list" id="ovMeds"></ul>
-      </details>
-      <details class="panel fold" data-fold="conds">
-        <summary class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><span class="fh"><h2>Ongoing conditions</h2><span class="fpv" id="ovCondsPv"></span></span><span class="fcount" id="ovCondsN"></span><span class="fchev" aria-hidden="true">›</span></summary>
-        <ul class="list" id="ovConds"></ul>
-      </details>
-      <details class="panel fold" data-fold="sym">
-        <summary class="ph"><span class="ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg></span><span class="fh"><h2>Recent symptoms</h2><span class="fpv" id="ovSymPv"></span></span><span class="fcount" id="ovSymN"></span><span class="fchev" aria-hidden="true">›</span></summary>
-        <ul class="list" id="ovSym"></ul>
-        <button class="btn ghost small" type="button" id="symAll" style="align-self:flex-start">See all symptoms ›</button>
-      </details>
-    </div>
-
-    <p class="fineprint">This logbook helps you keep track and prepare for appointments. It isn't medical advice. In an emergency call 999. For urgent help that isn't an emergency, call NHS 111.</p>
   </section>
 
   <!-- SETTINGS -->
   <section id="v-settings" class="view" aria-label="Settings" hidden>
     <div class="row" style="justify-content:space-between"><button class="btn ghost" id="setBack" type="button">‹ Back</button></div>
-    <h2 class="vh">Settings</h2>
     <div class="set-head" id="setHead"></div>
     <article class="panel set-card"><h3 class="set-h">Your details</h3><div id="setDetails" class="set-body"></div></article>
     <article class="panel set-card"><h3 class="set-h">Trackers</h3><div id="setTrk" class="set-body"></div></article>
@@ -1117,11 +1218,11 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 
   <!-- TIMELINE -->
   <section id="v-timeline" class="view" aria-label="Health timeline" hidden>
-    <div class="row" style="justify-content:space-between">
-      <button class="btn ghost" id="tlBack" type="button">‹ Home</button>
+    <div class="trk-seg" role="group" aria-label="Track views"></div>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn ghost" id="tlBack" type="button" hidden>‹ Home</button>
       <div class="seg" id="tlRange" role="group" aria-label="Time range"></div>
     </div>
-    <h2 class="vh">Health timeline</h2>
     <div class="chips wrapchips" id="tlLanes" role="group" aria-label="What to show"></div>
     <article class="panel tl-panel">
       <div id="tlChart" class="tl-chart"></div>
@@ -1142,6 +1243,7 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 
   <!-- DIARY -->
   <section id="v-diary" class="view" aria-label="Diary" hidden>
+    <div class="trk-seg" role="group" aria-label="Track views"></div>
     <article class="panel">
       <div class="cal-head">
         <button class="icon-btn" id="calPrev" type="button" aria-label="Previous month">‹</button>
@@ -1206,7 +1308,7 @@ details.fold[open] .fchev{transform:rotate(90deg)}
   <!-- RECORDS -->
   <section id="v-records" class="view" aria-label="Records" hidden>
     <div class="row" style="justify-content:space-between">
-      <h2 class="vh">Records</h2>
+      <button class="btn ai" id="recPrep" type="button">Get ready for an appointment</button>
       <button class="btn primary" data-act="add" type="button">Add</button>
     </div>
     <div class="rec-up">
@@ -1218,6 +1320,29 @@ details.fold[open] .fchev{transform:rotate(90deg)}
       <input type="file" id="recCam" accept="image/*" capture="environment" hidden>
       <input type="file" id="recFiles" accept="image/*,application/pdf,.pdf" multiple hidden>
       <p class="fineprint">Dr Quackers reads it and lists what it found. You tick what to keep before anything is added.</p>
+    </div>
+    <div class="grid2" id="ovGrid">
+      <article class="panel"><div class="ph"><span class="ic ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></span><h2>Next appointment</h2></div><div id="ovNext"></div></article>
+      <article class="panel" id="ovDuePanel"><div class="ph"><span class="ic due"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span><h2>Coming up</h2></div><ul class="list" id="ovDue"></ul></article>
+    </div>
+
+    <div hidden>
+    <div class="grid2">
+      <details class="panel fold" data-fold="meds">
+        <summary class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="9" width="17" height="7" rx="3.5" transform="rotate(-35 12 12.5)"/><path d="M9.7 8.6l4.1 5.8"/></svg></span><span class="fh"><h2>Current medicines</h2><span class="fpv" id="ovMedsPv"></span></span><span class="fcount" id="ovMedsN"></span><span class="fchev" aria-hidden="true">›</span></summary>
+        <ul class="list" id="ovMeds"></ul>
+      </details>
+      <details class="panel fold" data-fold="conds">
+        <summary class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><span class="fh"><h2>Ongoing conditions</h2><span class="fpv" id="ovCondsPv"></span></span><span class="fcount" id="ovCondsN"></span><span class="fchev" aria-hidden="true">›</span></summary>
+        <ul class="list" id="ovConds"></ul>
+      </details>
+      <details class="panel fold" data-fold="sym">
+        <summary class="ph"><span class="ic warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg></span><span class="fh"><h2>Recent symptoms</h2><span class="fpv" id="ovSymPv"></span></span><span class="fcount" id="ovSymN"></span><span class="fchev" aria-hidden="true">›</span></summary>
+        <ul class="list" id="ovSym"></ul>
+        <button class="btn ghost small" type="button" id="symAll" style="align-self:flex-start">See all symptoms ›</button>
+      </details>
+    </div>
+
     </div>
     <div class="chips" id="filters" role="group" aria-label="Show"></div>
     <div class="panel"><ul class="list" id="recList"></ul></div>
@@ -1268,7 +1393,6 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 
   <!-- ASK -->
   <section id="v-ask" class="view" aria-label="Ask Dr Quackers" hidden>
-    <h2 class="vh">Ask Dr Quackers</h2>
     <div id="dqHero"></div>
     <p class="lede">Ask what could be behind a symptom, what a result or letter means, or how to push for a test. Dr Quackers can see your logbook. Chats aren't saved.</p>
     <div id="aiOffAsk" class="notice warn" hidden></div>
@@ -1295,13 +1419,12 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 <nav class="tabs" aria-label="Sections">
   <div class="tabs-in">
     <button class="tab" data-view="overview" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/></svg>Home</button>
-    <button class="tab" data-view="diary" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6z"/><path d="M6 3v18M9.5 8h6M9.5 12h6"/></svg>Diary</button>
-    <button class="tab tab-tl" data-view="timeline" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h9M4 12h14M4 18h6"/><circle cx="16" cy="6" r="2"/><circle cx="13" cy="18" r="2"/></svg>Timeline</button>
+    <button class="tab" data-view="track" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Track</button>
     <button class="tab" data-view="records" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Records</button>
-    <button class="tab" data-view="prepare" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4"/></svg>Prepare</button>
     <button class="tab" data-view="ask" type="button"><span class="tab-dq" aria-hidden="true"></span>Quackers</button>
   </div>
 </nav>
+<button class="fab" id="fab" type="button" aria-label="Log something" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
 
 <div id="sheet" class="sheet" hidden>
   <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
@@ -1363,7 +1486,7 @@ const KINDS = {
 const ORDER = ["allergy","medication","condition","appointment","due","symptom","result","note"];
 const S = {db:null,col:null,user:null,sample:null,downloads:null,img:null,entries:[],profile:{},loaded:false,canWrite:true,aiOff:false,filter:"all",chat:[],chatFiles:[],prepCtl:null,chatCtl:null,prepText:"",prepFor:"",revCtl:null,revText:"",days:{},cal:null,selDay:null,notesFor:null};
 
-const GUIDE = "You are Dr Quackers (Doctor Quackers), a friendly cartoon duck in a white coat who is the health helper inside this personal health logbook app. You are an AI (Claude, made by Anthropic), not a real doctor: never claim medical qualifications or to be a person, and if asked what you are, say so plainly. In chat replies speak as Dr Quackers in the first person: warm, kind and plain-spoken, with gentle duck charm but no jokes when something is worrying or serious. Never write the word quack yourself: the app adds his quacks. In briefs, notes and documents don't mention yourself.\nYou are helping a person in the UK keep track of their own health and push their care forward with the NHS (GP, nurse, hospital, pharmacist), especially when appointments have gone round in circles. Use UK English and NHS terms. Be warm, plain-spoken, direct and practical.\n"
+const GUIDE0 = "You are Dr Quackers (Doctor Quackers), a friendly cartoon duck in a white coat who is the health helper inside this personal health logbook app. You are an AI (Claude, made by Anthropic), not a real doctor: never claim medical qualifications or to be a person, and if asked what you are, say so plainly. In chat replies speak as Dr Quackers in the first person: warm, kind and plain-spoken, with gentle duck charm but no jokes when something is worrying or serious. Never write the word quack yourself: the app adds his quacks. In briefs, notes and documents don't mention yourself.\nYou are helping a person in the UK keep track of their own health and push their care forward with the NHS (GP, nurse, hospital, pharmacist), especially when appointments have gone round in circles. Use UK English and NHS terms. Be warm, plain-spoken, direct and practical.\n"
   + "Do help them think through what might be going on: connect symptoms, results and history (for example past operations such as bariatric surgery and the deficiencies that commonly follow them), name the possible explanations a clinician would consider, roughly most to least likely, and say what tests, checks or referrals could confirm or rule each one out. Mention relevant NHS or NICE guidance where you know it, and give wording they can use to ask for a test or referral. Say how sure you are, and be clear these are possibilities to put to their clinician, not a diagnosis, because you can't examine them or order tests.\n"
   + "Don't tell them to stop or change a prescribed medicine on their own; say to discuss it with their GP or pharmacist. Don't invent results or history that isn't in the logbook.\n"
   + "If anything they describe could be an emergency (for example chest pain, signs of a stroke, severe difficulty breathing, heavy bleeding, black or bloody stools, fainting, sudden severe headache, or thoughts of harming themselves), say clearly at the very start to call 999, or NHS 111 if it's urgent but not life-threatening.";
@@ -1686,11 +1809,13 @@ function buildContext(){
       if(Array.isArray(d.log)&&d.log.length) b.push("log: "+d.log.map(x=>(x.time||"?")+" "+(x.type==="meal"? (x.meal||"meal").toLowerCase()+": "+(x.desc||(x.items||[]).map(i=>i.name).join(", "))+(x.n&&x.n.kcal?" ("+Math.round(x.n.kcal)+" kcal)":"") : (LOGT[x.type]||LOGT.note).l.toLowerCase()+": "+x.title+(x.type==="stool"&&(x.flags||[]).length?" ["+x.flags.join(", ")+"]":"")+(x.details?" - "+x.details:""))).join("; ").slice(0,900));
       if(Array.isArray(d.bp)&&d.bp.length) b.push("BP "+d.bp.map(r=>r.sys+"/"+r.dia+(r.pulse?" pulse "+r.pulse:"")+(r.time?" at "+r.time:"")).join(", "));
       if(d.period) b.push("period: "+d.period);
+      if(d.intim) b.push("intimate"+(d.intimProt?" ("+({yes:"protected",no:"unprotected",ttc:"trying for a baby"}[d.intimProt]||d.intimProt)+")":""));
       if(typeof d.weight==="number") b.push("weight "+d.weight+" kg");
       if(d.notes) b.push(String(d.notes).slice(0,300));
       if(b.length>1) lines.push("- "+b.join(" | "));
     }
   }
+  if(periodOn()&&cyclePhase()) lines.push("\nTODAY IN HER CYCLE: "+cyclePhaseText()+".");
   if(periodOn()&&dd.some(d=>d.period)){ const c=cycleInfo(); lines.push("\nPERIOD CYCLE (from the diary): "+c.starts.length+" periods logged; "+(c.avg?"average cycle "+c.avg+" days over the last "+c.cycles+" cycles":"not enough cycles for an average")+"; last period started "+fmtDate(c.last)+(c.len?", lasting "+c.len+" days":"")+".");
     for(const x of cycleList().slice(-8)) lines.push("- period started "+fmtDate(x.start)+": bled "+x.plen+" days ("+x.heavy+" heavy)"+(x.len?", cycle "+x.len+" days":", current cycle")); }
   const pats=afterEatingPatterns(60); if(pats.length) lines.push("\nPATTERNS FOUND BY THE APP: "+pats.map(p=>p.title+" came within 3 hours of eating on "+p.after+" of "+p.n+" logged occasions (average "+p.avg+" min after)").join("; ")+".");
@@ -1741,11 +1866,18 @@ async function saveEntry(body, id){
 }
 
 /* ---------- views ---------- */
-const VIEWS=["overview","diary","records","prepare","ask","timeline","settings"];
+const VIEWS=["overview","track","diary","records","prepare","ask","timeline","settings"];
+const TABG={overview:"overview",track:"track",timeline:"track",diary:"track",records:"records",prepare:"records",ask:"ask"};
+const VTITLE={track:"Track",timeline:"Timeline",diary:"Diary",records:"Records",prepare:"Get ready",ask:"Dr Quackers",settings:"Settings"};
 function show(v){
   if(!VIEWS.includes(v)) v="overview";
   for(const x of VIEWS) $("#v-"+x).hidden = x!==v;
-  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-current", t.dataset.view===v?"page":"false"));
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-current", TABG[v]===t.dataset.view?"page":"false"));
+  document.body.classList.toggle("on-home", v==="overview");
+  if(VTITLE[v]) $("#who").textContent=VTITLE[v];
+  { const f=$("#fab"); if(f) f.hidden=!["overview","track","timeline","diary"].includes(v)||!S.canWrite; }
+  if(["track","timeline","diary"].includes(v)) renderTrackSeg(v);
+  if(v==="track"){ renderTrack(); }
   if(location.hash.slice(1)!==v){ try{ history.replaceState(null,"","#"+v); }catch{} }
   window.scrollTo(0,0);
   if(v==="timeline" && typeof renderTimeline==="function") renderTimeline();
@@ -1783,6 +1915,30 @@ function cycleInfo(){
   let len=null; if(last){ let d=last,n=0; while(has(d)||has(addDays(d,1))){ if(has(d)) n=daysBetween(last,d)+1; d=addDays(d,1); if(n>15) break; } len=n; }
   const next= last? addDays(last, avg||28) : null;
   return {starts,avg,last,next,inPeriod,dayN,len,cycles:recent.length};
+}
+const INTIM_GUIDE="\nSEX AND INTIMACY (she has asked for this): you can talk openly and tastefully about sex and intimacy as part of her health, and now and then suggest it when it fits, with real reasons: it can help sleep, ease stress and low mood (oxytocin and endorphins), may ease period cramps, helps the pelvic floor, and brings closeness with her partner. Fit it to her cycle: desire and energy often peak around ovulation; during a heavy period, pain or exhaustion, suggest gentler closeness instead, or simply rest. If they are not trying for a baby, the fertile window is when protection matters most. If she takes the contraceptive pill alongside Mounjaro (tirzepatide), the pill can be less reliable for 4 weeks after starting and after each dose increase, so suggest condoms or a non-pill method then. Pain during sex, bleeding after sex or unusual discharge are for the GP or a sexual health clinic. Never be explicit or pushy, and don't bring it up every day.";
+function guideTxt(){ return GUIDE0+(periodOn()? INTIM_GUIDE : ""); }
+function cyclePhase(){
+  const c=cycleInfo(); if(!c.last) return null;
+  const L=c.avg||28, ov=L-14, d=c.dayN, fs=ov-5, fe=ov+1;
+  const phase= c.inPeriod? "period" : (d>=fs&&d<=fe)? "fertile window (estimate)" : d>fe? "after ovulation (luteal phase)" : "after period (follicular phase)";
+  return {day:d, len:L, phase, fertileFrom:fs, fertileTo:fe, next:c.next, fertile: !c.inPeriod&&d>=fs&&d<=fe};
+}
+function cyclePhaseText(){ const p=cyclePhase(); if(!p) return ""; return "cycle day "+p.day+" of about "+p.len+", "+p.phase+"; fertile window is roughly days "+p.fertileFrom+" to "+p.fertileTo+(p.next?"; next period expected "+fmtDate(p.next):""); }
+const INTIM_PROT=[["yes","Protected"],["no","Not protected"],["ttc","Trying for a baby"]];
+function renderIntim(iso, day){
+  const box=$("#ciIntim"); if(!box) return;
+  const ro=!S.canWrite||null, on=!!day.intim;
+  box.replaceChildren(...[
+    h("button",{type:"button",class:"ci-chip in-btn"+(on?" on":""),"aria-pressed":String(on),disabled:ro,onclick:()=>saveDay(iso,{intim:on?null:true,intimProt:on?null:(day.intimProt||null)})}, on?"💗 Intimate today ✓":"💗 Intimate today"),
+    on? h("div",{class:"ci-chips in-prot",role:"group","aria-label":"Protection"}, ...INTIM_PROT.map(([v,l])=>h("button",{type:"button",class:"ci-chip"+(day.intimProt===v?" on":""),"aria-pressed":String(day.intimProt===v),disabled:ro,onclick:()=>saveDay(iso,{intimProt:day.intimProt===v?null:v})}, l))) : null,
+    (()=>{ const p=cyclePhase(); return p&&p.fertile&&!on? h("p",{class:"ci-pstat keep"},"Fertile window (estimate) about now.") : null; })()].filter(Boolean));
+}
+function renderCycleIntim(){
+  const el=$("#cycIntim"); if(!el) return;
+  const c=cycleInfo(); if(!periodOn()||!c.last){ el.hidden=true; return; }
+  const n=Object.values(S.days||{}).filter(d=>d.date&&d.date>=c.last&&d.intim).length, p=cyclePhase();
+  el.hidden=false; el.textContent=(p?"Day "+p.day+" · "+p.phase.replace(" (estimate)","")+". ":"")+(n? "💗 Intimate "+n+" time"+(n>1?"s":"")+" this cycle." : "");
 }
 function cycleText(){
   const c=cycleInfo(), today=todayISO();
@@ -2034,7 +2190,7 @@ function logQuickAdds(iso){
 }
 function logList(iso){
   const ev=dayEvents(iso);
-  if(!ev.length) return h("p",{class:"none"},"Nothing logged yet. Tap a button above as things happen and the time is saved.");
+  if(!ev.length) return h("p",{class:"none"},"Nothing logged yet. Tap the + button as things happen and the time is saved.");
   return h("ul",{class:"lg-list"}, ...ev.map(x=>h("li",{}, h("button",{type:"button",class:"lg-ev",onclick:()=>{ if(x.entry) openEntry(x.entry); else if(x._log){ if(x.type==="meal") openMeal(iso,x); else if(x.type==="stool") openStool(iso,x); else if(x.type==="drink") openDrink(iso,x); else openSimpleLog(iso,x.type,x); } else if(x.type==="wake") openDay(iso); }},
     h("span",{class:"lg-t"}, x.time||"–"), h("span",{class:"lg-d",style:"background:"+(LOGT[x.type]||LOGT.note).c}),
     h("span",{class:"lg-x"}, h("b",{}, x.type==="meal"? (x.meal||"Meal") : x.title), x.sub? h("small",{}, x.sub) : null)))));
@@ -2066,10 +2222,9 @@ function renderLogCard(){
   const card=$("#logCard"); if(!card) return;
   const t=trk(); card.hidden=!(t.log||t.food||t.stool); if(card.hidden) return;
   const iso=todayISO(), pats=afterEatingPatterns(30);
-  $("#logH").textContent= t.log? "Today's log" : t.food? "Today's food" : "Today's log";
+  $("#logH").textContent= "Today so far";
   const warns=[...new Set(dayLog(iso).filter(x=>x.type==="stool").flatMap(stoolWarn))];
   $("#logBody").replaceChildren(...[
-    logQuickAdds(iso),
     t.food? nutPanel(iso) : null,
     ...warns.slice(0,2).map(w=>h("div",{class:"lg-flag"}, h("span",{class:"wk-dot","aria-hidden":"true"}), h("span",{}, w))),
     t.stool&&bowelSummary(14)? h("button",{class:"gut-link",type:"button",onclick:()=>openGut()}, h("span",{},"💩 "+bowelSummary(14)), h("b",{},"Gut journey ›")) : null,
@@ -2335,7 +2490,7 @@ function trackersBox(){
     sw("heart","Heart episodes","Palpitations logged in detail: how long, what it felt like, pulse, what was going on.",t.heart!==false,v=>setT("heart",v)),
     sw("pain","Pain map","Tap where it hurts on a body picture, with what kind of pain.",t.pain!==false,v=>setT("pain",v)),
     sw("stool","Poo tracker","Bristol chart and colour, with an optional photo Dr Quackers looks at. Flags warning signs.",!!t.stool,v=>setT("stool",v)),
-    p.sex==="male"? null : sw("period","Period tracker","Cycle ring, predictions and period days.",!p.periodOff,v=>saveProfilePatch({periodOff:v?undefined:true}).then(()=>renderAll())),
+    p.sex==="male"? null : sw("period","Period tracker","Cycle ring, predictions, period days and a private intimacy log. Dr Quackers fits his tips to your cycle.",!p.periodOff,v=>saveProfilePatch({periodOff:v?undefined:true}).then(()=>renderAll())),
     tg);
   drawTargets();
   return box;
@@ -2607,7 +2762,7 @@ function duckSvg(size, cls, label){
   const A=(tag,a,p)=>add(tag,a,p||b);
   // feet, tail, body, belly
   A("ellipse",{cx:81,cy:220,rx:23,ry:12,fill:"#FF8A1F",...O}); A("ellipse",{cx:139,cy:220,rx:23,ry:12,fill:"#FF8A1F",...O});
-  A("polygon",{points:"44,150 10,120 20,152 46,178",fill:"#FFD43B",...O});
+  A("polygon",{points:"44,150 10,120 20,152 46,178",fill:"#FFD43B",...O,class:"dq-tail"});
   A("ellipse",{cx:110,cy:167,rx:78,ry:59,fill:"#FFD43B",...O});
   A("ellipse",{cx:115,cy:186,rx:47,ry:34,fill:"#FFE98A"});
   // white coat (clipped to the body) with pocket, pen and badge
@@ -2637,6 +2792,10 @@ function duckSvg(size, cls, label){
   A("ellipse",{cx:126,cy:104,rx:22,ry:8,fill:"#E2620B",...O,class:"dq-low"});
   A("ellipse",{cx:126,cy:93,rx:30,ry:11,fill:"#FF8A1F",...O});
   A("circle",{cx:118,cy:90,r:2,fill:"#4A3410"}); A("circle",{cx:134,cy:90,r:2,fill:"#4A3410"});
+  const cig=A("g",{class:"dq-cig"});
+  A("rect",{x:150,y:100,width:30,height:6,rx:2,fill:"#FFFFFF",stroke:"#4A3410","stroke-width":1.5,transform:"rotate(10 150 103)"},cig);
+  A("rect",{x:150,y:100,width:8,height:6,rx:1.5,fill:"#E89A3C",transform:"rotate(10 150 103)"},cig);
+  A("circle",{cx:179,cy:108,r:3.4,class:"dq-ember"},cig);
   // tie
   A("polygon",{points:"112,128 138,128 132,142 118,142",fill:"#2E6BE6",...O});
   A("polygon",{points:"118,140 132,140 141,180 125,194 109,180",fill:"#2E6BE6",...O});
@@ -2646,9 +2805,35 @@ function duckSvg(size, cls, label){
   A("path",{d:"M152 128 C 166 142, 170 164, 164 182",class:"dq-steth"});
   A("circle",{cx:163,cy:190,r:8,class:"dq-cp"}); A("circle",{cx:163,cy:190,r:3.4,class:"dq-cp2"});
   // wings in front
+  const scr=A("g",{class:"dq-scritch"}); for(const [x1,y1,x2,y2] of [[4,138,14,134],[2,150,13,150],[5,162,15,166]]) A("line",{x1,y1,x2,y2},scr);
   const wl=A("g",{class:"dq-wingL"}); A("ellipse",{cx:42,cy:165.5,rx:13,ry:30,fill:"#F2B705",...O,transform:"rotate(20 42 140)"},wl);
   const wr=A("g",{class:"dq-wingR"}); A("ellipse",{cx:178,cy:165.5,rx:13,ry:30,fill:"#F2B705",...O,transform:"rotate(-20 178 140)"},wr);
+  const puffs=add("g",{class:"dq-puffs"}); for(const [i,dx] of [[1,0],[2,6],[3,-4]]) add("circle",{cx:182+dx,cy:100,r:6,class:"dq-puff p"+i},puffs);
+  const cough=add("text",{x:30,y:22,class:"dq-cough"}); cough.textContent="cough!";
+  if(size>=56) dqIdleWatch(s);
   return s;
+}
+/* idle antics: look around, a cheeky scratch, a crafty smoke (with a coughing fit) */
+const DQ_IDLE=new Set(); let dqIdleT=null;
+const DQ_ACTS=[["look",2200,.45],["scratch",2600,.32],["smoke",6400,.23]];
+function dqIdleWatch(svg){
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  DQ_IDLE.add(svg);
+  if(!dqIdleT) dqIdleT=setInterval(dqIdleTick,7000);
+}
+function dqIdleTick(){
+  if(document.hidden) return;
+  for(const d of [...DQ_IDLE]){
+    if(!d.isConnected){ if(d._seen) DQ_IDLE.delete(d); continue; } d._seen=true;
+    if(!d.getClientRects().length) continue;
+    if(["think","talk","wave","happy","look","scratch","smoke"].some(c=>d.classList.contains(c))) continue;
+    if(Math.random()>.45) continue;
+    let r=Math.random(), act=DQ_ACTS[0];
+    for(const a of DQ_ACTS){ if(r<a[2]){ act=a; break; } r-=a[2]; }
+    if(act[0]==="smoke"&&Date.now()-(d._smoked||0)<120000) act=DQ_ACTS[0];
+    if(act[0]==="smoke") d._smoked=Date.now();
+    d.classList.add(act[0]); setTimeout(()=>d.classList.remove(act[0]),act[1]);
+  }
 }
 function duckSay(text, cls){
   const bub=h("div",{class:"dq-bub"}, text); quackify(bub);
@@ -2691,55 +2876,171 @@ function dqHist(){ try{ return JSON.parse(localStorage.getItem("hl-dq-hist-"+(S.
 function dqHistAdd(t){ try{ localStorage.setItem("hl-dq-hist-"+(S.uid||"me"),JSON.stringify([t,...dqHist()].slice(0,8))); }catch{} }
 let dqBusy=false;
 function dqWhen(iso){ const t=todayISO(); if(iso===t) return "today"; if(iso===addDays(t,1)) return "tomorrow"; const d=daysBetween(t,iso); return d>0&&d<7? "on "+new Date(iso+"T12:00").toLocaleDateString("en-GB",{weekday:"long"}) : "on "+fmtDate(iso); }
-function dqReminder(){
-  const t=todayISO(), soon=addDays(t,3), wk=addDays(t,7);
-  const due=ofKind("due").filter(e=>e.status!=="done"&&e.date&&e.date<=soon).sort((a,b)=>a.date.localeCompare(b.date))[0];
-  const appt=ofKind("appointment").filter(e=>e.date&&e.date>=t&&e.date<=wk).sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||"")))[0];
-  if(due&&(!appt||due.date<=appt.date)) return due.date<t? "⏰ Don't forget: "+due.title+" is overdue." : "⏰ Reminder: "+due.title+" is due "+dqWhen(due.date)+".";
-  if(appt) return "📅 Reminder: "+appt.title+" is "+dqWhen(appt.date)+(appt.time?" at "+appt.time:"")+(appt.place?", "+appt.place:"")+".";
-  return "";
-}
 function dqHello(){
   const p=S.profile||{}, first=(p.name||"").trim().split(/\s+/)[0], hr=new Date().getHours();
   const hi= hr<12? "Morning" : hr<18? "Afternoon" : "Evening";
   return hi+(first?" "+first:"")+", lovely to see you!";
 }
-function dqFeeling(){
-  const d=(S.days||{})[todayISO()]||{};
-  if(!d.feel) return "How are you feeling today? Tap a face below to tell me.";
-  if(d.feel<=2) return "Sorry you're feeling "+FEEL[d.feel-1].toLowerCase()+" today. I'm here if you want to talk it through.";
-  return "Thanks for checking in today, you're feeling "+FEEL[d.feel-1].toLowerCase()+".";
-}
+/* ---------- new Home: Dr Quackers hero, his things for you, tiles; Track tab; the + button ---------- */
 function renderWelcome(){
   const card=$("#dqCard"); if(!card) return;
-  card.hidden=!S.loaded;
-  if(card.hidden) return;
   if(!card._built){
     card._built=true;
-    card._duck=duckSvg(86,"wave"); card._lines=h("div",{class:"dq-lines"});
-    card._tip=h("p",{class:"dq-tip",hidden:true});
-    card._chat=h("button",{class:"btn small",type:"button",onclick:()=>{ const t=(dqGet()||{}).text; show("ask"); if(t&&!S.chat.some(m=>m.content===t)){ S.chat.push({role:"assistant",content:t}); addBubble("assistant",t); } const c=$("#chatIn"); c.placeholder="Ask Dr Quackers anything…"; c.focus(); }},"💬 Chat with me");
-    card._more=h("button",{class:"btn small ghost",type:"button",onclick:()=>{ dqSet(null); card._tipFor=null; renderWelcome(); }},"Another tip");
-    card.replaceChildren(h("div",{class:"dq-say dq-welcome"}, card._duck, h("div",{class:"dq-bub"}, card._lines, card._tip)), h("div",{class:"row dq-acts"}, card._chat, card._more));
+    card._duck=duckSvg(118,"wave");
+    card._lines=h("div",{class:"dq-lines"});
+    card.replaceChildren(card._duck, h("div",{class:"dq-bub hh-bub"}, card._lines));
   }
-  const lines=[dqHello(), dqFeeling(), dqReminder()].filter(Boolean);
+  const lines=[dqHello(), dqFeeling()];
   const key=lines.join("|");
   if(card._key!==key){ card._key=key; card._lines.replaceChildren(...lines.map((t,i)=>h("p",{class:i===0?"dq-hi":""},t))); card._lines._qk=null; quackify(card._lines); }
-  // daily AI tip
+}
+function dqFeeling(){
+  const d=(S.days||{})[todayISO()]||{};
+  if(!d.feel) return "How are you feeling today?";
+  if(d.feel<=2) return "Sorry you're feeling "+FEEL[d.feel-1].toLowerCase()+" today. I'm here if you want to talk it through.";
+  return "Glad you're feeling "+FEEL[d.feel-1].toLowerCase()+" today. Tap Today's check-in below to tell me more.";
+}
+function dqThingsList(){
+  const t=todayISO(), soon=addDays(t,3), fort=addDays(t,14), out=[];
+  for(const d of ofKind("due").filter(e=>e.status!=="done"&&e.date&&e.date<=soon).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2))
+    out.push({kind:"due", e:d, text: d.date<t? d.title+" is overdue." : d.title+" is due "+dqWhen(d.date)+"."});
+  const appt=ofKind("appointment").filter(e=>e.date&&e.date>=t&&e.date<=fort).sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||"")))[0];
+  if(appt) out.push({kind:"appt", e:appt, text: appt.title+" is "+dqWhen(appt.date)+(appt.time?" at "+appt.time:"")+"."});
+  return out;
+}
+function dqReminder(){ const r=dqThingsList()[0]; return r? r.text : ""; }
+function renderThings(){
+  const box=$("#dqThings"); if(!box) return;
+  const items=dqThingsList();
   const ai=!!S.sample&&!S.aiOff&&(S.entries.length||Object.keys(S.days||{}).length);
-  card._more.hidden=!ai; card._tip.hidden=!ai; if(!ai) return;
+  const n=items.length+(ai?1:0);
+  box.hidden=!S.loaded||!n; if(box.hidden) return;
+  const key=JSON.stringify(items.map(x=>x.e.id+x.text))+ai;
+  if(box._key!==key){
+    box._key=key;
+    const cards=items.map(x=>{
+      const icon= x.kind==="due"? "M12 13m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0M12 9v4l2 2" : "M4 5h16v15H4zM8 3v4M16 3v4M4 10h16";
+      const txt=h("p",{class:"th-t"},x.text); quackify(txt);
+      return h("article",{class:"th-card "+x.kind},
+        h("div",{class:"th-row"}, h("span",{class:"th-ic","aria-hidden":"true"}, svgIcon(icon)), txt),
+        h("div",{class:"row"},
+          x.kind==="due"? h("button",{class:"btn small primary",type:"button",disabled:!S.canWrite||null,onclick:()=>markDone(x.e)},"Done") : h("button",{class:"btn small ai",type:"button",onclick:()=>{ $("#prepAppt").value=x.e.id; show("prepare"); }}, x.e.prep?"See my brief":"Get ready"),
+          h("button",{class:"btn small ghost",type:"button",onclick:()=>openEntry(x.e)},"Details")));
+    });
+    box._tip=h("p",{class:"th-t"}); box._chat=h("button",{class:"btn small ai",type:"button",onclick:()=>{ const t=(dqGet()||{}).text; show("ask"); if(t&&!S.chat.some(m=>m.content===t)){ S.chat.push({role:"assistant",content:t}); addBubble("assistant",t); } const c=$("#chatIn"); c.placeholder="Ask Dr Quackers anything…"; c.focus(); }},"Chat about this");
+    box._more=h("button",{class:"btn small ghost",type:"button",onclick:()=>{ dqSet(null); box._tipFor=null; renderThings(); }},"Another tip");
+    const tip= ai? h("article",{class:"th-card tip"}, h("div",{class:"th-row"}, h("span",{class:"th-ic","aria-hidden":"true"}, svgIcon("M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z")), box._tip), h("div",{class:"row"}, box._chat, box._more)) : null;
+    box.replaceChildren(h("p",{class:"th-h"},"Dr Quackers has "+(n===1?"something":n+" things")+" for you"), ...cards, tip||"");
+    box._tipFor=null;
+  }
+  if(!ai) return;
   const cur=dqGet();
-  if(cur&&cur.text){ if(card._tipFor!==cur.text){ card._tipFor=cur.text; card._tip.replaceChildren("💡 "+cur.text); card._tip._qk=null; quackify(card._tip); } return; }
-  if(dqBusy) return; dqBusy=true; card._tipFor=null;
-  card._tip.replaceChildren(h("span",{class:"thinking"},"💡 Let me have a look at your logbook for a tip…")); card._duck.classList.add("think"); card._more.disabled=true;
-  const prompt=GUIDE+"\n\nTheir health logbook:\n"+buildContext()+"\n\nToday is "+fmtDate(todayISO())+". As Dr Quackers, give ONE short, specific, useful tip for today based on their logbook: something worth logging, a pattern you can see, a question for an upcoming appointment, or a small healthy habit that fits their situation. Don't repeat the reminder they've already been given: \""+dqReminder()+"\". At most 2 sentences and 40 words, plain text, no greeting, no sign-off, no markdown. Make it different from these recent ones: "+(dqHist().join(" | ")||"none")+".";
+  if(cur&&cur.text){ if(box._tipFor!==cur.text){ box._tipFor=cur.text; box._tip.replaceChildren(cur.text); box._tip._qk=null; quackify(box._tip); box._chat.disabled=false; } return; }
+  if(dqBusy) return; dqBusy=true; box._tipFor=null;
+  box._tip.replaceChildren(h("span",{class:"thinking"},"Let me have a look at your logbook for a tip…")); box._chat.disabled=true; box._more.disabled=true;
+  const duck=document.querySelector("#dqCard .dq"); if(duck) duck.classList.add("think");
+  const prompt=guideTxt()+"\n\nTheir health logbook:\n"+buildContext()+"\n\nToday is "+fmtDate(todayISO())+". As Dr Quackers, give ONE short, specific, useful tip for today based on their logbook: something worth logging, a pattern you can see, a question for an upcoming appointment, or a small healthy habit that fits their situation"+(periodOn()&&cyclePhase()? " (her cycle today: "+cyclePhaseText()+"; now and then, not often, the tip can be about intimacy if it suits where she is in her cycle)" : "")+". Don't repeat these reminders they've already been given: "+(dqThingsList().map(x=>x.text).join(" ")||"none")+". At most 2 sentences and 40 words, plain text, no greeting, no sign-off, no markdown. Make it different from these recent ones: "+(dqHist().join(" | ")||"none")+".";
   S.sample(prompt,{modelTier:"quick",cache:false}).then(({text})=>{
     text=String(text||"").replace(/^["\s]+|["\s]+$/g,"").replace(/\s*\bquack!?/gi,"").trim(); if(!text) throw new Error("empty");
-    dqSet({text}); dqHistAdd(text); card._tipFor=text;
-    card._tip.replaceChildren("💡 "+text); card._tip._qk=null; quackify(card._tip);
-    card._duck.classList.remove("think"); card._duck.classList.add("talk"); setTimeout(()=>card._duck.classList.remove("talk"),1800);
-  }).catch(e=>{ card._tip.replaceChildren(aiErr(e)||"I couldn't think of a tip just now. Try again later."); card._duck.classList.remove("think"); })
-  .finally(()=>{ dqBusy=false; card._more.disabled=false; });
+    dqSet({text}); dqHistAdd(text); box._tipFor=text;
+    box._tip.replaceChildren(text); box._tip._qk=null; quackify(box._tip); box._chat.disabled=false;
+    if(duck){ duck.classList.remove("think"); duck.classList.add("talk"); setTimeout(()=>duck.classList.remove("talk"),1800); }
+  }).catch(e=>{ box._tip.replaceChildren(aiErr(e)||"I couldn't think of a tip just now. Try again later."); if(duck) duck.classList.remove("think"); })
+  .finally(()=>{ dqBusy=false; box._more.disabled=false; });
+}
+function svgIcon(d, size){ const s=sv("svg",{viewBox:"0 0 24 24",width:size||20,height:size||20,fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round","aria-hidden":"true"}); s.append(sv("path",{d})); return s; }
+const IC={
+  diary:"M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6zM6 3v18M9.5 8h6M9.5 12h6",
+  timeline:"M4 6h9M4 12h14M4 18h6",
+  week:"M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z",
+  gut:"M7 4c-3 0-3 5 0 5h10c3 0 3 5 0 5H7c-3 0-3 5 0 5h7",
+  cycle:"M12 2.7s-6 7-6 11.3a6 6 0 0 0 12 0c0-4.3-6-11.3-6-11.3z",
+  heart:"M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z",
+  pain:"M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11zM12 7v4M12 14h.01",
+  tests:"M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3",
+  meds:"M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7zM8.5 8.5l7 7",
+  prep:"M4 5h16v15H4zM8 3v4M16 3v4M4 10h16M9 15l2 2 4-4",
+  letter:"M4 8a2 2 0 0 1 2-2h2l1.5-2h5L16 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z",
+  feel:"M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z",
+  sym:"M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
+  food:"M4 11h16a8 8 0 0 1-16 0zM8 3v4M12 3v4M16 3v4",
+  drink:"M6 3h12l-1.5 17a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2zM6.5 8h11",
+  poo:"M7 17c-2 0-3-1.5-3-3s1.5-3 3-3c0-2 2-4 5-4s5 2 5 4c1.5 0 3 1.5 3 3s-1 3-3 3z",
+  sleep:"M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z",
+  bp:"M3 12h4l3-8 4 16 3-8h4",
+  note:"M4 20h4L19 9l-4-4L4 16zM14 6l4 4",
+  plus:"M12 5v14M5 12h14"
+};
+function recFilter(k){ S.filter=k; show("records"); renderRecords(); }
+function tlWith(lanes){ TL.sel=[...new Set([...lanes,...(TL.sel||[])])].slice(0,8); tlSaveSel(); show("timeline"); }
+function renderTiles(){
+  const box=$("#homeTiles"); if(!box) return;
+  const t=trk(), hp=hpOn(), wk=addDays(todayISO(),-6);
+  const hearts=hp.heart? ofKind("symptom").filter(e=>e.date&&e.date>=wk&&(e.ep||isHeart(e.title))).length : 0;
+  const lowTests=ofKind("result").filter(e=>typeof e.value==="number"&&flag(e)).length;
+  const tiles=[
+    ["Diary","diary","g",()=>show("diary")],
+    ["My week","week","g",()=>show("track")],
+    ["Timeline","timeline","g",()=>show("timeline")],
+    t.stool? ["Gut journey","gut","b",()=>openGut()] : null,
+    periodOn()? ["Cycle","cycle","k",()=>{ show("track"); const c=$("#cycCard"); if(c) c.scrollIntoView({block:"start",behavior:"smooth"}); }] : null,
+    hp.heart? ["Heart","heart","r",()=>tlWith(["heart","rhr"]),hearts] : null,
+    hp.pain? ["Pain map","pain","r",()=>openPain(todayISO())] : null,
+    ["Blood tests","tests","a",()=>recFilter("result"),lowTests],
+    ["Medicines","meds","p",()=>recFilter("medication")],
+    ["Get ready","prep","p",()=>show("prepare")],
+    ["Add a letter","letter","a",()=>openImport()],
+  ].filter(Boolean);
+  box.replaceChildren(...tiles.map(([label,ic,col,fn,badge])=>h("button",{class:"tile c-"+col,type:"button",onclick:fn,"aria-label":label+(badge?" ("+badge+")":"")},
+    h("span",{class:"tile-ic","aria-hidden":"true"}, svgIcon(IC[ic],22)), h("span",{class:"tile-l"},label), badge? h("span",{class:"tile-b","aria-hidden":"true"},String(badge)) : null)));
+}
+function openCiSection(sel){
+  closeSheet(); show("overview"); CI.open=true; renderCheckin();
+  const el=document.querySelector(sel); if(!el) return;
+  if($("#ciX")&&$("#ciX").contains(el)&&$("#ciX").hidden) $("#ciXBtn").click();
+  setTimeout(()=>el.scrollIntoView({block:"center",behavior:"smooth"}),60);
+}
+function openAddSheet(){
+  const iso=todayISO(), t=trk(), hp=hpOn();
+  const tiles=[
+    ["How I feel","feel","g",()=>{ closeSheet(); show("overview"); const f=document.querySelector("#ciFaces .face"); if(f){ f.scrollIntoView({block:"center"}); f.focus(); } }],
+    ["Symptom","sym","r",()=>{ closeSheet(); openSymPick(iso); }],
+    hp.heart? ["Heart","heart","r",()=>{ closeSheet(); openHeart(iso); }] : null,
+    hp.pain? ["Pain","pain","r",()=>{ closeSheet(); openPain(iso); }] : null,
+    (t.food||t.log)? ["Food","food","g",()=>{ closeSheet(); openMeal(iso); }] : null,
+    (t.food||t.log)? ["Drink","drink","g",()=>{ closeSheet(); openDrink(iso); }] : null,
+    t.stool? ["Poo","poo","b",()=>{ closeSheet(); openStool(iso); }] : null,
+    ["Sleep","sleep","p",()=>openCiSection(t.sleep?"#ciSleepD":'.ci-block[data-sec="sleep"]')],
+    periodOn()? ["Period","cycle","k",()=>openCiSection("#ciPeriod")] : null,
+    ["Medicine","meds","p",()=>{ if(t.log){ closeSheet(); openSimpleLog(iso,"med"); } else openCiSection("#ciMedsB"); }],
+    ["Blood pressure or weight","bp","a",()=>{ closeSheet(); openDay(iso); }],
+    ["Note","note","a",()=>{ closeSheet(); if(t.log) openSimpleLog(iso,"note"); else openDay(iso); }],
+    ["Photo of a letter","letter","a",()=>{ closeSheet(); openImport(); }],
+    ["Something else","plus","a",()=>{ closeSheet(); openEntry(null,"symptom",{date:iso}); }]
+  ].filter(Boolean);
+  openSheet("What do you want to log?",[
+    h("div",{class:"add-grid"}, ...tiles.map(([label,ic,col,fn])=>h("button",{class:"add-t c-"+col,type:"button",onclick:fn,disabled:!S.canWrite||null}, h("span",{class:"tile-ic","aria-hidden":"true"}, svgIcon(IC[ic],22)), h("span",{},label)))),
+    h("p",{class:"fineprint",style:"text-align:center"},"Switch more trackers on in Settings to see more here.")]);
+}
+const TRK_SEG=[["track","Week"],["timeline","Timeline"],["diary","Diary"],["gut","Gut"]];
+function renderTrackSeg(v){
+  for(const box of document.querySelectorAll(".trk-seg")){
+    box.replaceChildren(...TRK_SEG.filter(([k])=>k!=="gut"||trk().stool).map(([k,l])=>h("button",{type:"button",class:"tseg"+(k===v?" on":""),"aria-pressed":String(k===v),onclick:()=>{ if(k==="gut") openGut(); else show(k); }}, l)));
+  }
+}
+function renderTrack(){
+  const box=$("#trkPat"); if(!box) return;
+  const lines=[], wk=addDays(todayISO(),-6);
+  const hearts=ofKind("symptom").filter(e=>e.date&&e.date>=wk&&(e.ep||isHeart(e.title)));
+  if(hearts.length) lines.push("Palpitations "+hearts.length+" time"+(hearts.length>1?"s":"")+" this week"+(hearts.filter(e=>((e.ep||{}).ctx||[]).includes("Had caffeine")).length? ", some after caffeine." : "."));
+  for(const p of afterEatingPatterns(30).slice(0,2)) lines.push(p.title+" came within a few hours of eating "+p.after+" of "+p.n+" times.");
+  if(trk().stool){ const b=bowelSummary(14); if(b) lines.push("Poo: "+b.charAt(0).toLowerCase()+b.slice(1)); }
+  const syms=ofKind("symptom").filter(e=>e.date&&e.date>=wk);
+  if(!lines.length&&syms.length) lines.push(syms.length+" symptom"+(syms.length>1?"s":"")+" logged this week.");
+  box.hidden=!lines.length; if(box.hidden) return;
+  const txt=h("div",{class:"dq-lines"}, ...lines.map(l=>h("p",{},l))); quackify(txt);
+  box.replaceChildren(h("div",{class:"dq-say"}, duckSvg(56,""), h("div",{class:"dq-bub"}, h("p",{class:"th-h",style:"margin:0 0 4px"},"Patterns I noticed"), txt)),
+    h("div",{class:"row"}, h("button",{class:"btn small ai",type:"button",onclick:()=>{ show("ask"); const c=$("#chatIn"); c.value="Looking at my logbook, what patterns can you see this week, and is any of it worth mentioning to my GP?"; c.focus(); }},"Talk it through")));
 }
 
 /* ---------- gut journey: food in, poo out ---------- */
@@ -3185,7 +3486,7 @@ function renderCheckin(){
       h("span",{class:"wf"+(dd.feel?"":" blank"),"aria-hidden":"true"}, dd.feel?FACE[dd.feel-1]:""), h("span",{class:"wl","aria-hidden":"true"}, d.toLocaleDateString("en-GB",{weekday:"narrow"})))); }
   $("#ciWeek").replaceChildren(...cells);
   const pon=periodOn(); $("#ciPeriod").hidden=!pon;
-  if(pon){ flowButtons($("#ciFlow"), iso, "pf"); $("#ciPstat").textContent=cycleText(); }
+  if(pon){ flowButtons($("#ciFlow"), iso, "pf"); $("#ciPstat").textContent=cycleText(); renderIntim(iso, day); }
   renderCheckinMore(iso, day);
   renderSleepDiary(iso, day);
   { const v=devOf(day), el=$("#ciDev"); const t=[v&&v.sleep? "Last night "+durTxt(v.sleep.asleep)+" asleep"+(v.sleep.start&&v.sleep.end?" ("+v.sleep.start+"–"+v.sleep.end+")":"") : "", v&&v.hr&&v.hr.rest!=null? "resting heart "+Math.round(v.hr.rest) : ""].filter(Boolean).join(" · "); el.hidden=!t; el.textContent= t? "⌚ "+t : ""; }
@@ -3197,6 +3498,11 @@ function renderCheckin(){
   ciSection("eat", !!day.eat && (day.eat>=3 || ew.length>0 || CI.eatDone===iso), "Eating", day.eat? EAT[day.eat-1]+(ew.length?" · "+ew.join(", ").toLowerCase():"") : "");
   ciSection("stress", !!day.stress, "Stress", day.stress? STRESS[day.stress-1] : "");
   $("#ciDoneB").hidden=!(day.feel&&day.energy&&(!pon||day.period||day.pnone));
+  { const syms=ofKind("symptom").filter(e=>e.date===iso).length;
+    const parts=[["Energy",!!day.energy],["symptoms",syms>0],pon?["period",!!(day.period||day.pnone)]:null,["sleep",!!((day.sleepQ&&day.sleepH)||day.sleepMin)],["eating",!!day.eat],["stress",!!day.stress]].filter(Boolean);
+    const done=parts.filter(x=>x[1]).length;
+    $("#ciTogSum").textContent= done? done+" of "+parts.length+" done · "+parts.filter(x=>!x[1]).map(x=>x[0].toLowerCase()).join(", ")+(done===parts.length?"all done ✓":"") : parts.map(x=>x[0].toLowerCase()).join(", ").replace(/^./,c=>c.toUpperCase());
+    $("#ciBody").hidden=!CI.open; $("#ciToggle").setAttribute("aria-expanded",String(!!CI.open)); $("#checkin").classList.toggle("open",!!CI.open); }
 }
 function quickSymptom(title, iso){
   iso=iso||todayISO();
@@ -3218,13 +3524,17 @@ function quickSymptom(title, iso){
 function renderOverview(){
   const p=S.profile||{};
   const first=(p.name||"").trim().split(/\s+/)[0];
-  $("#who").textContent = greeting()+(first?", "+first:"");
   $("#topDate").textContent = new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  $("#hhDate").textContent = $("#topDate").textContent.toUpperCase();
   renderCheckin();
   renderWelcome();
+  renderThings();
+  renderTiles();
+  if(!$("#v-track").hidden) renderTrack();
   renderLogCard();
   renderWeek();
   renderCycle();
+  renderCycleIntim();
   renderTlPreview();
   const empty = S.loaded && S.entries.length===0;
   $("#empty").hidden=!empty;
@@ -3521,6 +3831,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-04.15", items:[["🏠","A fresh, simpler Home: Dr Quackers greets you at the top and you tap how you feel right under his speech bubble. His reminders and tip of the day sit just below."],["➕","One big + button for logging anything: food, drinks, poo, symptoms, heart, pain, sleep, period, medicines, blood pressure, notes or a photo of a letter."],["📈","New Track tab: your week, the timeline, the diary calendar, cycle, trends and gut journey are all in one place."],["🧩","My health tiles on Home jump straight to the diary, blood tests, medicines, getting ready for an appointment and more. Today's check-in folds away until you need it."],["💗","The period tracker now has a private intimacy log, and Dr Quackers fits his tips to where you are in your cycle."],["🦆","Dr Quackers gets bored when you leave him alone. Keep an eye on him."]]},
  {v:"2026-11-04.14", items:[["👋","Dr Quackers now welcomes you at the top of Home: he says hello, asks how you're feeling, reminds you about anything due soon, and gives you his tip for the day."],["🦆","He says quack after every sentence now (on screen only, and never when something's urgent)."]]},
  {v:"2026-11-04.13", items:[["🦆","Dr Quackers has arrived! He's your new health helper (taking over from Pip): he answers your questions, reads your letters and explains your charts, and his beak moves as he talks."],["💡","Each day Dr Quackers looks at your logbook and gives you one suggestion on Home. Tap Chat about this to talk it over, or ✕ to hide it for the day."],["🩺","He's an AI, not a real doctor, so check anything important with your GP or pharmacist."]]},
  {v:"2026-11-04.12", items:[["❤️","Meet Pip, your health helper! Pip answers your questions, reads your letters, guesses your food and poo from photos, and explains your charts. Pip is an AI powered by Claude."],["💬","Ask is now Pip's page, and Pip thinks out loud while working on an answer."]]},
@@ -3885,7 +4196,7 @@ $("#prepGo").addEventListener("click", async ()=>{
   $("#prepTools").hidden=true; $("#prepGo").disabled=true; $("#prepStop").hidden=false;
   S.prepCtl=new AbortController();
   const apptText = a? [a.date?fmtDate(a.date):"", a.time, a.title, a.place, a.details].filter(Boolean).join(", ") : "Not in the logbook yet.";
-  const prompt = GUIDE + "\n\nTheir health logbook:\n" + buildContext()
+  const prompt = guideTxt() + "\n\nTheir health logbook:\n" + buildContext()
     + "\n\nThe appointment: " + apptText
     + "\nWhat they say it's about and what they want from it: " + (goal||"(not given; work it out from the appointment and logbook)")
     + "\n\nWrite a brief they can read in the waiting room or show the clinician. Use exactly these sections, each starting with a line '## Heading':\n"
@@ -4000,6 +4311,11 @@ $("#calNext").addEventListener("click",()=>{ let {y,m}=S.cal; m++; if(m>11){m=0;
 $("#dayToday").addEventListener("click",()=>openDay(todayISO()));
 $("#logToday").addEventListener("click",()=>openDay(todayISO()));
 $("#ciMore").addEventListener("click",()=>openDay(todayISO()));
+$("#ciToggle").addEventListener("click",()=>{ CI.open=!CI.open; renderCheckin(); if(CI.open) $("#checkin").scrollIntoView({block:"start",behavior:"smooth"}); });
+$("#hhGear").addEventListener("click",()=>$("#gearBtn").click());
+$("#hhLock").addEventListener("click",()=>$("#lockBtn").click());
+$("#fab").addEventListener("click",openAddSheet);
+$("#recPrep").addEventListener("click",()=>show("prepare"));
 $("#tlOpen").addEventListener("click",()=>show("timeline"));
 $("#tlBack").addEventListener("click",()=>show("overview"));
 $("#ciSymEdit").addEventListener("click",openSymEdit);
@@ -4046,6 +4362,7 @@ function tlLanes(){
   if(periodOn()) L.push({id:"period",name:"Period",type:"period"});
   L.push({id:"stool",name:"Poo (Bristol type)",type:"stool"});
   L.push({id:"heart",name:"Heart episodes",type:"heart"});
+  if(periodOn()) L.push({id:"intim",name:"Intimacy",type:"intim"});
   L.push({id:"sym",name:"Symptoms",type:"sym"},{id:"weight",name:"Weight",type:"line",unit:"kg"},{id:"bp",name:"Blood pressure",type:"bp",unit:"mmHg"});
   L.push({id:"sleeph",name:"Hours slept",type:"line",unit:"h",fn:d=>typeof d.sleepMin==="number"? Math.round(d.sleepMin/6)/10 : (d.dev&&d.dev.sleep&&d.dev.sleep.asleep? Math.round(d.dev.sleep.asleep/6)/10 : (typeof d.sleepH==="number"? d.sleepH : null))},
          {id:"rhr",name:"Resting heart rate",type:"line",unit:"bpm",fn:d=>d.dev&&d.dev.hr&&d.dev.hr.rest!=null? Math.round(d.dev.hr.rest) : null},
@@ -4168,6 +4485,14 @@ function drawTimeline(lanes, from, to){
         svg.append(sv("circle",{cx:X(d),cy:y+H.sym/2,r:Math.min(8,3.5+arr.length*1.2),fill:bad?"var(--alert)":"var(--mood"+worst+")",stroke:"var(--surface)","stroke-width":"1"})); }
       if(!n) tlEmpty(svg,W,y,H.sym,"No poo logged in this range.");
       summary.push("Poo log (Bristol type 1 hard to 7 watery): "+(n? Object.entries(by).sort().map(([d,a])=>d.slice(5)+" "+a.map(x=>(x.time||"")+" type "+x.bristol+(x.colour&&x.colour!=="brown"?" "+x.colour:"")+((x.flags||[]).length?" ("+x.flags.join("/")+")":"")).join("; ")).join(" | ") : "none"));
+      y+=H.sym;
+    } else if(L.type==="intim"){
+      const ds=Object.values(days).filter(d=>d.date&&inR(d.date)&&d.intim).map(d=>d.date);
+      label(L.name, ds.length? ds.length+" days" : "");
+      svg.append(sv("rect",{x:PL,y,width:W-PL-PR,height:H.sym,rx:4,fill:"var(--bg)"}));
+      for(const d of ds) svg.append(sv("circle",{cx:X(d),cy:y+H.sym/2,r:5,fill:"var(--period)","fill-opacity":.85}));
+      if(!ds.length) tlEmpty(svg,W,y,H.sym,"Nothing logged in this range.");
+      summary.push("Intimacy days: "+(ds.length? ds.sort().map(d=>d.slice(5)).join(", ") : "none"));
       y+=H.sym;
     } else if(L.type==="heart"){
       const by={}; for(const e of ofKind("symptom")) if(e.date&&inR(e.date)&&(e.ep||isHeart(e.title))) (by[e.date]=by[e.date]||[]).push(e);
@@ -4301,7 +4626,7 @@ function tlRenderDetail(iso, near){
 let tlResizeT; window.addEventListener("resize",()=>{ clearTimeout(tlResizeT); tlResizeT=setTimeout(()=>{ if(!$("#v-timeline").hidden) renderTimeline(); },200); });
 TL.chat=[];
 function tlRules(){
-  return GUIDE+"\n\nTheir full health logbook for background:\n"+buildContext()+"\n\nThey are looking at this timeline chart (dates are MM-DD within the range, mood and energy 1 worst to 5 best):\n"+TL.summary
+  return guideTxt()+"\n\nTheir full health logbook for background:\n"+buildContext()+"\n\nThey are looking at this timeline chart (dates are MM-DD within the range, mood and energy 1 worst to 5 best):\n"+TL.summary
     +"\n\nYou are helping them understand this chart. Look across its lines for links and patterns: things that happen together, before or after each other, around periods, medicine changes, meals or appointments, and changes over time. Say how strong each link is (weak, moderate or strong) and what else could explain it. You can add a ```chart block or a small table if it helps (see the formats below). This is to take to their clinician, not a diagnosis."
     +"\n\nVISUALS: a chart of their own numbers is a ```chart code block holding only JSON like {\"title\":\"...\",\"tests\":[\"Ferritin\"]} (test names as in the logbook, or Blood pressure, Weight, Mood, Energy, Cycle length, Period length); never put numbers in it. Tables use markdown pipes.";
 }
@@ -4340,7 +4665,7 @@ $("#revGo").addEventListener("click", async ()=>{
   const out=$("#revOut"); out.hidden=false; out.replaceChildren(h("p",{class:"thinking"},"Dr Quackers is going through your whole history. This can take a minute or two…"));
   $("#revTools").hidden=true; $("#revGo").disabled=true; $("#revStop").hidden=false;
   S.revCtl=new AbortController();
-  const prompt = GUIDE + "\n\nTheir full health logbook:\n" + buildContext()
+  const prompt = guideTxt() + "\n\nTheir full health logbook:\n" + buildContext()
     + "\n\nWhat's still unexplained or worrying them: " + (q||"(not given; look for anything unresolved)")
     + "\n\nAct like a thorough second pair of eyes reviewing the whole history to help them break out of going round in circles. Use exactly these sections, each starting with a line '## Heading':\n"
     + "## What stands out\n(the patterns, trends and links across symptoms, results, medicines and past operations, with dates.)\n"
@@ -4400,7 +4725,7 @@ async function sendChat(){
   const bub=h("div",{class:"bubble claude"}, h("span",{class:"thinking"},"Thinking…")); $("#chatlog").append(bub); bub.scrollIntoView({block:"end",behavior:"smooth"});
   $("#chatSend").disabled=true; $("#chatStop").hidden=false;
   S.chatCtl=new AbortController();
-  const rules=GUIDE+"\n\nHere is their health logbook:\n"+buildContext()+"\n\nAnswer their questions, using the logbook where it's relevant. If they share a photo of a letter or result, explain it in plain English, define medical terms, and point out anything worth asking the doctor about. Keep answers fairly short (under 250 words) unless they ask for more, and ask a follow-up question when the answer depends on details the logbook lacks. Use '## ' headings and '- ' bullets only when they help."
+  const rules=guideTxt()+"\n\nHere is their health logbook:\n"+buildContext()+"\n\nAnswer their questions, using the logbook where it's relevant. If they share a photo of a letter or result, explain it in plain English, define medical terms, and point out anything worth asking the doctor about. Keep answers fairly short (under 250 words) unless they ask for more, and ask a follow-up question when the answer depends on details the logbook lacks. Use '## ' headings and '- ' bullets only when they help."
     + "\n\nVISUALS. The app can show three kinds of visual inside your reply. Use one when it genuinely makes things clearer (a pattern over time, how things connect, a sequence of steps, a comparison), not in every answer, and say in a sentence what it shows."
     + "\n1. A chart of their OWN numbers: a fenced code block with the language 'chart' containing only JSON, e.g. ```chart\n{\"title\":\"Iron levels\",\"tests\":[\"Ferritin\",\"Haemoglobin\"]}\n``` The app draws it from the real values in the logbook, so never put numbers in it. 'tests' takes up to 4 test names exactly as they appear in the logbook, or the special names \"Blood pressure\", \"Weight\", \"Mood\", \"Energy\", \"Cycle length\", \"Period length\". Optional \"from\":\"YYYY-MM-DD\"."
     + "\n2. A diagram: a fenced code block with the language 'mermaid' using 'flowchart TD' (or 'timeline' for dated events). At most 12 boxes, short plain labels in double quotes, no styling, no HTML, no special characters like ( ) inside unquoted labels."
