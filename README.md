@@ -36,4 +36,4 @@ The app helps people keep track and prepare for appointments. In an emergency ca
 
 ## Updating
 
-When you change `index.html`, bump the `app-version` meta tag at the top. Open apps check it each time they come to the front and reload themselves when it changes.
+When you change `index.html`, bump the `app-version` meta tag at the top and add a line to `CHANGES` (shown as "What's new" after the update). Open apps check it each time they come to the front and reload themselves when it changes.

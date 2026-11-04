@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.4">
+<meta name="app-version" content="2026-11-04.5">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -714,6 +714,13 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 .set-pill.on{background:var(--soft);color:var(--accent)}
 .set-foot{text-align:center;margin:4px auto 0}
 .set-body .trk:first-of-type{border-top:0}
+
+/* what's new */
+.wn-v{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.wn-d{font-size:.76rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.wn-l{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.wn-l li{display:flex;gap:10px;align-items:flex-start;font-size:.95rem}
+.wn-i{flex:none;width:30px;height:30px;border-radius:9px;background:var(--soft);display:grid;place-items:center;font-size:.95rem}
 
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
@@ -2448,12 +2455,45 @@ function renderSettings(full){
       : h("div",{}, h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>showLock("set",savePin)},"Set a PIN")));
   const ib=installBox(); ib.querySelectorAll(":scope > .flabel").forEach(e=>e.remove());
   const upd=h("button",{class:"btn small",type:"button",onclick:async()=>{ upd.disabled=true; upd.textContent="Checking…"; const before=APP_VERSION; await checkForUpdate(); setTimeout(()=>{ upd.disabled=false; upd.textContent="Check for updates"; toast(before===APP_VERSION?"You're on the latest version":"Updating…"); },900); }},"Check for updates");
-  $("#setApp").replaceChildren(ib, setRow("ℹ️","Version", APP_VERSION? fmtVersion(APP_VERSION) : "Development copy", upd));
+  $("#setApp").replaceChildren(ib, setRow("ℹ️","Version", APP_VERSION? fmtVersion(APP_VERSION) : "Development copy", upd),
+    setRow("🆕","What's new","Recent changes to the app.", null, ()=>showWhatsNew(CHANGES.filter(c=>cmpVer(c.v,APP_VERSION)<=0).slice(0,5),"Recent updates")));
   $("#setAcct").replaceChildren(...[
     setRow("🔑","Change password","", null, ()=>openPassword()),
     S.isAdmin? setRow("👥","People","Add or remove people who use the logbook.", null, ()=>openPeople()) : null,
     setRow("↩️","Sign out","", h("span"), ()=>sb.auth.signOut())].filter(Boolean));
   $("#setFoot").textContent="Health Logbook "+(APP_VERSION?"· version "+APP_VERSION:"")+". This logbook helps you keep track and prepare for appointments. It isn't medical advice. In an emergency call 999; for urgent help that isn't an emergency, call NHS 111.";
+}
+/* ---------- what's new after an update ---------- */
+const CHANGES=[
+ {v:"2026-11-04.5", items:[["🆕","A \"What's new\" box like this one after every update. See it again any time in Settings."]]},
+ {v:"2026-11-04.4", items:[["⚙️","Settings have moved to the gear in the top right, with your details, trackers, PIN and account all in one place."],["ℹ️","The version number and a Check for updates button are in Settings."],["🔒","The lock button next to the gear locks the app straight away when you have a PIN."]]},
+ {v:"2026-11-04.3", items:[["🧭","New optional trackers in Settings: Day log, Food and nutrition, and Sleep diary."],["📷","Log meals by photo, barcode or description. Claude works out calories, protein and more."],["⚠️","The day log spots symptoms that keep coming after meals."],["🌙","The sleep diary works out hours asleep and sleep efficiency."]]},
+ {v:"2026-11-04.2", items:[["🍽️","Eating less than usual? The check-in asks why: not hungry, full quickly, felt sick or unwell after eating."]]},
+ {v:"2026-11-04.1", items:[["⭕","Your week: a ring for each day showing mood, energy and sleep. Days worse than your usual glow red."]]},
+ {v:"2026-11-03.16", items:[["✅","Check-in answers fold into a tick once filled in, so the card stays short."]]},
+ {v:"2026-11-03.15", items:[["📂","Medicines, conditions and symptoms on Home now fold up."]]},
+ {v:"2026-11-03.14", items:[["📈","The health timeline has its own tab and a preview card on Home."]]},
+ {v:"2026-11-03.13", items:[["⚡","Energy, sleep, eating, medicines taken and stress in the daily check-in."],["💾","A Saved tick shows every time something is saved."]]},
+];
+function cmpVer(a,b){ const p=x=>{ const m=/^(\d{4}-\d{2}-\d{2})\.(\d+)$/.exec(x||""); return m? [m[1],+m[2]] : ["",0]; }; const A=p(a), B=p(b); return A[0]<B[0]?-1:A[0]>B[0]?1:A[1]-B[1]; }
+function showWhatsNew(list, title){
+  if(!list.length) return;
+  const blocks=list.slice(0,5).map(c=>h("div",{class:"wn-v"}, h("p",{class:"wn-d"}, fmtVersion(c.v)), h("ul",{class:"wn-l"}, ...c.items.map(([ic,t])=>h("li",{}, h("span",{class:"wn-i","aria-hidden":"true"},ic), h("span",{},t))))));
+  openSheet(title||"What's new",[h("p",{class:"none"}, list.length>1? "Here's what's changed since you last opened the app." : "Here's what's changed in this update."), ...blocks,
+    list.length>5? h("p",{class:"fineprint"},"And more. See Settings → What's new.") : null,
+    h("button",{class:"btn primary",type:"button",onclick:closeSheet},"Got it")].filter(Boolean));
+  const card=document.querySelector("#sheet .sheet-card"); if(card) card.scrollTop=0; const c=$("#sheetClose"); if(c) c.focus({preventScroll:true});
+}
+let wnDone=false;
+function maybeWhatsNew(){
+  if(wnDone||!APP_VERSION) return;
+  if(!$("#lock").hidden||!$("#auth").hidden||!$("#sheet").hidden){ setTimeout(maybeWhatsNew,1500); return; }
+  wnDone=true;
+  let seen=null; try{ seen=localStorage.getItem("hl-seen-version"); }catch{}
+  try{ localStorage.setItem("hl-seen-version",APP_VERSION); }catch{}
+  if(seen===APP_VERSION) return;
+  const list= seen? CHANGES.filter(c=>cmpVer(c.v,seen)>0&&cmpVer(c.v,APP_VERSION)<=0) : CHANGES.filter(c=>c.v===APP_VERSION);
+  showWhatsNew(list);
 }
 function fmtVersion(v){ const m=/^(\d{4})-(\d{2})-(\d{2})\.(\d+)$/.exec(v); if(!m) return v; return v+" · released "+(+m[3])+" "+MON[+m[2]-1]+" "+m[1]; }
 $("#setBack").addEventListener("click",()=>show(S.lastView&&S.lastView!=="settings"? S.lastView : "overview"));
@@ -3502,7 +3542,7 @@ async function startSession(user){
     S.entries=es; S.profile=prof; S.days=days;
     if(!prof.name && S.memberName) S.profile={...prof,name:S.memberName};
     checkLock();
-    S.loaded=true; clearTimeout(timer); status("");
+    S.loaded=true; clearTimeout(timer); status(""); setTimeout(maybeWhatsNew,800);
     renderAll();
   }, e=>{
     clearTimeout(timer); S.loaded=true;
