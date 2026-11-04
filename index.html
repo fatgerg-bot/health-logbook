@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.17">
+<meta name="app-version" content="2026-11-04.18">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -869,6 +869,40 @@ body.on-home .top{display:none}
 .ev-row small{display:block;color:var(--muted);font-size:.82rem}
 .ev-row .ev-d{color:var(--ink);margin-top:3px}
 .ev-emo{font-size:1.3rem;line-height:1.2}
+
+/* Dr Quackers: fart and sleep */
+.dq-gas circle,.dq-parp,.dq-z{opacity:0}
+.dq-gas circle{fill:#A9CF7A;transform-box:fill-box;transform-origin:center}
+.dq-parp{font-family:var(--f-body);font-size:18px;font-weight:700;font-style:italic;fill:#5E8A2E}
+.dq-z{font-family:var(--f-display);fill:#5A4A8A;font-weight:700}
+.dq.fart .dq-tail{animation:dqTailUp 3.6s ease-in-out}
+@keyframes dqTailUp{12%,42%{transform:rotate(-24deg)}50%{transform:none}}
+.dq.fart .dq-body{animation:dqFartLean 3.6s ease-in-out}
+@keyframes dqFartLean{12%,38%{transform:rotate(3deg) translateX(-2px)}42%{transform:rotate(1deg) translate(-1px,-3px)}48%{transform:none}}
+.dq.fart .dq-gas circle{animation:dqGas 2.4s ease-out .9s}
+.dq.fart .dq-gas .g2{animation-delay:1.05s}.dq.fart .dq-gas .g3{animation-delay:1.2s}
+@keyframes dqGas{0%{opacity:0;transform:scale(.3)}20%{opacity:.85}100%{opacity:0;transform:translate(-14px,10px) scale(2.6)}}
+.dq.fart .dq-parp{animation:dqParp 3.6s ease-in-out}
+@keyframes dqParp{0%,24%{opacity:0;transform:translateY(4px)}30%,62%{opacity:1;transform:none}75%,100%{opacity:0}}
+.dq.fart .dq-pup{animation:dqGuilty 3.6s ease-in-out}
+@keyframes dqGuilty{0%,44%{transform:none}50%,58%{transform:translate(-5px,1px)}64%,74%{transform:translate(5px,1px)}82%,100%{transform:none}}
+.dq.fart .dq-cheek{animation:dqBlush 3.6s ease-in-out}
+@keyframes dqBlush{45%,90%{fill:rgba(255,80,80,.7)}}
+.dq.fart .dq-wingR{animation:dqFan 3.6s ease-in-out}
+@keyframes dqFan{0%,50%{transform:none}58%{transform:rotate(-70deg)}66%{transform:rotate(-40deg)}74%{transform:rotate(-70deg)}82%{transform:rotate(-40deg)}92%,100%{transform:none}}
+.dq-eyes{transition:transform .5s}
+.dq.sleep .dq-eyes{animation:none;transform:scaleY(.08)}
+.dq.sleep .dq-brow{transform:translateY(4px)}
+.dq.sleep .dq-body{animation:dqSnore 3.2s ease-in-out infinite}
+@keyframes dqSnore{0%,100%{transform:translateY(2px) rotate(-2deg)}50%{transform:translateY(4px) rotate(-3deg) scale(1.02,.98)}}
+.dq.sleep .dq-z{animation:dqZ 3s ease-out infinite}
+.dq.sleep .z2{animation-delay:1s}.dq.sleep .z3{animation-delay:2s}
+@keyframes dqZ{0%{opacity:0;transform:translate(0,6px)}25%{opacity:1}100%{opacity:0;transform:translate(10px,-22px)}}
+.dq.wake .dq-body{animation:dqStartle .75s cubic-bezier(.3,1.8,.5,1)}
+@keyframes dqStartle{30%{transform:translateY(-14px)}}
+.dq.wake .dq-eyes{animation:dqWide .75s ease-out}
+@keyframes dqWide{0%{transform:scaleY(.08)}35%{transform:scale(1.25)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){ .dq.fart *,.dq.sleep *,.dq.wake *{animation:none!important} }
 
 /* Dr Quackers idle antics */
 .dq-cig,.dq-puff,.dq-cough,.dq-scritch line{opacity:0}
@@ -2823,13 +2857,19 @@ function duckSvg(size, cls, label){
   const wr=A("g",{class:"dq-wingR"}); A("ellipse",{cx:178,cy:165.5,rx:13,ry:30,fill:"#F2B705",...O,transform:"rotate(-20 178 140)"},wr);
   const puffs=add("g",{class:"dq-puffs"}); for(const [i,dx] of [[1,0],[2,6],[3,-4]]) add("circle",{cx:182+dx,cy:100,r:6,class:"dq-puff p"+i},puffs);
   const cough=add("text",{x:30,y:22,class:"dq-cough"}); cough.textContent="cough!";
+  const gas=add("g",{class:"dq-gas"}); for(const [i,cx,cy,r] of [[1,18,168,9],[2,8,178,7],[3,24,182,6]]) add("circle",{cx,cy,r,class:"g"+i},gas);
+  const parp=add("text",{x:0,y:214,class:"dq-parp"}); parp.textContent="parp!";
+  const zz=add("g",{class:"dq-zz"}); for(const [i,x,y,fs] of [[1,176,46,15],[2,186,34,19],[3,198,20,24]]){ const t=add("text",{x,y,class:"dq-z z"+i,"font-size":fs},zz); t.textContent= i===3?"Z":"z"; }
   s.addEventListener("animationend",e=>{ if(/^dq(Wave|Hop|FlapL|FlapR)$/.test(e.animationName)) s.classList.remove("wave","happy"); });
   if(size>=56) dqIdleWatch(s);
   return s;
 }
 /* idle antics: look around, a cheeky scratch, a crafty smoke (with a coughing fit) */
 const DQ_IDLE=new Set(); let dqIdleT=null;
-const DQ_ACTS=[["look",2200,.34],["scratch",2600,.36],["smoke",6400,.30]];
+const DQ_ACTS=[["look",2200,.24],["scratch",2600,.24],["smoke",6400,.18],["fart",3600,.2],["nap",6500,.14]];
+let dqLastInput=Date.now();
+for(const ev of ["pointerdown","keydown","touchstart","wheel"]) document.addEventListener(ev,()=>{ dqLastInput=Date.now(); for(const d of DQ_IDLE) if(d._asleep){ d._asleep=false; dqWake(d); } },{passive:true,capture:true});
+function dqWake(d){ d.classList.remove("sleep"); d.classList.add("wake"); setTimeout(()=>d.classList.remove("wake"),800); }
 function dqIdleWatch(svg){
   if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   DQ_IDLE.add(svg);
@@ -2840,12 +2880,15 @@ function dqIdleTick(){
   for(const d of [...DQ_IDLE]){
     if(!d.isConnected){ if(d._seen) DQ_IDLE.delete(d); continue; } d._seen=true;
     if(!d.getClientRects().length) continue;
-    if(["think","talk","wave","happy","look","scratch","smoke"].some(c=>d.classList.contains(c))) continue;
+    if(d._asleep) continue;
+    if(["think","talk","wave","happy","look","scratch","smoke","fart","sleep","wake"].some(c=>d.classList.contains(c))) continue;
+    if(Date.now()-dqLastInput>45000){ d._asleep=true; d.classList.add("sleep"); continue; }
     if(Math.random()>.6) continue;
     let r=Math.random(), act=DQ_ACTS[0];
     for(const a of DQ_ACTS){ if(r<a[2]){ act=a; break; } r-=a[2]; }
-    if(act[0]==="smoke"&&Date.now()-(d._smoked||0)<90000) act=DQ_ACTS[1];
-    if(act[0]==="smoke") d._smoked=Date.now();
+    if((act[0]==="smoke"||act[0]==="fart")&&Date.now()-(d["_"+act[0]]||0)<90000) act=DQ_ACTS[1];
+    d["_"+act[0]]=Date.now();
+    if(act[0]==="nap"){ d.classList.add("sleep"); setTimeout(()=>{ if(!d._asleep) dqWake(d); },act[1]); continue; }
     d.classList.add(act[0]); setTimeout(()=>d.classList.remove(act[0]),act[1]);
   }
 }
@@ -3885,6 +3928,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-04.18", items:[["💨","Dr Quackers has learned some new tricks. Some of them are rude."],["😴","Leave the app alone for a bit and he nods off. Tap the screen to wake him."]]},
  {v:"2026-11-04.17", items:[["🚩","Big events on your timeline: hospital stays, A&E visits, operations, injuries and big diagnoses show as flags, with a line down the chart so you can see what changed before and after."],["🔎","Tap Find big events in my records under the timeline and Dr Quackers looks through your letters for them. You tick what's right before anything is added. New letters you import are checked for big events too."],["➕","Add one yourself with the + button: Big event."]]},
  {v:"2026-11-04.16", items:[["🦆","Fixed: Dr Quackers was stuck mid-wave, so he never got bored. Leave Home open for a minute and watch him."]]},
  {v:"2026-11-04.15", items:[["🏠","A fresh, simpler Home: Dr Quackers greets you at the top and you tap how you feel right under his speech bubble. His reminders and tip of the day sit just below."],["➕","One big + button for logging anything: food, drinks, poo, symptoms, heart, pain, sleep, period, medicines, blood pressure, notes or a photo of a letter."],["📈","New Track tab: your week, the timeline, the diary calendar, cycle, trends and gut journey are all in one place."],["🧩","My health tiles on Home jump straight to the diary, blood tests, medicines, getting ready for an appointment and more. Today's check-in folds away until you need it."],["💗","The period tracker now has a private intimacy log, and Dr Quackers fits his tips to where you are in your cycle."],["🦆","Dr Quackers gets bored when you leave him alone. Keep an eye on him."]]},
