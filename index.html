@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.2">
+<meta name="app-version" content="2026-11-04.3">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -634,6 +634,61 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 .ci-tip[hidden]{display:none}
 .ci-ok{align-self:flex-end;background:#FFFFFF;color:#16302A;border:0;border-radius:99px;padding:7px 16px;font-weight:700;font-size:.85rem;cursor:pointer}
 
+/* day log + food */
+.lg-body{display:flex;flex-direction:column;gap:12px}
+.lg-adds{display:flex;flex-wrap:wrap;gap:6px}
+.lg-add{min-height:38px;padding:0 13px;border-radius:99px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-weight:700;font-size:.86rem;cursor:pointer}
+.lg-add.main{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.lg-list{list-style:none;margin:0;padding:0 0 0 54px;position:relative}
+.lg-list::before{content:"";position:absolute;left:47px;top:10px;bottom:10px;width:2px;background:var(--line);border-radius:2px}
+.lg-ev{display:block;position:relative;width:100%;text-align:left;background:none;border:0;padding:7px 0;cursor:pointer;color:var(--ink)}
+.lg-t{position:absolute;left:-54px;top:8px;width:40px;text-align:right;font-family:var(--f-mono);font-size:.76rem;color:var(--muted)}
+.lg-d{position:absolute;left:-11.5px;top:11px;width:11px;height:11px;border-radius:50%;box-shadow:0 0 0 3px var(--surface)}
+.lg-x{display:flex;flex-direction:column}
+.lg-x b{font-size:.94rem}
+.lg-x small{color:var(--muted);font-size:.8rem;line-height:1.35}
+.lg-flag{display:flex;gap:8px;align-items:flex-start;background:color-mix(in srgb,var(--wk-bad) 10%,transparent);border-radius:10px;padding:9px 11px;font-size:.88rem}
+.lg-nut{display:flex;flex-direction:column;gap:8px;background:var(--bg);border-radius:12px;padding:10px 12px}
+.nb-r{display:flex;justify-content:space-between;align-items:center;font-size:.84rem}
+.nb-b{height:7px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:3px}
+.nb-b i{display:block;height:100%;border-radius:99px}
+.nb-more{font-size:.78rem;color:var(--muted)}
+.wtr{display:flex;align-items:center;gap:8px}
+.wbtn{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;cursor:pointer;line-height:1}
+.ml-btns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ml-btns .btn{min-height:42px;padding:0 10px;font-size:.88rem}
+.ml-items{display:flex;flex-direction:column}
+.ml-it{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding:7px 0}
+.ml-in{flex:1;min-width:0;font-size:.9rem}
+.ml-in small{color:var(--muted)}
+.ml-k{display:block}
+.ml-tot{display:flex;flex-direction:column;gap:6px}
+.ml-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.ml-n{display:flex;flex-direction:column;gap:2px;font-size:.74rem;color:var(--muted)}
+.ml-n input{min-height:38px;padding:6px 8px}
+.ml-rep{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.ml-rep .fchip{text-align:left;white-space:normal;min-height:38px}
+.ml-found{display:block;line-height:1.9}
+.ml-found input,.ml-found select{min-height:36px;padding:4px 8px;width:auto;display:inline-block}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font-weight:700;text-decoration:underline;cursor:pointer;font-size:inherit}
+.sd-times{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sd-t{display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:700}
+.sd-t input{min-height:40px;border-radius:10px;border:0;background:rgba(255,255,255,.92);color:#16302A;padding:6px 10px}
+.sd-sum{font-weight:700;font-size:.9rem}
+.ci-block.sd{gap:8px}
+.ci-block.sd[hidden]{display:none}
+.trk{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);cursor:pointer;position:relative}
+.trk-t{flex:1;display:flex;flex-direction:column;min-width:0}
+.trk-t small{color:var(--muted);font-size:.8rem;line-height:1.3}
+.sw-in{position:absolute;opacity:0;width:1px;height:1px}
+.sw-ui{flex:none;width:44px;height:26px;border-radius:99px;background:var(--line);position:relative;transition:background .15s ease}
+.sw-ui::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s ease}
+.sw-in:checked + .sw-ui{background:var(--accent)}
+.sw-in:checked + .sw-ui::after{transform:translateX(18px)}
+.sw-in:focus-visible + .sw-ui{outline:3px solid var(--accent);outline-offset:2px}
+.trk-tg{display:flex;flex-direction:column;gap:8px;padding-top:6px}
+.trk-tg[hidden]{display:none}
+
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
 .tab svg{width:54px;height:30px;padding:4px 16px;border-radius:99px;transition:background .15s ease}
@@ -669,6 +724,7 @@ details.fold[open] .fchev{transform:rotate(90deg)}
         <p class="ci-lab">Energy today?</p>
         <div class="pflow five" id="ciEnergy" role="group" aria-label="Energy today"></div>
       </div>
+      <div class="ci-block sd" data-sec="sleepd" id="ciSleepD" hidden></div>
       <div class="ci-block">
         <div class="ci-row"><p class="ci-lab">Any symptoms today?</p><button class="ci-edit" id="ciSymEdit" type="button">Edit list</button></div>
         <div class="ci-chips" id="ciChips"></div>
@@ -691,6 +747,11 @@ details.fold[open] .fchev{transform:rotate(90deg)}
         <div class="week" id="ciWeek" aria-label="The last 7 days"></div>
         <button class="ci-more" id="ciMore" type="button">+ Blood pressure, weight, notes</button>
       </div>
+    </article>
+
+    <article class="panel lgcard" id="logCard" hidden aria-labelledby="logH">
+      <div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M7 4v16"/><circle cx="7" cy="7" r="2"/><circle cx="7" cy="14" r="2"/><path d="M11 7h8M11 14h6"/></svg></span><h2 id="logH">Today's log</h2><button class="more" type="button" id="logDiary">Diary ›</button></div>
+      <div class="lg-body" id="logBody"></div>
     </article>
 
     <article class="panel wkcard" id="wkCard" aria-labelledby="wkH">
@@ -829,6 +890,10 @@ details.fold[open] .fchev{transform:rotate(90deg)}
         <ul class="list" id="daySym"></ul>
         <span class="hint">Tap to log one for this day:</span>
         <div class="chips wrapchips" id="symQuick"></div>
+      </div>
+      <div class="field" id="dayLogF" hidden>
+        <span class="flabel">Day log</span>
+        <div id="dayLogBox" class="lg-body"></div>
       </div>
       <div class="field">
         <span class="flabel">Blood pressure</span>
@@ -1322,6 +1387,10 @@ function buildContext(){
       if(d.eat) b.push("ate: "+EAT[d.eat-1].toLowerCase()+(Array.isArray(d.eatWhy)&&d.eatWhy.length?" because "+d.eatWhy.join(", ").toLowerCase():""));
       if(Array.isArray(d.medsTaken)&&d.medsTaken.length) b.push("took "+d.medsTaken.join(", "));
       if(d.stress) b.push("stress "+STRESS[d.stress-1].toLowerCase());
+      if(d.sleepLog){ const c=sleepCalc(d.sleepLog), L=d.sleepLog; b.push("sleep diary: bed "+L.bed+", woke "+L.wake+(L.fall!=null?", took ~"+L.fall+" min to fall asleep":"")+(L.wakes!=null?", woke "+L.wakes+"x in the night"+(L.wakes&&L.awake?" (awake ~"+L.awake+" min)":""):"")+(c?", about "+durTxt(c.asleep)+" asleep, "+c.eff+"% efficiency":"")); }
+      if(d.water) b.push(d.water+" glasses of water");
+      const nt=dayNut(d.date); if(nt) b.push("nutrition total: "+NUTS.map(([k,l,u])=>Math.round(nt[k]||0)+(u||"")+" "+l).join(", "));
+      if(Array.isArray(d.log)&&d.log.length) b.push("log: "+d.log.map(x=>(x.time||"?")+" "+(x.type==="meal"? (x.meal||"meal").toLowerCase()+": "+(x.desc||(x.items||[]).map(i=>i.name).join(", "))+(x.n&&x.n.kcal?" ("+Math.round(x.n.kcal)+" kcal)":"") : (LOGT[x.type]||LOGT.note).l.toLowerCase()+": "+x.title+(x.details?" - "+x.details:""))).join("; ").slice(0,900));
       if(Array.isArray(d.bp)&&d.bp.length) b.push("BP "+d.bp.map(r=>r.sys+"/"+r.dia+(r.pulse?" pulse "+r.pulse:"")+(r.time?" at "+r.time:"")).join(", "));
       if(d.period) b.push("period: "+d.period);
       if(typeof d.weight==="number") b.push("weight "+d.weight+" kg");
@@ -1331,6 +1400,7 @@ function buildContext(){
   }
   if(periodOn()&&dd.some(d=>d.period)){ const c=cycleInfo(); lines.push("\nPERIOD CYCLE (from the diary): "+c.starts.length+" periods logged; "+(c.avg?"average cycle "+c.avg+" days over the last "+c.cycles+" cycles":"not enough cycles for an average")+"; last period started "+fmtDate(c.last)+(c.len?", lasting "+c.len+" days":"")+".");
     for(const x of cycleList().slice(-8)) lines.push("- period started "+fmtDate(x.start)+": bled "+x.plen+" days ("+x.heavy+" heavy)"+(x.len?", cycle "+x.len+" days":", current cycle")); }
+  const pats=afterEatingPatterns(60); if(pats.length) lines.push("\nPATTERNS FOUND BY THE APP: "+pats.map(p=>p.title+" came within 3 hours of eating on "+p.after+" of "+p.n+" logged occasions (average "+p.avg+" min after)").join("; ")+".");
   if(lines.length<2) lines.push("(The logbook is empty so far.)");
   const txt=lines.join("\n");
   return txt.length>80000? txt.slice(0,80000)+"\n(…logbook cut short)" : txt;
@@ -1402,7 +1472,7 @@ function itemRow(e, showTag){
 }
 function fill(ul, items, emptyText){ ul.replaceChildren(...(items.length? items : [h("li",{class:"none"},emptyText)])); }
 
-function periodOn(){ return (S.profile||{}).sex!=="male"; }
+function periodOn(){ const p=S.profile||{}; return p.sex!=="male" && !p.periodOff; }
 function addDays(iso,n){ const [y,m,d]=iso.split("-").map(Number); const t=new Date(y,m-1,d+n); return isoOf(t.getFullYear(),t.getMonth(),t.getDate()); }
 const FLOW=[["none","None",0],["light","Light",1],["medium","Medium",2],["heavy","Heavy",3]];
 function cycleInfo(){
@@ -1606,6 +1676,329 @@ function ciSection(sec, filled, label, value){
   row.setAttribute("aria-label", label+": "+value+". Tap to change.");
 }
 function ciPicked(sec){ CI.edit.delete(sec); }
+/* ---------- extra trackers: day log, food and nutrition, sleep diary ---------- */
+function trk(){ const t=(S.profile||{}).trackers||{}; return {log:!!t.log, food:!!t.food, sleep:!!t.sleep}; }
+function tgt(){ const t=(S.profile||{}).targets||{}; return {kcal:+t.kcal||0, protein:+t.protein||0, fibre:+t.fibre||0, water:+t.water||0}; }
+function nowHM(){ const n=new Date(); return String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0"); }
+function hm2m(t){ const m=/^(\d{1,2}):(\d{2})$/.exec(t||""); return m? (+m[1])*60+(+m[2]) : null; }
+function durTxt(min){ min=Math.max(0,Math.round(min)); const h=Math.floor(min/60), m=min%60; return h? h+"h"+(m?" "+m+"m":"") : m+"m"; }
+const NUTS=[["kcal","kcal",""],["protein","protein","g"],["carbs","carbs","g"],["fat","fat","g"],["fibre","fibre","g"],["sugar","sugar","g"]];
+const LOGT={meal:{l:"Ate",c:"var(--accent)"},drink:{l:"Drank",c:"#2F7FD1"},med:{l:"Medicine",c:"var(--ai)"},activity:{l:"Activity",c:"var(--due)"},note:{l:"Note",c:"var(--muted)"},symptom:{l:"Symptom",c:"var(--alert)"},wake:{l:"Woke up",c:"var(--wk-sleep)"}};
+const MEALS=["Breakfast","Lunch","Dinner","Snack"];
+const DRINKS=["Tea","Coffee","Alcohol","Fizzy drink","Energy drink","Juice","Other"];
+const ACTS=["Walk","Exercise","Housework","Work","Shopping","Rest","Lie down"];
+function mealName(t){ const m=hm2m(t); if(m==null) return "Snack"; return m<660?"Breakfast": m<900?"Lunch": m<1050?"Snack": m<1290?"Dinner":"Snack"; }
+function dayLog(iso){ const d=(S.days||{})[iso]||{}; return Array.isArray(d.log)? d.log : []; }
+function sumNut(items){ const t={}; for(const it of items||[]) for(const [k] of NUTS) t[k]=Math.round(((t[k]||0)+(+it[k]||0))*10)/10; return t; }
+function nutLine(n){ if(!n) return ""; return [n.kcal?Math.round(n.kcal)+" kcal":"", n.protein?Math.round(n.protein)+"g protein":""].filter(Boolean).join(" · "); }
+function dayNut(iso){ let any=false; const tot={}; for(const x of dayLog(iso)) if(x.n&&(x.type==="meal"||x.type==="drink")){ any=true; for(const [k] of NUTS) tot[k]=Math.round(((tot[k]||0)+(+x.n[k]||0))*10)/10; } return any? tot : null; }
+function dayEvents(iso){
+  const d=(S.days||{})[iso]||{}, ev=[];
+  if(d.sleepLog&&d.sleepLog.wake) ev.push({time:d.sleepLog.wake,type:"wake",title:"Woke up",sub: typeof d.sleepMin==="number"? "Slept "+durTxt(d.sleepMin) : ""});
+  for(const x of dayLog(iso)) ev.push({...x,_log:true,sub:[x.type==="meal"&&x.desc? x.desc : x.details||"", nutLine(x.n)].filter(Boolean).join(" · ")});
+  for(const e of ofKind("symptom").filter(e=>e.date===iso)) ev.push({time:e.time||"",type:"symptom",title:e.title+(e.severity?" "+e.severity+"/10":""),entry:e});
+  const meals=ev.filter(x=>x.type==="meal"&&x.time).map(x=>hm2m(x.time));
+  for(const x of ev) if(x.type==="symptom"&&x.time){ const t=hm2m(x.time); const prev=meals.filter(m=>m<=t).sort((a,b)=>b-a)[0]; if(prev!=null&&t-prev<=240) x.sub=durTxt(t-prev)+" after eating"; }
+  return ev.sort((a,b)=>(a.time||"99:99").localeCompare(b.time||"99:99"));
+}
+function afterEatingPatterns(days){
+  days=days||30; const today=todayISO(), by={};
+  for(let i=0;i<days;i++){
+    const iso=addDays(today,-i), meals=dayLog(iso).filter(x=>x.type==="meal"&&x.time).map(x=>hm2m(x.time));
+    if(!meals.length) continue;
+    for(const e of ofKind("symptom").filter(e=>e.date===iso&&e.time)){
+      const t=hm2m(e.time), k=e.title.trim(), b=by[k]=by[k]||{n:0,after:0,gaps:[]}; b.n++;
+      const prev=meals.filter(m=>m<=t).sort((a,b)=>b-a)[0];
+      if(prev!=null&&t-prev<=180){ b.after++; b.gaps.push(t-prev); }
+    }
+  }
+  return Object.entries(by).filter(([,b])=>b.n>=3&&b.after/b.n>=0.6).map(([k,b])=>({title:k,n:b.n,after:b.after,avg:Math.round(b.gaps.reduce((a,c)=>a+c,0)/b.gaps.length)})).sort((a,b)=>b.after-a.after);
+}
+function addLog(iso, item){
+  const log=dayLog(iso).filter(x=>x.id!==item.id);
+  log.push({...item, id:item.id||("l"+Date.now().toString(36)+Math.random().toString(36).slice(2,6))});
+  log.sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+  return saveDay(iso,{log});
+}
+function removeLog(iso, id){ const log=dayLog(iso).filter(x=>x.id!==id); return saveDay(iso,{log:log.length?log:null}); }
+
+/* the log card on Home, and the same list in the diary */
+function logQuickAdds(iso){
+  const t=trk(), ro=!S.canWrite||null, b=(l,fn,cls)=>h("button",{type:"button",class:"lg-add"+(cls?" "+cls:""),disabled:ro,onclick:fn},l);
+  return h("div",{class:"lg-adds"},
+    b("+ Ate",()=>openMeal(iso),"main"),
+    b("+ Drank",()=>openDrink(iso)),
+    b("+ Symptom",()=>openSymPick(iso)),
+    b("+ Medicine",()=>openSimpleLog(iso,"med")),
+    b("+ Activity",()=>openSimpleLog(iso,"activity")),
+    b("+ Note",()=>openSimpleLog(iso,"note")));
+}
+function logList(iso){
+  const ev=dayEvents(iso);
+  if(!ev.length) return h("p",{class:"none"},"Nothing logged yet. Tap a button above as things happen and the time is saved.");
+  return h("ul",{class:"lg-list"}, ...ev.map(x=>h("li",{}, h("button",{type:"button",class:"lg-ev",onclick:()=>{ if(x.entry) openEntry(x.entry); else if(x._log){ if(x.type==="meal") openMeal(iso,x); else if(x.type==="drink") openDrink(iso,x); else openSimpleLog(iso,x.type,x); } else if(x.type==="wake") openDay(iso); }},
+    h("span",{class:"lg-t"}, x.time||"–"), h("span",{class:"lg-d",style:"background:"+(LOGT[x.type]||LOGT.note).c}),
+    h("span",{class:"lg-x"}, h("b",{}, x.type==="meal"? (x.meal||"Meal") : x.title), x.sub? h("small",{}, x.sub) : null)))));
+}
+function nutPanel(iso){
+  const n=dayNut(iso)||{}, T=tgt(), d=(S.days||{})[iso]||{}, water=+d.water||0;
+  const bar=(lab,v,t,unit,col)=>h("div",{class:"nb"}, h("div",{class:"nb-r"}, h("span",{},lab), h("span",{}, (Math.round(v||0))+(unit||"")+(t?" / "+t+(unit||""):""))), t? h("div",{class:"nb-b"}, h("i",{style:"width:"+Math.min(100,(v||0)/t*100)+"%;background:"+col})) : null);
+  return h("div",{class:"lg-nut"},
+    bar("Calories", n.kcal, T.kcal, "", "var(--accent)"),
+    bar("Protein", n.protein, T.protein, "g", "#2F7FD1"),
+    bar("Fibre", n.fibre, T.fibre, "g", "var(--due)"),
+    h("div",{class:"nb"}, h("div",{class:"nb-r"}, h("span",{},"Water"), h("span",{class:"wtr"},
+      h("button",{type:"button",class:"wbtn","aria-label":"One less glass",disabled:!S.canWrite||!water||null,onclick:()=>saveDay(iso,{water:Math.max(0,water-1)||null})},"−"),
+      h("span",{}, water+(T.water?" / "+T.water:"")+" glass"+(water===1?"":"es")),
+      h("button",{type:"button",class:"wbtn","aria-label":"One more glass",disabled:!S.canWrite||null,onclick:()=>saveDay(iso,{water:water+1})},"+"))),
+      h("div",{class:"nb-b"}, h("i",{style:"width:"+(T.water? Math.min(100,water/T.water*100) : Math.min(100,water*12.5))+"%;background:#7FB4EA"}))),
+    (n.carbs||n.fat||n.sugar)? h("p",{class:"nb-more"}, "Carbs "+Math.round(n.carbs||0)+"g · Fat "+Math.round(n.fat||0)+"g · Sugar "+Math.round(n.sugar||0)+"g") : null);
+}
+function renderLogCard(){
+  const card=$("#logCard"); if(!card) return;
+  const t=trk(); card.hidden=!(t.log||t.food); if(card.hidden) return;
+  const iso=todayISO(), pats=afterEatingPatterns(30);
+  $("#logH").textContent= t.log? "Today's log" : "Today's food";
+  $("#logBody").replaceChildren(...[
+    logQuickAdds(iso),
+    t.food? nutPanel(iso) : null,
+    ...pats.slice(0,2).map(p=>h("div",{class:"lg-flag"}, h("span",{class:"wk-dot","aria-hidden":"true"}), h("span",{}, "Pattern: "+p.title.toLowerCase()+" came within 3 hours of eating on "+p.after+" of the last "+p.n+" times (about "+durTxt(p.avg)+" after, on average). Worth showing your GP."))),
+    t.log? logList(iso) : null].filter(Boolean));
+}
+
+/* quick-add sheets */
+function timeField(id, val){ return h("div",{class:"field"}, h("label",{for:id},"Time"), h("input",{type:"time",id,value:val||nowHM()})); }
+function openSymPick(iso){
+  const chips=symptomChips(14);
+  openSheet("Log a symptom",[h("p",{class:"none"},"Pick one. You'll rate it next, and the time is saved."),
+    h("div",{class:"chips wrapchips"}, ...chips.map(c=>h("button",{class:"fchip",type:"button",onclick:()=>{ closeSheet(); quickSymptom(c,iso); }},c)),
+      h("button",{class:"fchip",type:"button",onclick:()=>{ closeSheet(); openEntry(null,"symptom",{date:iso,time:nowHM()}); }},"Something else…"))]);
+}
+function openSimpleLog(iso, type, item){
+  const isNew=!item; item=item||{type};
+  const tm=timeField("lg-time", item.time);
+  const title=h("input",{type:"text",id:"lg-title",value:item.title||"",placeholder: type==="med"?"e.g. Omeprazole 20mg": type==="activity"?"e.g. 20 minute walk":"e.g. Felt bloated after the school run"});
+  const det=h("textarea",{id:"lg-det",rows:"2",placeholder:"Anything else (optional)"}); det.value=item.details||"";
+  const opts= type==="med"? ofKind("medication").filter(m=>m.status==="current").map(m=>shortMed(m.title)).filter((v,i,a)=>v&&a.indexOf(v)===i) : type==="activity"? ACTS : [];
+  const save=h("button",{class:"btn primary",type:"button"},"Save");
+  save.addEventListener("click", async ()=>{
+    const t=title.value.trim(); if(!t){ title.focus(); toast(type==="note"?"Write a note first.":"Add what it was first."); return; }
+    save.disabled=true;
+    const ok=await addLog(iso,{id:item.id,type,time:$("#lg-time").value||nowHM(),title:t,details:det.value.trim()||undefined});
+    if(ok&&type==="med"&&iso===todayISO()){ const d=(S.days||{})[iso]||{}, m=new Set(Array.isArray(d.medsTaken)?d.medsTaken:[]); if(opts.includes(t)&&!m.has(t)){ m.add(t); saveDay(iso,{medsTaken:[...m]}); } }
+    save.disabled=false; if(ok) closeSheet();
+  });
+  const nm={med:"Medicine taken",activity:"Activity",note:"Note"}[type]||"Log";
+  openSheet((isNew?"":"Edit ")+nm.toLowerCase().replace(/^./,c=>c.toUpperCase()),[...[
+    opts.length? h("div",{class:"chips wrapchips"}, ...opts.map(o=>h("button",{class:"fchip",type:"button",onclick:()=>{ title.value=o; }},o))) : null,
+    h("div",{class:"field"}, h("label",{for:"lg-title"}, type==="note"?"Note":"What"), title), tm, h("div",{class:"field"}, h("label",{for:"lg-det"},"Details"), det),
+    h("div",{class:"row",style:"justify-content:space-between"}, isNew? h("span") : h("button",{class:"btn danger",type:"button",onclick:async()=>{ if(await removeLog(iso,item.id)) closeSheet(); }},"Delete"), save)].filter(Boolean)]);
+}
+function openDrink(iso, item){
+  const isNew=!item; item=item||{type:"drink"};
+  const tm=timeField("dr-time", item.time);
+  const title=h("input",{type:"text",id:"dr-title",value:item.title||"",placeholder:"e.g. Coffee with milk"});
+  const save=h("button",{class:"btn primary",type:"button"},"Save");
+  save.addEventListener("click", async ()=>{ const t=title.value.trim(); if(!t){ title.focus(); return; } save.disabled=true;
+    const ok=await addLog(iso,{...item,type:"drink",time:$("#dr-time").value||nowHM(),title:t}); save.disabled=false; if(ok) closeSheet(); });
+  const d=(S.days||{})[iso]||{};
+  openSheet(isNew?"Log a drink":"Edit drink",[
+    h("button",{class:"btn",type:"button",onclick:()=>{ saveDay(iso,{water:(+d.water||0)+1}); closeSheet(); }},"+ 1 glass of water"),
+    h("p",{class:"none"},"Or log another drink. Caffeine, alcohol and fizzy drinks can all affect symptoms and sleep."),
+    h("div",{class:"chips wrapchips"}, ...DRINKS.map(o=>h("button",{class:"fchip",type:"button",onclick:()=>{ title.value=o==="Other"?"":o; title.focus(); }},o))),
+    h("div",{class:"field"}, h("label",{for:"dr-title"},"Drink"), title), tm,
+    h("div",{class:"row",style:"justify-content:space-between"}, isNew? h("span") : h("button",{class:"btn danger",type:"button",onclick:async()=>{ if(await removeLog(iso,item.id)) closeSheet(); }},"Delete"), save)]);
+}
+
+/* meals */
+const ZXING_SRC="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";
+function foodPrompt(desc, fromPhoto){
+  return "Estimate the food and drink "+(fromPhoto?"in this photo of a meal":"described below")+" for a UK food diary. "
+    +(desc? "The person says: \""+desc+"\". " : "")
+    +"Make a sensible rough guess at each item and its amount in everyday UK terms (grams, slices, tablespoons, a typical portion), including likely hidden extras such as cooking oil, butter, sauces or milk in drinks. Give nutrition for the amount eaten, using typical UK values.\n"
+    +'Reply with only JSON: {"description": short plain description of the whole meal, "items":[{"name": item name, "amount": amount as eaten e.g. "2 large eggs (about 120g)", "kcal": number, "protein": grams, "carbs": grams, "fat": grams, "fibre": grams, "sugar": grams}], "confidence": "low", "medium" or "high", "note": one short sentence on anything you could not see or had to guess}. '
+    +"If it isn't food or drink, reply {\"items\":[],\"note\":\"why\"}.";
+}
+async function decodeBarcode(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=new Image(); img.src=url; await img.decode();
+    if("BarcodeDetector" in window){ try{ const det=new BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e","code_128"]}); const r=await det.detect(img); if(r&&r[0]&&r[0].rawValue) return r[0].rawValue; }catch{} }
+    if(!window.ZXing) await loadScript(ZXING_SRC);
+    const Z=window.ZXing, hints=new Map();
+    hints.set(Z.DecodeHintType.TRY_HARDER,true);
+    hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.EAN_13,Z.BarcodeFormat.EAN_8,Z.BarcodeFormat.UPC_A,Z.BarcodeFormat.UPC_E,Z.BarcodeFormat.CODE_128]);
+    for(const max of [1400,900,2000]){
+      for(const rot of [0,90]){
+        const sc=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight)), w=Math.round(img.naturalWidth*sc), hh=Math.round(img.naturalHeight*sc);
+        const c=document.createElement("canvas"); c.width=rot?hh:w; c.height=rot?w:hh; const ctx=c.getContext("2d");
+        if(rot){ ctx.translate(c.width/2,c.height/2); ctx.rotate(Math.PI/2); ctx.drawImage(img,-w/2,-hh/2,w,hh); } else ctx.drawImage(img,0,0,w,hh);
+        try{ const r=new Z.MultiFormatReader(); r.setHints(hints); const res=r.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(c)))); if(res&&res.getText()) return res.getText(); }catch{}
+      }
+    }
+    return null;
+  } finally { setTimeout(()=>URL.revokeObjectURL(url),2000); }
+}
+async function lookupBarcode(code){
+  const r=await fetch("https://world.openfoodfacts.org/api/v2/product/"+encodeURIComponent(code)+".json?fields=product_name,product_name_en,brands,nutriments,serving_size,serving_quantity,quantity");
+  if(!r.ok) return null; const j=await r.json(); if(!j||j.status!==1||!j.product) return null;
+  const p=j.product, n=p.nutriments||{}, g=k=>{ const v=n[k]; return typeof v==="number"? v : parseFloat(v); };
+  const per={kcal:g("energy-kcal_100g")||(g("energy_100g")? g("energy_100g")/4.184 : NaN),protein:g("proteins_100g"),carbs:g("carbohydrates_100g"),fat:g("fat_100g"),fibre:g("fiber_100g"),sugar:g("sugars_100g")};
+  return {name:[p.brands&&p.brands.split(",")[0],p.product_name_en||p.product_name].filter(Boolean).join(" ")||"Product "+code, per, serving:parseFloat(p.serving_quantity)||null, servingTxt:p.serving_size||"", size:p.quantity||""};
+}
+function recentMeals(){
+  const seen=new Map(), today=todayISO();
+  for(let i=0;i<45;i++){ const iso=addDays(today,-i); for(const x of dayLog(iso)) if(x.type==="meal"&&(x.desc||(x.items&&x.items.length))){ const k=(x.desc||x.items.map(i=>i.name).join(", ")).toLowerCase().trim(); if(!seen.has(k)) seen.set(k,x); } }
+  return [...seen.values()].slice(0,20);
+}
+function openMeal(iso, item){
+  const isNew=!item; item=JSON.parse(JSON.stringify(item||{type:"meal",time:nowHM()}));
+  if(!item.meal) item.meal=mealName(item.time);
+  let items=Array.isArray(item.items)? item.items : [], manual=!!item.manualN, n=item.n||sumNut(items);
+  const st=h("p",{class:"hint",role:"status"});
+  const mealSel=h("select",{id:"ml-meal"}, ...MEALS.map(m=>h("option",{value:m},m))); mealSel.value=item.meal;
+  const tm=h("input",{type:"time",id:"ml-time",value:item.time||nowHM()});
+  const desc=h("textarea",{id:"ml-desc",rows:"2",placeholder:"e.g. ham sandwich on white bread, packet of crisps, can of Coke"}); desc.value=item.desc||"";
+  const itemsBox=h("div",{class:"ml-items"}), totBox=h("div",{class:"ml-tot"});
+  const photoIn=h("input",{type:"file",accept:"image/*",capture:"environment",hidden:true});
+  const codeIn=h("input",{type:"file",accept:"image/*",capture:"environment",hidden:true});
+  const labelIn=h("input",{type:"file",accept:"image/*",capture:"environment",hidden:true});
+  function drawItems(){
+    itemsBox.replaceChildren(...items.map((it,i)=>h("div",{class:"ml-it"}, h("span",{class:"ml-in"}, h("b",{},it.name), it.amount? h("small",{}," · "+it.amount) : null, h("small",{class:"ml-k"}, nutLine(it))),
+      h("button",{class:"btn ghost small",type:"button","aria-label":"Remove "+it.name,onclick:()=>{ items.splice(i,1); if(!manual) n=sumNut(items); drawItems(); }},"✕"))));
+    if(!manual) n=sumNut(items);
+    totBox.replaceChildren(h("p",{class:"flabel"},"Nutrition for this meal"+(items.length?" (edit if you know better)":"")), h("div",{class:"ml-grid"}, ...NUTS.map(([k,l,u])=>{ const inp=h("input",{type:"number",inputmode:"decimal",min:"0",step:"any",value:n[k]!=null&&n[k]!==""?String(Math.round(n[k]*10)/10):"","aria-label":l});
+      inp.addEventListener("input",()=>{ manual=true; n={...n,[k]:inp.value===""?undefined:+inp.value}; }); return h("label",{class:"ml-n"}, inp, h("span",{}, l+(u?" ("+u+")":""))); })));
+  }
+  async function estimate(blob){
+    if(!S.sample||S.aiOff){ st.textContent="Claude isn't available here. Type the numbers in instead."; return; }
+    st.textContent= blob? "Claude is looking at your photo…" : "Claude is working out the nutrition…";
+    try{
+      const opts={modelTier:"quick"}; if(blob) opts.images=[blob];
+      const r=await S.sample.json(foodPrompt(desc.value.trim(), !!blob), opts);
+      const got=(r&&Array.isArray(r.items)?r.items:[]).filter(x=>x&&x.name).map(x=>({name:String(x.name).slice(0,80),amount:String(x.amount||"").slice(0,80),kcal:+x.kcal||0,protein:+x.protein||0,carbs:+x.carbs||0,fat:+x.fat||0,fibre:+x.fibre||0,sugar:+x.sugar||0,src:"ai"}));
+      if(!got.length){ st.textContent=(r&&r.note)||"Claude couldn't make out any food. Try a clearer photo or describe it."; return; }
+      items=[...items.filter(i=>i.src!=="ai"), ...got]; manual=false;
+      if(!desc.value.trim()&&r.description) desc.value=String(r.description).slice(0,200);
+      drawItems(); st.textContent="✦ Claude's rough guess"+(r.confidence?" ("+r.confidence+" confidence)":"")+". Check the amounts."+(r.note?" "+r.note:"");
+    }catch(e){ st.textContent=aiErr(e)||"Couldn't work it out. Try again."; }
+  }
+  photoIn.addEventListener("change", async ()=>{ const f=photoIn.files[0]; photoIn.value=""; if(!f) return; const b=await imageToJpeg(f,1400); estimate(b||f); });
+  labelIn.addEventListener("change", async ()=>{ const f=labelIn.files[0]; labelIn.value=""; if(!f) return; const b=await imageToJpeg(f,1600);
+    if(!S.sample||S.aiOff){ st.textContent="Claude isn't available here."; return; }
+    st.textContent="Claude is reading the label…";
+    try{ const r=await S.sample.json('This is a photo of a food packet or nutrition label. Reply with only JSON: {"name": product name, "per100": {"kcal":n,"protein":g,"carbs":g,"fat":g,"fibre":g,"sugar":g}, "serving_g": grams per serving if shown or null}. Use null for anything you cannot read.',{modelTier:"quick",images:[b||f]});
+      if(!r||!r.per100){ st.textContent="Couldn't read the label. Try a closer, flatter photo."; return; }
+      askAmount({name:r.name||"Packaged food", per:r.per100, serving:+r.serving_g||null, servingTxt:r.serving_g?r.serving_g+"g":""});
+    }catch(e){ st.textContent=aiErr(e)||"Couldn't read the label."; } });
+  codeIn.addEventListener("change", async ()=>{ const f=codeIn.files[0]; codeIn.value=""; if(!f) return;
+    st.textContent="Reading the barcode…";
+    let code=null; try{ code=await decodeBarcode(f); }catch{}
+    if(!code){ st.replaceChildren("Couldn't read the barcode. Try again closer and in good light, or ", h("button",{class:"linkbtn",type:"button",onclick:()=>labelIn.click()},"photograph the nutrition label"),"."); return; }
+    st.textContent="Looking up "+code+"…";
+    let p=null; try{ p=await lookupBarcode(code); }catch{}
+    if(!p||!isFinite(p.per.kcal)){ st.replaceChildren("Barcode "+code+" isn't in the food database. ", h("button",{class:"linkbtn",type:"button",onclick:()=>labelIn.click()},"Photograph the nutrition label"), " and Claude will read it."); return; }
+    askAmount(p);
+  });
+  function askAmount(p){
+    const qty=h("input",{type:"number",inputmode:"decimal",min:"0",step:"any",value:p.serving?"1":"100",style:"max-width:6rem"});
+    const unit=h("select",{}, ...(p.serving?[h("option",{value:"serv"},"serving"+(p.servingTxt?" ("+p.servingTxt+")":" ("+p.serving+"g)"))]:[]), h("option",{value:"g"},"grams"));
+    const add=h("button",{class:"btn primary small",type:"button"},"Add");
+    add.addEventListener("click",()=>{ const q=+qty.value||0, grams= unit.value==="serv"? q*(p.serving||100) : q, f=grams/100;
+      const it={name:p.name, amount: unit.value==="serv"? q+" serving"+(q===1?"":"s")+" ("+Math.round(grams)+"g)" : Math.round(grams)+"g", src:"barcode"};
+      for(const [k] of NUTS){ const v=+p.per[k]; it[k]= isFinite(v)? Math.round(v*f*10)/10 : 0; }
+      items.push(it); manual=false; drawItems(); st.textContent="Added "+p.name+"."; if(!desc.value.trim()) desc.value=p.name; });
+    st.replaceChildren(h("span",{class:"ml-found"}, h("b",{},p.name), p.size? " · "+p.size : "", h("br"), "How much did you have? ", qty, " ", unit, " ", add));
+  }
+  function repeat(){
+    const list=recentMeals();
+    if(!list.length){ st.textContent="No earlier meals yet. Once you've logged some, you can repeat them here."; return; }
+    st.replaceChildren(h("span",{class:"flabel"},"Pick an earlier meal"), h("div",{class:"ml-rep"}, ...list.map(x=>h("button",{class:"fchip",type:"button",onclick:()=>{ desc.value=x.desc||""; items=JSON.parse(JSON.stringify(x.items||[])); manual=!!x.manualN; n={...(x.n||sumNut(items))}; drawItems(); st.textContent="Copied. Change anything that's different."; }}, (x.desc||x.items.map(i=>i.name).join(", ")).slice(0,46)+(x.n&&x.n.kcal?" · "+Math.round(x.n.kcal)+" kcal":"")))));
+  }
+  const ro=!S.canWrite||null;
+  const save=h("button",{class:"btn primary",type:"button",disabled:ro},"Save meal");
+  save.addEventListener("click", async ()=>{
+    if(!desc.value.trim()&&!items.length){ desc.focus(); toast("Say what you ate first."); return; }
+    save.disabled=true;
+    const nn={}; for(const [k] of NUTS) if(n[k]!=null&&n[k]!==""&&isFinite(+n[k])) nn[k]=Math.round(+n[k]*10)/10;
+    const ok=await addLog(iso,{id:item.id,type:"meal",meal:mealSel.value,time:tm.value||nowHM(),desc:desc.value.trim()||undefined,title:mealSel.value,items:items.length?items:undefined,n:Object.keys(nn).length?nn:undefined,manualN:manual||undefined});
+    save.disabled=false; if(ok) closeSheet();
+  });
+  const t=trk();
+  openSheet(isNew?"Log what you ate":"Edit "+item.meal.toLowerCase(),[...[
+    h("div",{class:"fields2"}, h("div",{class:"field"}, h("label",{for:"ml-meal"},"Meal"), mealSel), h("div",{class:"field"}, h("label",{for:"ml-time"},"Time"), tm)),
+    h("div",{class:"field"}, h("label",{for:"ml-desc"},"What did you eat and drink?"), desc),
+    t.food? h("div",{class:"ml-btns"},
+      h("button",{class:"btn",type:"button",disabled:ro,onclick:()=>photoIn.click()},"📷 Photo of meal"),
+      h("button",{class:"btn",type:"button",disabled:ro,onclick:()=>codeIn.click()},"▥ Scan barcode"),
+      h("button",{class:"btn",type:"button",disabled:ro,onclick:()=>repeat()},"↻ Same as before"),
+      h("button",{class:"btn ai",type:"button",disabled:ro,onclick:()=>{ if(!desc.value.trim()){ desc.focus(); toast("Describe it first, or take a photo."); return; } estimate(null); }},"✦ Work it out")) : null,
+    photoIn, codeIn, labelIn, st,
+    t.food? itemsBox : null, t.food? totBox : null,
+    h("div",{class:"row",style:"justify-content:space-between"}, isNew? h("span") : h("button",{class:"btn danger",type:"button",onclick:async()=>{ if(await removeLog(iso,item.id)) closeSheet(); }},"Delete"), save)].filter(Boolean)]);
+  drawItems();
+}
+
+/* sleep diary (asked in the morning check-in) */
+const FALL=[["Under 15 min",10],["15–30 min",22],["30–60 min",45],["Over an hour",75]];
+const WAKES=[["None",0],["Once",1],["Twice",2],["3+",3]];
+const AWAKE=[["A few min",5],["15–30 min",22],["30–60 min",45],["Over an hour",75]];
+function sleepCalc(L){
+  const b=hm2m(L.bed), w=hm2m(L.wake); if(b==null||w==null) return null;
+  let inBed=w-b; if(inBed<=0) inBed+=1440;
+  const asleep=Math.max(0, inBed-(L.fall||0)-(L.wakes?(L.awake||0):0));
+  return {inBed, asleep, eff: inBed? Math.round(asleep/inBed*100) : 0};
+}
+function renderSleepDiary(iso, day){
+  const box=$("#ciSleepD"); if(!box) return;
+  const on=trk().sleep; box.hidden=!on; const simple=document.querySelector('#checkin .ci-block[data-sec="sleep"]'); if(simple) simple.hidden=on;
+  if(!on) return;
+  const L={bed:"23:00",wake:"07:00",fall:null,wakes:null,awake:null,q:null,...(day.sleepLog||{})};
+  const ro=!S.canWrite||null;
+  const seg=(arr,key,cls)=>h("div",{class:"pflow"+(cls?" "+cls:"")}, ...arr.map(([l,v])=>h("button",{type:"button",class:"pf","aria-pressed":String(L[key]===v),disabled:ro,onclick:()=>{ L[key]=L[key]===v?null:v; CI.edit.add("sleepd"); persist(false); }}, h("span",{},l))));
+  function persist(done){ const c=sleepCalc(L); const patch={sleepLog:{...L}}; if(c){ patch.sleepMin=c.asleep; patch.sleepH=Math.round(c.asleep/6)/10; } if(L.q) patch.sleepQ=L.q; if(done) ciPicked("sleepd"); saveDay(iso,patch); }
+  const bed=h("input",{type:"time",value:L.bed,disabled:ro}), wake=h("input",{type:"time",value:L.wake,disabled:ro});
+  bed.addEventListener("change",()=>{ L.bed=bed.value; CI.edit.add("sleepd"); persist(false); });
+  wake.addEventListener("change",()=>{ L.wake=wake.value; CI.edit.add("sleepd"); persist(false); });
+  const c=sleepCalc(L);
+  const kids=[
+    h("p",{class:"ci-lab"},"Last night's sleep"),
+    h("div",{class:"sd-times"}, h("label",{class:"sd-t"}, h("span",{},"Went to bed"), bed), h("label",{class:"sd-t"}, h("span",{},"Woke for good"), wake)),
+    h("p",{class:"ci-lab sm"},"Time to fall asleep"), seg(FALL,"fall","four sm"),
+    h("p",{class:"ci-lab sm"},"Woke in the night"), seg(WAKES,"wakes","four sm")];
+  if(L.wakes) kids.push(h("p",{class:"ci-lab sm"},"Awake in the night, in total"), seg(AWAKE,"awake","four sm"));
+  kids.push(h("p",{class:"ci-lab sm"},"How well did you sleep?"), seg(SLEEPQ.map((l,i)=>[l,i+1]),"q"));
+  if(c) kids.push(h("p",{class:"sd-sum"}, "About "+durTxt(c.asleep)+" asleep · "+c.eff+"% of time in bed"));
+  kids.push(h("button",{class:"ci-ok",type:"button",disabled:ro,onclick:()=>persist(true)},"Save sleep"));
+  box.replaceChildren(...kids);
+  const filled=!!(day.sleepLog&&day.sleepLog.q&&day.sleepLog.fall!=null);
+  ciSection("sleepd", filled, "Sleep", c&&day.sleepLog? durTxt(c.asleep)+" · "+c.eff+"% · "+(day.sleepLog.q?SLEEPQ[day.sleepLog.q-1].toLowerCase():"") : "");
+}
+
+/* settings: which trackers each person uses */
+function trackersBox(){
+  const p=S.profile||{}, t=p.trackers||{}, T=p.targets||{};
+  const sw=(key,label,sub,checked,onChange)=>{ const cb=h("input",{type:"checkbox",class:"sw-in",id:"trk-"+key,disabled:!S.canWrite||null}); cb.checked=checked;
+    cb.addEventListener("change",()=>onChange(cb.checked)); return h("label",{class:"trk",for:"trk-"+key}, h("span",{class:"trk-t"}, h("b",{},label), h("small",{},sub)), cb, h("span",{class:"sw-ui","aria-hidden":"true"})); };
+  const setT=(k,v)=>saveProfilePatch({trackers:{...((S.profile||{}).trackers||{}),[k]:v}}).then(()=>{ renderAll(); drawTargets(); });
+  const tg=h("div",{class:"trk-tg"});
+  function drawTargets(){
+    const on=!!(((S.profile||{}).trackers||{}).food); tg.hidden=!on; if(!on) return;
+    const cur=(S.profile||{}).targets||{};
+    const inp=(k,l,ph)=>{ const i=h("input",{type:"number",inputmode:"numeric",min:"0",value:cur[k]||"",placeholder:ph}); i.addEventListener("change",()=>saveProfilePatch({targets:{...((S.profile||{}).targets||{}),[k]:i.value?+i.value:undefined}})); return h("label",{class:"field"}, h("span",{class:"hint"},l), i); };
+    tg.replaceChildren(h("p",{class:"flabel"},"Daily targets (optional)"), h("div",{class:"fields2"}, inp("kcal","Calories","e.g. 1800"), inp("protein","Protein (g)","e.g. 60"), inp("fibre","Fibre (g)","e.g. 25"), inp("water","Water (glasses)","e.g. 8")),
+      h("p",{class:"hint"},"After weight-loss surgery, NHS teams usually aim for at least 60g of protein a day. Ask your dietitian for your own targets."));
+  }
+  const box=h("div",{class:"field"}, h("span",{class:"flabel"},"Trackers"), h("span",{class:"hint"},"Switch on only what you want to keep track of."),
+    sw("log","Day log","Log things as the day goes, with times. Spots symptoms that follow meals.",!!t.log,v=>setT("log",v)),
+    sw("food","Food and nutrition","Meals by photo, barcode or description, with calories, protein and more.",!!t.food,v=>setT("food",v)),
+    sw("sleep","Sleep diary","Bedtime, time to fall asleep, night wakings and hours slept.",!!t.sleep,v=>setT("sleep",v)),
+    p.sex==="male"? null : sw("period","Period tracker","Cycle ring, predictions and period days.",!p.periodOff,v=>saveProfilePatch({periodOff:v?undefined:true}).then(()=>renderAll())),
+    tg);
+  drawTargets();
+  return box;
+}
+
 /* ---------- your week: day rings with "worse than usual" glow ---------- */
 const WK={sel:null};
 function symLoadOn(iso){ const arr=ofKind("symptom").filter(e=>e.date===iso); return {n:arr.length, load:arr.reduce((a,e)=>a+(e.severity||5),0), worst:Math.max(0,...arr.map(e=>e.severity||0)), names:arr.map(e=>e.title+(e.severity?" "+e.severity+"/10":""))}; }
@@ -1661,6 +2054,7 @@ function renderWeek(){
   if(d.sleepQ||d.sleepH) rows.push(["Sleep", [d.sleepQ?SLEEPQ[d.sleepQ-1]:"", d.sleepH?(SLEEPH.find(x=>x[1]===d.sleepH)||[""])[0]:""].filter(Boolean).join(", ")]);
   if(sy.n) rows.push(["Symptoms", sy.names.join(", ")]);
   if(d.period&&periodOn()) rows.push(["Period", d.period]);
+  { const nt=dayNut(iso); if(nt) rows.push(["Food", nutLine(nt)]); }
   if(d.eat) rows.push(["Eating", EAT[d.eat-1]+(Array.isArray(d.eatWhy)&&d.eatWhy.length?" ("+d.eatWhy.join(", ").toLowerCase()+")":"")]);
   if(Array.isArray(d.medsTaken)&&d.medsTaken.length) rows.push(["Medicines", d.medsTaken.join(", ")]);
   $("#wkDetail").replaceChildren(...[
@@ -1692,6 +2086,7 @@ function renderCheckin(){
   const pon=periodOn(); $("#ciPeriod").hidden=!pon;
   if(pon){ flowButtons($("#ciFlow"), iso, "pf"); $("#ciPstat").textContent=cycleText(); }
   renderCheckinMore(iso, day);
+  renderSleepDiary(iso, day);
   ciSection("feel", !!day.feel, "Feeling", day.feel? FACE[day.feel-1]+" "+FEEL[day.feel-1] : "");
   ciSection("energy", !!day.energy, "Energy", day.energy? ENERGY[day.energy-1] : "");
   if(pon) ciSection("period", !!(day.period||day.pnone), "Period", day.period? day.period[0].toUpperCase()+day.period.slice(1) : "None");
@@ -1722,6 +2117,7 @@ function renderOverview(){
   $("#who").textContent = greeting()+(first?", "+first:"");
   $("#topDate").textContent = new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
   renderCheckin();
+  renderLogCard();
   renderWeek();
   renderCycle();
   renderTlPreview();
@@ -1991,7 +2387,7 @@ function openProfile(){
         h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); pinVerify(()=>showLock("set",savePin)); }},"Change PIN"),
         h("button",{class:"btn danger",type:"button",onclick:()=>{ closeSheet(); pinVerify(()=>savePin(null)); }},"Remove PIN"))
       : h("div",{}, h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>{ closeSheet(); showLock("set",savePin); }},"Set a PIN")));
-  openSheet("About you",[installBox(), h("hr",{class:"sep"}), field("p-name","First name",nm), field("p-dob","Date of birth",dob), field("p-sex","Sex",sex,"Female or not set shows the period tracker. Male hides it."), field("p-gp","GP surgery",gp), h("div",{class:"row",style:"justify-content:flex-end"},save), h("hr",{class:"sep"}), pinBox, h("hr",{class:"sep"}),
+  openSheet("About you",[installBox(), h("hr",{class:"sep"}), trackersBox(), h("hr",{class:"sep"}), field("p-name","First name",nm), field("p-dob","Date of birth",dob), field("p-sex","Sex",sex,"Female or not set shows the period tracker. Male hides it."), field("p-gp","GP surgery",gp), h("div",{class:"row",style:"justify-content:flex-end"},save), h("hr",{class:"sep"}), pinBox, h("hr",{class:"sep"}),
     h("div",{class:"field"}, h("span",{class:"flabel"},"Account"), h("span",{class:"hint"},"Signed in as "+(S.email||"")),
       h("div",{class:"row"},
         h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); openPassword(); }},"Change password"),
@@ -2368,7 +2764,7 @@ function saveDay(date, patch){
   if(!S.canWrite){ toast("This login can't save here."); return Promise.resolve(false); }
   const cur=S.days[date]||{kind:"day",date,createdAt:Date.now()};
   const next={...cur,...patch,kind:"day",date,updatedAt:Date.now()};
-  S.days={...S.days,[date]:next}; renderDiary(); renderTrends(); renderCheckin(); renderWeek(); renderCycle(); renderTlPreview(); if(!$("#v-timeline").hidden) renderTimeline();
+  S.days={...S.days,[date]:next}; renderDiary(); renderTrends(); renderCheckin(); renderLogCard(); renderWeek(); renderCycle(); renderTlPreview(); if(!$("#v-timeline").hidden) renderTimeline();
   const body=cleanBody(next);
   dayQ[date]=(dayQ[date]||Promise.resolve()).then(()=>write(()=>S.col.doc("day-"+date).set(body)));
   return dayQ[date];
@@ -2413,6 +2809,7 @@ function renderDay(){
   const chips=symptomChips(12);
   $("#symQuick").replaceChildren(...chips.map(t=>h("button",{class:"fchip",type:"button",disabled:!S.canWrite||null,onclick:()=>quickSymptom(t,iso)},t)),
     h("button",{class:"fchip",type:"button",disabled:!S.canWrite||null,onclick:()=>openEntry(null,"symptom",{date:iso})},"Something else…"));
+  { const t=trk(); $("#dayLogF").hidden=!(t.log||t.food); if(t.log||t.food) $("#dayLogBox").replaceChildren(...[logQuickAdds(iso), t.food? nutPanel(iso) : null, logList(iso)].filter(Boolean)); }
   const bp=Array.isArray(day.bp)?day.bp:[];
   fill($("#dayBP"), bp.map((r,i)=>h("li",{}, h("div",{class:"bp-row"},
       h("span",{}, h("span",{class:"bp-num"+(bpOut(r)?" out":"")}, r.sys+"/"+r.dia), r.pulse? h("span",{class:"none"}," · pulse "+r.pulse):null, r.time? h("span",{class:"none"}," · "+r.time):null, bpOut(r)? h("span",{class:"none"}, r.sys<90||r.dia<60?" · low":" · high"):null),
@@ -2440,6 +2837,7 @@ $("#tlBack").addEventListener("click",()=>show("overview"));
 $("#ciSymEdit").addEventListener("click",openSymEdit);
 $("#ciEatOk").addEventListener("click",()=>{ CI.eatDone=todayISO(); ciPicked("eat"); renderCheckin(); });
 $("#ciXBtn").addEventListener("click",()=>{ const open=$("#ciX").hidden; $("#ciX").hidden=!open; $("#ciXBtn").setAttribute("aria-expanded",String(open)); try{ localStorage.setItem("hl-ci-more",open?"1":"0"); }catch{} });
+$("#logDiary").addEventListener("click",()=>openDay(todayISO()));
 $("#wkTl").addEventListener("click",()=>show("timeline"));
 $("#cycDiary").addEventListener("click",()=>openDay(todayISO()));
 document.querySelectorAll("details.fold").forEach(d=>{ const k="hl-fold-"+d.dataset.fold; try{ d.open=localStorage.getItem(k)==="1"; }catch{} d.addEventListener("toggle",()=>{ try{ localStorage.setItem(k,d.open?"1":"0"); }catch{} }); });
@@ -2479,6 +2877,10 @@ function tlLanes(){
   const L=[{id:"mood",name:"Mood",type:"strip"},{id:"energy",name:"Energy",type:"strip"},{id:"sleep",name:"Sleep",type:"strip"},{id:"eat",name:"Eating",type:"strip"},{id:"stress",name:"Stress",type:"strip"}];
   if(periodOn()) L.push({id:"period",name:"Period",type:"period"});
   L.push({id:"sym",name:"Symptoms",type:"sym"},{id:"weight",name:"Weight",type:"line",unit:"kg"},{id:"bp",name:"Blood pressure",type:"bp",unit:"mmHg"});
+  L.push({id:"sleeph",name:"Hours slept",type:"line",unit:"h",fn:d=>typeof d.sleepMin==="number"? Math.round(d.sleepMin/6)/10 : (typeof d.sleepH==="number"? d.sleepH : null)},
+         {id:"kcal",name:"Calories",type:"line",unit:"kcal",fn:d=>{ const n=dayNut(d.date); return n&&n.kcal? Math.round(n.kcal) : null; }},
+         {id:"protein",name:"Protein",type:"line",unit:"g",fn:d=>{ const n=dayNut(d.date); return n&&n.protein? Math.round(n.protein) : null; }},
+         {id:"water",name:"Water",type:"line",unit:"glasses",fn:d=>d.water||null});
   const g=testGroups();
   const keys=[...g.keys()].sort((a,b)=>{ const ia=TEST_PRIORITY.indexOf(a), ib=TEST_PRIORITY.indexOf(b); if(ia!==ib) return (ia<0?99:ia)-(ib<0?99:ib); return g.get(b).length-g.get(a).length; });
   for(const k of keys){ const arr=g.get(k), last=arr[arr.length-1]; L.push({id:"t:"+k,name:last.title,type:"line",unit:last.unit||"",test:k,count:arr.length}); }
@@ -2518,6 +2920,10 @@ function tlDayData(iso){
   if(d.eat) out.push(["Eating", EAT[d.eat-1]+(Array.isArray(d.eatWhy)&&d.eatWhy.length?" ("+d.eatWhy.join(", ").toLowerCase()+")":"")]);
   if(Array.isArray(d.medsTaken)&&d.medsTaken.length) out.push(["Medicines taken", d.medsTaken.join(", ")]);
   if(d.stress) out.push(["Stress", STRESS[d.stress-1]]);
+  if(d.sleepLog){ const c=sleepCalc(d.sleepLog); if(c) out.push(["Sleep diary", "Bed "+d.sleepLog.bed+", up "+d.sleepLog.wake+" · "+durTxt(c.asleep)+" asleep ("+c.eff+"%)"]); }
+  for(const x of dayLog(iso)) out.push([x.time+" "+(x.type==="meal"?(x.meal||"Meal"):(LOGT[x.type]||LOGT.note).l), x.type==="meal"? [x.desc||(x.items||[]).map(i=>i.name).join(", "), nutLine(x.n)].filter(Boolean).join(" · ") : x.title]);
+  { const nt=dayNut(iso); if(nt) out.push(["Nutrition", nutLine(nt)+(nt.fibre?" · "+Math.round(nt.fibre)+"g fibre":"")]); }
+  if(d.water) out.push(["Water", d.water+" glasses"]);
   if(d.period&&periodOn()) out.push(["Period", d.period[0].toUpperCase()+d.period.slice(1)]);
   if(typeof d.weight==="number") out.push(["Weight", d.weight+" kg"]);
   for(const r of (Array.isArray(d.bp)?d.bp:[])) out.push(["Blood pressure", r.sys+"/"+r.dia+(r.time?" at "+r.time:"")]);
@@ -2588,6 +2994,7 @@ function drawTimeline(lanes, from, to){
     } else if(L.type==="line"||L.type==="bp"){
       let series=[];
       if(L.id==="weight") series=[Object.values(days).filter(d=>typeof d.weight==="number"&&inR(d.date)).map(d=>({date:d.date,value:d.weight})).sort((a,b)=>a.date.localeCompare(b.date))];
+      else if(L.fn) series=[Object.values(days).filter(d=>d.date&&inR(d.date)).map(d=>({date:d.date,value:L.fn(d)})).filter(p=>typeof p.value==="number"&&isFinite(p.value)).sort((a,b)=>a.date.localeCompare(b.date))];
       else if(L.type==="bp"){ const s1=[],s2=[]; for(const d of Object.values(days)) if(inR(d.date)) for(const r of (Array.isArray(d.bp)?d.bp:[])){ s1.push({date:d.date,value:r.sys,low:90,high:140}); s2.push({date:d.date,value:r.dia,low:60,high:90}); } series=[s1.sort((a,b)=>a.date.localeCompare(b.date)), s2.sort((a,b)=>a.date.localeCompare(b.date))]; }
       else series=[(testGroups().get(L.test)||[]).filter(e=>inR(e.date))];
       const all=series.flat(), last=series[0][series[0].length-1];
