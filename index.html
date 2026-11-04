@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.16">
+<meta name="app-version" content="2026-11-04.17">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -861,6 +861,15 @@ body.on-home .top{display:none}
 .ci-chip.on{background:#FFFFFF;color:#16302A;font-weight:700}
 .cyc-intim{margin:0;text-align:center;font-size:.9rem;color:var(--muted)}
 
+.tl-flag{font-size:10.5px;font-weight:700;fill:var(--ink)}
+.ev-pick li{list-style:none}
+.ev-row{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.ev-row input{width:20px;height:20px;margin-top:2px;flex:none}
+.ev-row b{display:block}
+.ev-row small{display:block;color:var(--muted);font-size:.82rem}
+.ev-row .ev-d{color:var(--ink);margin-top:3px}
+.ev-emo{font-size:1.3rem;line-height:1.2}
+
 /* Dr Quackers idle antics */
 .dq-cig,.dq-puff,.dq-cough,.dq-scritch line{opacity:0}
 .dq-ember{fill:#FF5A1F}
@@ -1230,6 +1239,7 @@ body.on-home .top{display:none}
     </article>
     <div class="row">
       <button class="btn ai" id="tlAsk" type="button">Ask Dr Quackers to analyse this chart</button>
+      <button class="btn ghost" id="tlFind" type="button">🚩 Find big events in my records</button>
       <button class="btn" id="tlStop" type="button" hidden>Stop</button>
     </div>
     <div class="chatlog" id="tlLog" aria-live="polite"></div>
@@ -1481,9 +1491,10 @@ const KINDS = {
   symptom:{one:"Symptom", many:"Symptom diary", date:"When"},
   result:{one:"Test result or letter", many:"Results & letters", date:"Date"},
   note:{one:"Note", many:"Notes & reviews", date:"Date"},
+  event:{one:"Big event", many:"Big events", date:"Date (or start)"},
   due:{one:"Due date", many:"Due dates", date:"Next due"}
 };
-const ORDER = ["allergy","medication","condition","appointment","due","symptom","result","note"];
+const ORDER = ["allergy","medication","condition","event","appointment","due","symptom","result","note"];
 const S = {db:null,col:null,user:null,sample:null,downloads:null,img:null,entries:[],profile:{},loaded:false,canWrite:true,aiOff:false,filter:"all",chat:[],chatFiles:[],prepCtl:null,chatCtl:null,prepText:"",prepFor:"",revCtl:null,revText:"",days:{},cal:null,selDay:null,notesFor:null};
 
 const GUIDE0 = "You are Dr Quackers (Doctor Quackers), a friendly cartoon duck in a white coat who is the health helper inside this personal health logbook app. You are an AI (Claude, made by Anthropic), not a real doctor: never claim medical qualifications or to be a person, and if asked what you are, say so plainly. In chat replies speak as Dr Quackers in the first person: warm, kind and plain-spoken, with gentle duck charm but no jokes when something is worrying or serious. Never write the word quack yourself: the app adds his quacks. In briefs, notes and documents don't mention yourself.\nYou are helping a person in the UK keep track of their own health and push their care forward with the NHS (GP, nurse, hospital, pharmacist), especially when appointments have gone round in circles. Use UK English and NHS terms. Be warm, plain-spoken, direct and practical.\n"
@@ -1529,6 +1540,7 @@ function subline(e){
   if(e.kind==="result" && typeof e.value==="number") bits.push(valueText(e));
   if(e.kind==="due"){ const ev=everyText(e); if(ev) bits.push(ev); if(e.status==="done") bits.push("done"); else if(e.date&&e.date<todayISO()) bits.push("overdue"); }
   if(e.kind==="symptom"){ const sd=symDesc(e); if(sd) bits.push(sd); }
+  if(e.kind==="event"){ bits.push((EVT_EMO[e.etype]||"🚩")+" "+(EVT_NAME[e.etype]||"Big event")+(e.endDate?" · until "+fmtDate(e.endDate):"")); }
   if(e.details && e.kind!=="appointment") bits.push(e.details.length>90? e.details.slice(0,90)+"…" : e.details);
   return bits.join(" · ");
 }
@@ -1785,6 +1797,7 @@ function buildContext(){
       if(e.status) bits.push(e.status);
       if(e.severity) bits.push("severity "+e.severity+"/10");
       if(e.kind==="symptom"){ const sd=symDesc(e); if(sd) bits.push(sd); }
+      if(e.kind==="event"){ bits.push(EVT_NAME[e.etype]||"big event"); if(e.endDate) bits.push("until "+fmtDate(e.endDate)); }
       if(typeof e.value==="number") bits.push("result: "+valueText(e));
       if(e.place) bits.push("with/at: "+e.place);
       if(e.details) bits.push(String(e.details).slice(0, e.kind==="note"?2000:e.kind==="result"?1500:600));
@@ -2970,7 +2983,8 @@ const IC={
   sleep:"M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z",
   bp:"M3 12h4l3-8 4 16 3-8h4",
   note:"M4 20h4L19 9l-4-4L4 16zM14 6l4 4",
-  plus:"M12 5v14M5 12h14"
+  plus:"M12 5v14M5 12h14",
+  flag:"M5 21V4M5 4h12l-2.5 4L17 12H5"
 };
 function recFilter(k){ S.filter=k; show("records"); renderRecords(); }
 function tlWith(lanes){ TL.sel=[...new Set([...lanes,...(TL.sel||[])])].slice(0,8); tlSaveSel(); show("timeline"); }
@@ -3017,6 +3031,7 @@ function openAddSheet(){
     ["Blood pressure or weight","bp","a",()=>{ closeSheet(); openDay(iso); }],
     ["Note","note","a",()=>{ closeSheet(); if(t.log) openSimpleLog(iso,"note"); else openDay(iso); }],
     ["Photo of a letter","letter","a",()=>{ closeSheet(); openImport(); }],
+    ["Big event","flag","r",()=>{ closeSheet(); openEntry(null,"event",{etype:"hospital"}); }],
     ["Something else","plus","a",()=>{ closeSheet(); openEntry(null,"symptom",{date:iso}); }]
   ].filter(Boolean);
   openSheet("What do you want to log?",[
@@ -3042,6 +3057,37 @@ function renderTrack(){
   const txt=h("div",{class:"dq-lines"}, ...lines.map(l=>h("p",{},l))); quackify(txt);
   box.replaceChildren(h("div",{class:"dq-say"}, duckSvg(56,""), h("div",{class:"dq-bub"}, h("p",{class:"th-h",style:"margin:0 0 4px"},"Patterns I noticed"), txt)),
     h("div",{class:"row"}, h("button",{class:"btn small ai",type:"button",onclick:()=>{ show("ask"); const c=$("#chatIn"); c.value="Looking at my logbook, what patterns can you see this week, and is any of it worth mentioning to my GP?"; c.focus(); }},"Talk it through")));
+}
+
+/* ---------- big events: hospital stays, A&E, operations, injuries, diagnoses ---------- */
+const EVT=[["hospital","🏥","Hospital stay"],["ae","🚑","A&E visit"],["op","🩹","Operation or procedure"],["injury","🦴","Injury or broken bone"],["diag","🩺","New diagnosis"],["other","🚩","Other big event"]];
+const EVT_EMO=Object.fromEntries(EVT.map(([k,e])=>[k,e])), EVT_NAME=Object.fromEntries(EVT.map(([k,,l])=>[k,l]));
+function evLabel(e){ return (EVT_EMO[e.etype]||"🚩")+" "+e.title; }
+function evWhen(e){ return fmtDate(e.date)+(e.endDate&&e.endDate>e.date? " to "+fmtDate(e.endDate) : ""); }
+function bigEventsOn(iso){ return ofKind("event").filter(e=>e.date&&(e.date===iso||(e.endDate&&e.date<=iso&&e.endDate>=iso))); }
+async function scanBigEvents(){
+  if(!S.sample||S.aiOff){ toast("Dr Quackers isn't available here."); return; }
+  const src=S.entries.filter(e=>e.kind!=="event"&&e.kind!=="symptom"&&(e.title||e.details));
+  if(!src.length){ toast("Import some letters or records first."); return; }
+  const st=h("p",{class:"thinking"},"Dr Quackers is reading through your records for big events… This can take a minute.");
+  const out=h("div",{style:"display:flex;flex-direction:column;gap:10px"});
+  openSheet("Find big events",[duckSay("I'll look through your letters and records for hospital stays, A&E visits, operations, injuries and big diagnoses.","think"), st, out]);
+  const lines=src.sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(e=>"- ["+KINDS[e.kind].one+"] "+(e.date||"no date")+": "+e.title+(e.details?" — "+String(e.details).replace(/\s+/g," ").slice(0,e.kind==="note"||e.kind==="result"?900:300):"")).join("\n").slice(0,60000);
+  const have=ofKind("event").map(e=>e.date+" "+e.title).join("; ")||"none";
+  const prompt="These are entries from a person's own UK health logbook (letters, results, conditions, medicines, appointments):\n"+lines+"\n\nList the BIG events in their health history that these records clearly state: hospital admissions or stays (with start and end dates if known), A&E visits, operations or procedures, injuries such as broken bones, and major new diagnoses. Each needs a date; use the 1st of the month if only the month and year are known, and skip anything with no date at all. Don't include routine appointments, ordinary blood tests or GP visits, and never invent anything. Skip events already saved: "+have+".\nReply with only JSON: {\"events\":[{\"etype\":\"hospital\"|\"ae\"|\"op\"|\"injury\"|\"diag\"|\"other\",\"title\":\"short, e.g. Admitted to QEQM with chest pain\",\"date\":\"YYYY-MM-DD\",\"end\":\"YYYY-MM-DD or empty\",\"details\":\"one or two plain sentences: what happened, where, and what was done\",\"from\":\"which record it came from\"}]}";
+  let res;
+  try{ res=await S.sample.json(prompt,{modelTier:"default"}); }
+  catch(e){ st.className="notice"; st.textContent=aiErr(e)||"Couldn't reach Dr Quackers. Try again."; return; }
+  const dt=x=>/^\d{4}-\d{2}-\d{2}$/.test(x||"")?x:"";
+  const found=((res&&res.events)||[]).filter(x=>x&&x.title&&dt(x.date)).map(x=>({kind:"event",etype:EVT_EMO[x.etype]?x.etype:"other",title:String(x.title).slice(0,160),date:dt(x.date),endDate:dt(x.end)>dt(x.date)?dt(x.end):undefined,details:[String(x.details||"").slice(0,800), x.from?"From: "+String(x.from).slice(0,200):""].filter(Boolean).join("\n\n"),source:"ai"}));
+  if(!found.length){ st.className="none"; st.textContent="I couldn't find any big events with dates in your records. You can add one yourself with the + button."; return; }
+  st.className="none"; st.textContent="I found "+found.length+". Untick anything that's wrong, then add them to your timeline.";
+  const picks=found.map(()=>true);
+  const list=h("ul",{class:"list ev-pick"}, ...found.map((x,i)=>{ const cb=h("input",{type:"checkbox",id:"evp"+i,checked:true}); cb.addEventListener("change",()=>{ picks[i]=cb.checked; go.textContent="Add "+picks.filter(Boolean).length+" to my timeline"; });
+    return h("li",{}, h("label",{class:"ev-row",for:"evp"+i}, cb, h("span",{class:"ev-emo","aria-hidden":"true"},EVT_EMO[x.etype]), h("span",{}, h("b",{},x.title), h("small",{}, evWhen(x)+" · "+EVT_NAME[x.etype]), x.details? h("small",{class:"ev-d"},x.details.split("\n\n")[0]) : null))); }));
+  const go=h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null},"Add "+found.length+" to my timeline");
+  go.addEventListener("click", async ()=>{ go.disabled=true; let n=0; for(let i=0;i<found.length;i++) if(picks[i]&&await saveEntry(found[i])) n++; closeSheet(); toast(n? "Added "+n+" big event"+(n>1?"s":"")+" to your timeline" : "Nothing added"); if(!$("#v-timeline").hidden) renderTimeline(); });
+  out.replaceChildren(list, go);
 }
 
 /* ---------- gut journey: food in, poo out ---------- */
@@ -3687,8 +3733,8 @@ function openEntry(entry, presetKind, preset){
   const date=h("input",{type:"date",id:"f-date",value:e.date||""});
   const dateLab=h("label",{for:"f-date"},KINDS[e.kind].date);
   const details=h("textarea",{id:"f-details",rows:"4"}); details.value=e.details||"";
-  const titleHints={symptom:"e.g. Tiredness, hair loss, dizzy when standing",medication:"e.g. Ferrous fumarate, B12 injections",condition:"e.g. Gastric sleeve, iron deficiency anaemia",allergy:"e.g. Penicillin",appointment:"e.g. GP review, haematology clinic",result:"Use the same name each time, e.g. Ferritin, Vitamin B12, Haemoglobin",note:"e.g. Phone call with the surgery",due:"e.g. B12 injection, Iron infusion, Annual bariatric bloods"};
-  const detailHints={symptom:"How it felt, how long, what helped or made it worse",medication:"What it's for, side effects you've noticed",condition:"Anything the doctor said about it",allergy:"What happens when you have it",appointment:"What was said, what happens next",result:"What the letter or doctor said about it",note:"Anything worth remembering",due:"Where it's done, who to call to book it"};
+  const titleHints={event:"e.g. Admitted to QEQM with chest pain, or Broke my wrist",symptom:"e.g. Tiredness, hair loss, dizzy when standing",medication:"e.g. Ferrous fumarate, B12 injections",condition:"e.g. Gastric sleeve, iron deficiency anaemia",allergy:"e.g. Penicillin",appointment:"e.g. GP review, haematology clinic",result:"Use the same name each time, e.g. Ferritin, Vitamin B12, Haemoglobin",note:"e.g. Phone call with the surgery",due:"e.g. B12 injection, Iron infusion, Annual bariatric bloods"};
+  const detailHints={event:"What happened, where, and what they did or found",symptom:"How it felt, how long, what helped or made it worse",medication:"What it's for, side effects you've noticed",condition:"Anything the doctor said about it",allergy:"What happens when you have it",appointment:"What was said, what happens next",result:"What the letter or doctor said about it",note:"Anything worth remembering",due:"Where it's done, who to call to book it"};
   const detailLab=h("label",{for:"f-details"},"Notes");
   const detailHint=h("span",{class:"hint"});
   const titleHint=h("span",{class:"hint"});
@@ -3730,6 +3776,12 @@ function openEntry(entry, presetKind, preset){
         field("f-high","to",num("f-high",e.high,"e.g. 150"))));
       parts.push(h("p",{class:"hint"},"Leave the numbers blank for a letter. Blood tests with numbers show up as trends on the Overview."));
     }
+    if(k==="event"){
+      const ty=h("select",{id:"f-etype"}, ...EVT.map(([v,em,l])=>h("option",{value:v},em+" "+l))); ty.value=e.etype||"hospital";
+      const en=h("input",{type:"date",id:"f-end",value:e.endDate||""});
+      parts.push(h("div",{class:"fields2"}, field("f-etype","What kind",ty), field("f-end","Until (for a stay)",en)));
+      parts.push(h("p",{class:"hint"},"Big events show as flags on your health timeline, so you can see what changed before and after."));
+    }
     if(k==="appointment"){
       const tm=h("input",{type:"time",id:"f-time",value:e.time||""});
       const pl=h("input",{type:"text",id:"f-place",value:e.place||"",placeholder:"e.g. Dr Patel, Dymchurch Surgery"});
@@ -3761,6 +3813,7 @@ function openEntry(entry, presetKind, preset){
     if(k==="condition"){ rec.status=v("f-status"); }
     if(k==="symptom"){ const n=parseInt(v("f-sev"),10); if(n>=1&&n<=10) rec.severity=n; if(e.time) rec.time=e.time; }
     if(k==="appointment"){ rec.time=v("f-time"); rec.place=v("f-place"); }
+    if(k==="event"){ rec.etype=v("f-etype")||"other"; const en=v("f-end"); rec.endDate= en&&date.value&&en>date.value? en : undefined; }
     if(k==="due"){ const n=parseInt(v("f-every"),10), u=v("f-every-unit"); if(n>=1&&u){ rec.everyN=n; rec.everyUnit=u; } rec.lastDone=e.lastDone; if(e.status==="done"&&date.value&&date.value>=todayISO()) rec.status=""; else rec.status=e.status; }
     if(k==="result"){ const n=id=>{ const x=parseFloat(v(id)); return isFinite(x)?x:undefined; }; rec.value=n("f-val"); rec.unit=v("f-unit"); rec.low=n("f-low"); rec.high=n("f-high"); }
     saveBtn.disabled=true;
@@ -3832,6 +3885,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-04.17", items:[["🚩","Big events on your timeline: hospital stays, A&E visits, operations, injuries and big diagnoses show as flags, with a line down the chart so you can see what changed before and after."],["🔎","Tap Find big events in my records under the timeline and Dr Quackers looks through your letters for them. You tick what's right before anything is added. New letters you import are checked for big events too."],["➕","Add one yourself with the + button: Big event."]]},
  {v:"2026-11-04.16", items:[["🦆","Fixed: Dr Quackers was stuck mid-wave, so he never got bored. Leave Home open for a minute and watch him."]]},
  {v:"2026-11-04.15", items:[["🏠","A fresh, simpler Home: Dr Quackers greets you at the top and you tap how you feel right under his speech bubble. His reminders and tip of the day sit just below."],["➕","One big + button for logging anything: food, drinks, poo, symptoms, heart, pain, sleep, period, medicines, blood pressure, notes or a photo of a letter."],["📈","New Track tab: your week, the timeline, the diary calendar, cycle, trends and gut journey are all in one place."],["🧩","My health tiles on Home jump straight to the diary, blood tests, medicines, getting ready for an appointment and more. Today's check-in folds away until you need it."],["💗","The period tracker now has a private intimacy log, and Dr Quackers fits his tips to where you are in your cycle."],["🦆","Dr Quackers gets bored when you leave him alone. Keep an eye on him."]]},
  {v:"2026-11-04.14", items:[["👋","Dr Quackers now welcomes you at the top of Home: he says hello, asks how you're feeling, reminds you about anything due soon, and gives you his tip for the day."],["🦆","He says quack after every sentence now (on screen only, and never when something's urgent)."]]},
@@ -4094,8 +4148,8 @@ function openImport(initial){
           + ((bi===0&&textBlock)? "Text taken from PDF files is below.\n\n"+textBlock+"\n\n" : "\n")
           + "Reply with only one JSON object of this shape:\n"
           + '{"documents":[one per distinct letter or document (not for plain lists of GP record entries): {"title": short name such as "Haematology clinic letter", "date": "YYYY-MM-DD" or "", "from": who sent it or where it is from, or "", "summary": a plain-English summary for the patient in 3 to 6 sentences: what it says, what any results or medical terms mean, and every action or next step mentioned (tests, follow-ups, medicine changes, referrals) with dates}],\n'
-          + ' "items":[every individual health record item you can clearly read: {"kind": one of "condition","medication","allergy","symptom","appointment","result","due", "title": short name, "date": "YYYY-MM-DD" (1st of the month if only month and year are shown, "" if none), "status": for conditions "ongoing" or "past", for medicines "current" or "stopped", otherwise "", "dose": for medicines strength and how to take it, otherwise "", "value": for a numeric test result the number only, otherwise null, "unit": its unit or "", "low": bottom of the normal range as a number or null, "high": top of the normal range as a number or null, "time": for an appointment "HH:MM" or "", "place": for an appointment who or where, or "", "everyN": for a repeating due item a whole number or null, "everyUnit": "days","weeks","months","years" or "", "details": one or two lines of other useful detail}]}\n'
-          + "Rules: never guess or invent anything you cannot read. Each blood test value is its own \"result\" item named by the test alone in standard UK wording (Ferritin, Vitamin B12, Folate, Haemoglobin, Vitamin D, MCV and so on) so results can be compared over time. Past operations, procedures and diagnoses are \"condition\". Anything that has to be done later (repeat bloods, an injection, a scan, a review) is \"due\", with its date set to when it is next due. A booked appointment with a date is \"appointment\". "
+          + ' "items":[every individual health record item you can clearly read: {"kind": one of "condition","medication","allergy","symptom","appointment","result","due","event", "title": short name, "date": "YYYY-MM-DD" (1st of the month if only month and year are shown, "" if none), "status": for conditions "ongoing" or "past", for medicines "current" or "stopped", otherwise "", "dose": for medicines strength and how to take it, otherwise "", "value": for a numeric test result the number only, otherwise null, "unit": its unit or "", "low": bottom of the normal range as a number or null, "high": top of the normal range as a number or null, "time": for an appointment "HH:MM" or "", "place": for an appointment who or where, or "", "everyN": for a repeating due item a whole number or null, "everyUnit": "days","weeks","months","years" or "", "details": one or two lines of other useful detail}]}\n'
+          + "Rules: never guess or invent anything you cannot read. Each blood test value is its own \"result\" item named by the test alone in standard UK wording (Ferritin, Vitamin B12, Folate, Haemoglobin, Vitamin D, MCV and so on) so results can be compared over time. Past operations, procedures and diagnoses are \"condition\". A hospital admission or stay, an A&E visit, an operation or procedure, an injury such as a broken bone, or a major new diagnosis ALSO gets its own \"event\" item with \"etype\" (one of hospital, ae, op, injury, diag, other), \"date\" when it started and \"end\" (YYYY-MM-DD, or \"\") when a stay ended. Anything that has to be done later (repeat bloods, an injection, a scan, a review) is \"due\", with its date set to when it is next due. A booked appointment with a date is \"appointment\". "
           + "Skip items already in this logbook: "+(existing||"(nothing yet)")+". If nothing can be read, reply with {\"documents\":[],\"items\":[]}.";
         const opts={signal:ctl.signal, modelTier:"default"}; if(b.length) opts.images=b.map(x=>x.blob);
         const res=await S.sample.json(prompt,opts);
@@ -4111,6 +4165,7 @@ function openImport(initial){
         const it={kind:i.kind,title:str(i.title,200),date:dt(i.date),details:str(i.details,1500)};
         if(i.kind==="condition") it.status=["ongoing","past"].includes(i.status)?i.status:"";
         if(i.kind==="medication"){ it.status=["current","stopped"].includes(i.status)?i.status:""; it.dose=str(i.dose,200); }
+        if(i.kind==="event"){ it.etype=EVT_EMO[i.etype]?i.etype:"other"; const en=dt(i.end); if(en&&it.date&&en>it.date) it.endDate=en; }
         if(i.kind==="result"){ it.value=num(i.value); it.unit=str(i.unit,30); it.low=num(i.low); it.high=num(i.high); }
         if(i.kind==="appointment"){ it.time=/^\d{2}:\d{2}$/.test(i.time||"")?i.time:""; it.place=str(i.place,200); }
         if(i.kind==="due"){ const n=parseInt(i.everyN,10); if(n>=1&&n<=99&&UNITS[i.everyUnit]){ it.everyN=n; it.everyUnit=i.everyUnit; } }
@@ -4318,6 +4373,7 @@ $("#hhGear").addEventListener("click",()=>$("#gearBtn").click());
 $("#hhLock").addEventListener("click",()=>$("#lockBtn").click());
 $("#fab").addEventListener("click",openAddSheet);
 $("#recPrep").addEventListener("click",()=>show("prepare"));
+$("#tlFind").addEventListener("click",scanBigEvents);
 $("#tlOpen").addEventListener("click",()=>show("timeline"));
 $("#tlBack").addEventListener("click",()=>show("overview"));
 $("#ciSymEdit").addEventListener("click",openSymEdit);
@@ -4408,6 +4464,10 @@ function tlSpan(){
   return {from,to};
 }
 function tlDayData(iso){
+  const big=bigEventsOn(iso).map(e=>["Big event", evLabel(e)+(e.endDate?" ("+evWhen(e)+")":"")]);
+  return [...big, ...tlDayData0(iso)];
+}
+function tlDayData0(iso){
   const d=(S.days||{})[iso]||{}, out=[];
   if(d.feel) out.push(["Mood", FACE[d.feel-1]+" "+FEEL[d.feel-1]]);
   if(d.energy) out.push(["Energy", ENERGY[d.energy-1]]);
@@ -4456,6 +4516,8 @@ function drawTimeline(lanes, from, to){
   const days=S.days||{}, inR=d=>d>=from&&d<=to;
   const label=(txt,right,cls)=>{ const t=sv("text",{x:PL,y:y+11,class:"tl-lab"}); t.textContent=txt; svg.append(t); if(right){ const r=sv("text",{x:W-PR,y:y+11,class:"tl-val"+(cls?" "+cls:""),"text-anchor":"end"}); r.textContent=right; svg.append(r); } y+=16; };
   const summary=[];
+  const bigEv=ofKind("event").filter(e=>e.date&&e.date<=to&&(e.endDate||e.date)>=from).sort((a,b)=>a.date.localeCompare(b.date)), flagTop=y;
+  if(bigEv.length) y+=28;
   for(const L of lanes){
     const top=y;
     if(L.type==="strip"){
@@ -4579,6 +4641,21 @@ function drawTimeline(lanes, from, to){
     }
     y+=2;
   }
+  if(bigEv.length){
+    const yb=y, g=sv("g",{class:"tl-big","pointer-events":"none"});
+    for(const e of bigEv){ const x1=X(e.date<from?from:e.date);
+      if(e.endDate&&e.endDate>e.date){ const x2=X(e.endDate>to?to:e.endDate); g.append(sv("rect",{x:x1-bw/2,y:flagTop+24,width:Math.max(3,x2-x1+bw),height:yb-flagTop-24,fill:"var(--alert)","fill-opacity":".09"})); }
+      g.append(sv("line",{x1,x2:x1,y1:flagTop+22,y2:yb,stroke:"var(--alert)","stroke-width":"1.3","stroke-dasharray":"3 3","stroke-opacity":".75"})); }
+    let right=-1;
+    for(const e of bigEv){ const x=X(e.date<from?from:e.date), short=e.title.length>14? e.title.slice(0,13)+"…" : e.title;
+      const full=x-10>right+4, txt=full? (EVT_EMO[e.etype]||"🚩")+" "+short : (EVT_EMO[e.etype]||"🚩"), w=full? Math.min(W-PL-PR, txt.length*5.9+16) : 22;
+      const bx=Math.max(PL, Math.min(W-PR-w, x-(full?11:11)));
+      g.append(sv("rect",{x:bx,y:flagTop+2,width:w,height:20,rx:10,fill:"var(--alert-soft)",stroke:"var(--alert)","stroke-width":"1"}));
+      const t=sv("text",{x:bx+(full?7:11),y:flagTop+16,class:"tl-flag","text-anchor":full?"start":"middle"}); t.textContent=txt; g.append(t);
+      right=bx+w; }
+    svg.append(g);
+    summary.unshift("Big events: "+bigEv.map(e=>e.date+(e.endDate?" to "+e.endDate:"")+" "+(EVT_NAME[e.etype]||"event")+": "+e.title).join("; "));
+  }
   // axis
   const axY=y+6; const ticks=tlTicks(from,to,n);
   for(const [iso,lab] of ticks){ const x=X(iso), hw=lab.length*3.4; const t=sv("text",{x:Math.min(W-PR-hw, Math.max(PL+hw, x)),y:axY+10,class:"tl-ax","text-anchor":"middle"}); t.textContent=lab; svg.append(t); svg.append(sv("line",{x1:x,x2:x,y1:axY-5,y2:axY-1,stroke:"var(--line)"})); }
@@ -4587,7 +4664,7 @@ function drawTimeline(lanes, from, to){
   const crossBottom=axY-6;
   const cross=sv("line",{x1:0,x2:0,y1:0,y2:crossBottom,stroke:"var(--ink)","stroke-width":"1.5","stroke-opacity":".85"}); svg.append(cross);
   const hot=new Set(); for(const d of Object.keys(days)) if(inR(d)&&tlDayData(d).length) hot.add(d);
-  for(const d of testDates) hot.add(d); for(const e of ev) hot.add(e.date); for(const e of ofKind("symptom")) if(e.date&&inR(e.date)) hot.add(e.date);
+  for(const d of testDates) hot.add(d); for(const e of ev) hot.add(e.date); for(const e of bigEv) hot.add(e.date<from?from:e.date); for(const e of ofKind("symptom")) if(e.date&&inR(e.date)) hot.add(e.date);
   const hotX=[...hot].map(d=>[d,X(d)]);
   const hit=sv("rect",{x:0,y:0,width:W,height:y,fill:"transparent",style:"cursor:crosshair;touch-action:pan-y"}); svg.append(hit);
   const setDay=iso=>{ TL.day=iso; const x=X(iso); cross.setAttribute("x1",x); cross.setAttribute("x2",x);
