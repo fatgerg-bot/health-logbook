@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.15">
+<meta name="app-version" content="2026-11-04.16">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -2810,16 +2810,17 @@ function duckSvg(size, cls, label){
   const wr=A("g",{class:"dq-wingR"}); A("ellipse",{cx:178,cy:165.5,rx:13,ry:30,fill:"#F2B705",...O,transform:"rotate(-20 178 140)"},wr);
   const puffs=add("g",{class:"dq-puffs"}); for(const [i,dx] of [[1,0],[2,6],[3,-4]]) add("circle",{cx:182+dx,cy:100,r:6,class:"dq-puff p"+i},puffs);
   const cough=add("text",{x:30,y:22,class:"dq-cough"}); cough.textContent="cough!";
+  s.addEventListener("animationend",e=>{ if(/^dq(Wave|Hop|FlapL|FlapR)$/.test(e.animationName)) s.classList.remove("wave","happy"); });
   if(size>=56) dqIdleWatch(s);
   return s;
 }
 /* idle antics: look around, a cheeky scratch, a crafty smoke (with a coughing fit) */
 const DQ_IDLE=new Set(); let dqIdleT=null;
-const DQ_ACTS=[["look",2200,.45],["scratch",2600,.32],["smoke",6400,.23]];
+const DQ_ACTS=[["look",2200,.34],["scratch",2600,.36],["smoke",6400,.30]];
 function dqIdleWatch(svg){
   if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   DQ_IDLE.add(svg);
-  if(!dqIdleT) dqIdleT=setInterval(dqIdleTick,7000);
+  if(!dqIdleT) dqIdleT=setInterval(dqIdleTick,6000);
 }
 function dqIdleTick(){
   if(document.hidden) return;
@@ -2827,10 +2828,10 @@ function dqIdleTick(){
     if(!d.isConnected){ if(d._seen) DQ_IDLE.delete(d); continue; } d._seen=true;
     if(!d.getClientRects().length) continue;
     if(["think","talk","wave","happy","look","scratch","smoke"].some(c=>d.classList.contains(c))) continue;
-    if(Math.random()>.45) continue;
+    if(Math.random()>.6) continue;
     let r=Math.random(), act=DQ_ACTS[0];
     for(const a of DQ_ACTS){ if(r<a[2]){ act=a; break; } r-=a[2]; }
-    if(act[0]==="smoke"&&Date.now()-(d._smoked||0)<120000) act=DQ_ACTS[0];
+    if(act[0]==="smoke"&&Date.now()-(d._smoked||0)<90000) act=DQ_ACTS[1];
     if(act[0]==="smoke") d._smoked=Date.now();
     d.classList.add(act[0]); setTimeout(()=>d.classList.remove(act[0]),act[1]);
   }
@@ -3831,6 +3832,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-04.16", items:[["🦆","Fixed: Dr Quackers was stuck mid-wave, so he never got bored. Leave Home open for a minute and watch him."]]},
  {v:"2026-11-04.15", items:[["🏠","A fresh, simpler Home: Dr Quackers greets you at the top and you tap how you feel right under his speech bubble. His reminders and tip of the day sit just below."],["➕","One big + button for logging anything: food, drinks, poo, symptoms, heart, pain, sleep, period, medicines, blood pressure, notes or a photo of a letter."],["📈","New Track tab: your week, the timeline, the diary calendar, cycle, trends and gut journey are all in one place."],["🧩","My health tiles on Home jump straight to the diary, blood tests, medicines, getting ready for an appointment and more. Today's check-in folds away until you need it."],["💗","The period tracker now has a private intimacy log, and Dr Quackers fits his tips to where you are in your cycle."],["🦆","Dr Quackers gets bored when you leave him alone. Keep an eye on him."]]},
  {v:"2026-11-04.14", items:[["👋","Dr Quackers now welcomes you at the top of Home: he says hello, asks how you're feeling, reminds you about anything due soon, and gives you his tip for the day."],["🦆","He says quack after every sentence now (on screen only, and never when something's urgent)."]]},
  {v:"2026-11-04.13", items:[["🦆","Dr Quackers has arrived! He's your new health helper (taking over from Pip): he answers your questions, reads your letters and explains your charts, and his beak moves as he talks."],["💡","Each day Dr Quackers looks at your logbook and gives you one suggestion on Home. Tap Chat about this to talk it over, or ✕ to hide it for the day."],["🩺","He's an AI, not a real doctor, so check anything important with your GP or pharmacist."]]},
