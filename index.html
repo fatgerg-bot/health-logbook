@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.9">
+<meta name="app-version" content="2026-11-04.10">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -759,6 +759,42 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 .bz-tabs{grid-template-columns:repeat(2,minmax(0,1fr));max-width:240px;margin:0 auto;width:100%}
 .bz-tabs .pf{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
 .bz-tabs .pf[aria-pressed="true"]{background:var(--soft);border-color:var(--accent);color:var(--accent)}
+
+/* gut journey */
+.gut-body{display:flex;flex-direction:column;gap:14px}
+.gut-nav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.gut-when{font-weight:700;font-size:.92rem}
+.gut-strip{width:100%;height:auto}
+.gut-band{fill:var(--soft);stroke:var(--accent);stroke-dasharray:3 3;stroke-width:1}
+.gut-axis{stroke:var(--line);stroke-width:1.5}
+.gut-lab{font-size:8.5px;fill:var(--muted)}
+.gut-dot{fill:var(--muted);fill-opacity:.45}
+.gut-dot.in{fill:var(--accent);fill-opacity:.95}
+.gut-dot.dr{fill:#3E7CB1;fill-opacity:.7}
+.gut-flow{display:flex;flex-direction:column;gap:0;position:relative}
+.gf-st{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:14px;position:relative}
+.gf-st+.gf-st{margin-top:14px}
+.gf-st+.gf-st::before{content:"";position:absolute;left:29px;top:-15px;height:16px;border-left:2px dashed var(--line)}
+.gf-st.in{background:var(--soft)}
+.gf-st.mid{background:var(--bg);padding:7px 12px}
+.gf-st.out{background:#F3E9E1;color:#3A2618}
+.gf-st b{display:block;font-size:.94rem}
+.gf-st small{display:block;color:var(--muted);font-size:.8rem}
+.gf-st.out small{color:#6B4F3B}
+.gf-ic{flex:none;width:36px;display:flex;justify-content:center;font-size:1.2rem;line-height:1.4}
+.gf-ic .bss{width:36px;height:22px}
+.gf-food{list-style:none;padding:0;margin:4px 0 0;display:flex;flex-direction:column;gap:3px;font-size:.84rem}
+.gf-food li{display:grid;grid-template-columns:auto 1fr auto;gap:8px}
+.gf-t{font-family:var(--f-mono);font-size:.76rem;color:var(--muted);white-space:nowrap}
+.gf-ago{font-family:var(--f-mono);font-size:.76rem;color:var(--accent)}
+.gut-sum p{font-size:.9rem;margin:0 0 6px}
+.gut-ai p{font-size:.9rem}
+.gut-test{border:1px dashed var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.gut-link{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:9px 12px;color:var(--ink);font-size:.86rem;cursor:pointer}
+.gut-link b{color:var(--accent);white-space:nowrap}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .gf-st.out{background:#3A2A1F;color:#F3E9E1} :root:not([data-theme="light"]) .gf-st.out small{color:#D8C2B0} }
+:root[data-theme="dark"] .gf-st.out{background:#3A2A1F;color:#F3E9E1}
+:root[data-theme="dark"] .gf-st.out small{color:#D8C2B0}
 
 /* poo tracker */
 .bss-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
@@ -1883,7 +1919,7 @@ function renderLogCard(){
     logQuickAdds(iso),
     t.food? nutPanel(iso) : null,
     ...warns.slice(0,2).map(w=>h("div",{class:"lg-flag"}, h("span",{class:"wk-dot","aria-hidden":"true"}), h("span",{}, w))),
-    t.stool&&bowelSummary(14)? h("p",{class:"hint"},"💩 "+bowelSummary(14)) : null,
+    t.stool&&bowelSummary(14)? h("button",{class:"gut-link",type:"button",onclick:()=>openGut()}, h("span",{},"💩 "+bowelSummary(14)), h("b",{},"Gut journey ›")) : null,
     ...pats.slice(0,2).map(p=>h("div",{class:"lg-flag"}, h("span",{class:"wk-dot","aria-hidden":"true"}), h("span",{}, "Pattern: "+p.title.toLowerCase()+" came within 3 hours of eating on "+p.after+" of the last "+p.n+" times (about "+durTxt(p.avg)+" after, on average). Worth showing your GP."))),
     (t.log||t.stool)? logList(iso) : null].filter(Boolean));
 }
@@ -2334,7 +2370,8 @@ function bristolSvg(n){
 function stoolTitle(x){ const b=BRISTOL.find(r=>r[0]===x.bristol); const col=STOOL_COL.find(c=>c[0]===x.colour); return "Type "+(x.bristol||"?")+(b?" ("+b[1].toLowerCase()+")":"")+(col&&x.colour!=="brown"?", "+col[1].toLowerCase():""); }
 function stoolWarn(x){
   const f=new Set(x.flags||[]), out=[];
-  if(f.has("blood")||x.colour==="red") out.push("Blood in your poo: contact your GP today or call NHS 111. Call 999 if you're bleeding a lot or feel faint.");
+  if(x.marker==="beetroot"&&x.colour==="red"&&!f.has("blood")) out.push("Beetroot often turns poo red or pink. If it's still red in a couple of days, or you're not sure, contact your GP or NHS 111.");
+  else if(f.has("blood")||x.colour==="red") out.push("Blood in your poo: contact your GP today or call NHS 111. Call 999 if you're bleeding a lot or feel faint.");
   if(f.has("tarry")||(x.colour==="black"&&f.has("tarry"))) out.push("Black, sticky, tar-like poo can mean bleeding higher up: contact your GP today or call NHS 111.");
   else if(x.colour==="black") out.push("Iron tablets often make poo dark or black, which is normal. If it's also sticky and tar-like, contact your GP today or call NHS 111.");
   if(x.colour==="pale"||f.has("greasy")) out.push("Pale, greasy or floating poo can mean food isn't being absorbed properly. Worth mentioning to your GP if it keeps happening.");
@@ -2355,6 +2392,7 @@ function openStool(iso, item){
   const cols=h("div",{class:"chips wrapchips st-cols",role:"group","aria-label":"Colour"});
   const flags=h("div",{class:"chips wrapchips",role:"group","aria-label":"Anything else"});
   const warn=h("div",{class:"st-warn"});
+  const test=(S.profile||{}).transitTest, mk=h("div",{class:"chips wrapchips"});
   const st=h("p",{class:"hint",role:"status"});
   const photoIn=h("input",{type:"file",accept:"image/*",capture:"environment",hidden:true});
   function draw(){
@@ -2363,6 +2401,7 @@ function openStool(iso, item){
     const f=new Set(item.flags||[]);
     flags.replaceChildren(...STOOL_FLAGS.map(([v,l])=>h("button",{type:"button",class:"fchip"+(f.has(v)?" on":""),"aria-pressed":String(f.has(v)),onclick:()=>{ f.has(v)?f.delete(v):f.add(v); item.flags=[...f]; draw(); }}, (f.has(v)?"✓ ":"")+l)));
     const w=stoolWarn(item); warn.hidden=!w.length; warn.replaceChildren(...w.map(t=>h("p",{},t)));
+    if(test&&test.start&&isNew) mk.replaceChildren(h("button",{type:"button",class:"fchip"+(item.marker?" on":""),"aria-pressed":String(!!item.marker),onclick:()=>{ item.marker=item.marker?undefined:test.food; draw(); }}, (item.marker?"✓ ":"🌽 ")+"Saw the "+test.food));
   }
   photoIn.addEventListener("change", async ()=>{
     const f=photoIn.files[0]; photoIn.value=""; if(!f) return;
@@ -2383,20 +2422,132 @@ function openStool(iso, item){
   save.addEventListener("click", async ()=>{
     if(!item.bristol){ toast("Pick the type that looks closest."); return; }
     save.disabled=true;
-    const rec={id:item.id,type:"stool",time:tm.value||nowHM(),bristol:item.bristol,colour:item.colour||"brown",flags:(item.flags||[]).length?item.flags:undefined,details:det.value.trim()||undefined,src:item.src};
+    const rec={id:item.id,type:"stool",time:tm.value||nowHM(),bristol:item.bristol,colour:item.colour||"brown",flags:(item.flags||[]).length?item.flags:undefined,details:det.value.trim()||undefined,src:item.src,marker:item.marker||undefined};
     rec.title=stoolTitle(rec);
     const ok=await addLog(iso,rec); save.disabled=false;
-    if(ok){ closeSheet(); const w=stoolWarn(rec); if(w.length) toast(w[0]); }
+    if(ok){ closeSheet();
+      if(rec.marker&&test&&test.start){ const hrs=Math.round((isoTime(iso,rec.time)-test.start)/3600e3); if(hrs>=4){ await saveProfilePatch({transit:{hours:hrs,date:iso,food:test.food},transitTest:null}); toast("🌽 Your gut speed: about "+hrs+" hours. Gut journeys now use it."); return; } }
+      const w=stoolWarn(rec); if(w.length) toast(w[0]); }
   });
   openSheet(isNew?"Log a poo":"Edit poo log",[
     h("div",{class:"row",style:"justify-content:space-between;align-items:center"}, h("p",{class:"flabel"},"What did it look like?"), h("button",{class:"btn small",type:"button",onclick:()=>photoIn.click()},"📷 Photo")), photoIn, st,
     grid,
     h("p",{class:"flabel"},"Colour"), cols,
-    h("p",{class:"flabel"},"Anything else?"), flags,
+    h("p",{class:"flabel"},"Anything else?"), flags, mk,
     warn, h("div",{class:"fields2"}, h("div",{class:"field"}, h("label",{for:"st-time"},"Time"), tm)), h("div",{class:"field"}, h("label",{for:"st-det"},"Notes"), det),
     h("p",{class:"fineprint"},"Photos are only looked at by Claude to suggest the type and are never saved."),
-    h("div",{class:"row",style:"justify-content:space-between"}, isNew? h("span") : h("button",{class:"btn danger",type:"button",onclick:async()=>{ if(await removeLog(iso,item.id)) closeSheet(); }},"Delete"), save)]);
+    isNew? null : h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); openGut(item.id); }},"🔄 See its gut journey"),
+    h("div",{class:"row",style:"justify-content:space-between"}, isNew? h("span") : h("button",{class:"btn danger",type:"button",onclick:async()=>{ if(await removeLog(iso,item.id)) closeSheet(); }},"Delete"), save)].filter(Boolean));
   draw();
+}
+
+/* ---------- gut journey: food in, poo out ---------- */
+function isoTime(iso, hm){ const [y,m,d]=iso.split("-").map(Number); const t=hm2m(hm); return new Date(y,m-1,d,t==null?12:Math.floor(t/60),t==null?0:t%60).getTime(); }
+function gutSpeed(){ const t=(S.profile||{}).transit; return t&&t.hours? t : null; }
+function gutWindow(){ const t=gutSpeed(); if(t){ const H=t.hours; return {lo:Math.max(6,H-16), likeLo:Math.max(6,H-8), likeHi:H+8, hi:H+16, personal:true}; } return {lo:12, likeLo:24, likeHi:48, hi:72, personal:false}; }
+function allStools(){ const out=[]; for(const [iso,d] of Object.entries(S.days||{})) for(const x of (Array.isArray(d.log)?d.log:[])) if(x.type==="stool") out.push({...x,date:iso,at:isoTime(iso,x.time)}); return out.sort((a,b)=>a.at-b.at); }
+function gutMeals(at, hi){
+  const out=[], start=at-hi*3600e3;
+  const today=new Date(at); const base=isoOf(today.getFullYear(),today.getMonth(),today.getDate());
+  for(let i=0;i<=Math.ceil(hi/24)+1;i++){ const iso=addDays(base,-i);
+    for(const x of dayLog(iso)) if(x.type==="meal"||x.type==="drink"){ const t=isoTime(iso,x.time); if(t>=start&&t<=at) out.push({...x,date:iso,at:t,ago:(at-t)/3600e3}); } }
+  return out.sort((a,b)=>a.at-b.at);
+}
+function gutFacts(stool){
+  const W=gutWindow(), all=gutMeals(stool.at, W.hi);
+  const likely=all.filter(m=>m.type==="meal"&&m.ago>=W.likeLo&&m.ago<=W.likeHi);
+  const recent=all.filter(m=>m.type==="meal"&&m.ago<2);
+  const sum=k=>Math.round(likely.reduce((a,m)=>a+(+((m.n||{})[k])||0),0)*10)/10;
+  const hasN=likely.some(m=>m.n);
+  const days=[...new Set(likely.map(m=>m.date))];
+  const water=days.length? Math.round(days.reduce((a,d)=>a+(((S.days||{})[d]||{}).water||0),0)/days.length*10)/10 : null;
+  const drinks=all.filter(m=>m.type==="drink"&&m.ago<=W.hi).map(m=>m.title||m.desc||"drink");
+  const st=allStools(), i=st.findIndex(x=>x.id===stool.id), prev=i>0? st[i-1] : null;
+  return {W, all, likely, recent, kcal:sum("kcal"), fibre:sum("fibre"), fat:sum("fat"), sugar:sum("sugar"), hasN, water, waterLogged:days.some(d=>((S.days||{})[d]||{}).water!=null), drinks, gap: prev? (stool.at-prev.at)/3600e3 : null};
+}
+function gutSummary(stool, f){
+  const B=BRISTOL.find(r=>r[0]===stool.bristol)||[], out=[];
+  const meaning={constipated:"on the hard side, which usually means it sat in the large intestine a long time and lost water",normal:"the kind doctors call ideal",loose:"on the soft side, which usually means it moved through quickly",diarrhoea:"loose, which means it rushed through before water could be absorbed"}[B[3]]||"";
+  out.push("Type "+stool.bristol+" ("+(B[1]||"").toLowerCase()+") is "+meaning+".");
+  if(f.likely.length) out.push("It most likely came from "+f.likely.length+" meal"+(f.likely.length>1?"s":"")+" eaten "+Math.round(f.W.likeLo)+"–"+Math.round(f.W.likeHi)+" hours before"+(f.hasN&&f.kcal?" (about "+Math.round(f.kcal).toLocaleString("en-GB")+" kcal"+(f.fibre?", "+Math.round(f.fibre)+"g fibre":"")+")":"")+".");
+  else out.push("No meals were logged "+Math.round(f.W.likeLo)+"–"+Math.round(f.W.likeHi)+" hours before it, so there's nothing to link it to yet.");
+  const perDay=f.likely.length? f.fibre/Math.max(1,(f.W.likeHi-f.W.likeLo)/24) : null, tgt=((S.profile||{}).targets||{}).fibre||25;
+  if(f.hasN&&perDay!=null&&perDay<tgt*.6&&stool.bristol<=3) out.push("Fibre was low in that window, which often goes with harder poo.");
+  if(f.waterLogged&&f.water!=null&&f.water<6&&stool.bristol<=2) out.push("Water was low too (about "+f.water+" glasses a day).");
+  if(f.hasN&&f.fat>90&&stool.bristol>=5) out.push("Those meals were quite fatty, which can make poo softer or greasy.");
+  if(f.recent.length) out.push("You ate "+Math.round(f.recent[f.recent.length-1].ago*60)+" minutes before going. That urge after eating is normal: the meal makes the gut push out what's already there, not that meal itself.");
+  if(f.gap!=null) out.push("It was "+(f.gap<24? Math.round(f.gap)+" hours" : (Math.round(f.gap/24*10)/10)+" days")+" since your last logged poo.");
+  return out;
+}
+function gutDiagram(stool, f){
+  const W=330, H=96, PL=10, PR=10, span=f.W.hi, X=ago=>PL+(W-PL-PR)*(1-ago/span);
+  const s=sv("svg",{viewBox:"0 0 "+W+" "+H,class:"gut-strip",role:"img","aria-label":"Meals in the "+span+" hours before this poo, with the most likely window shaded"});
+  s.append(sv("rect",{x:X(f.W.likeHi),y:14,width:X(f.W.likeLo)-X(f.W.likeHi),height:48,rx:8,class:"gut-band"}));
+  const tl=sv("text",{x:(X(f.W.likeHi)+X(f.W.likeLo))/2,y:10,"text-anchor":"middle",class:"gut-lab"}); tl.textContent="most likely in this one"; s.append(tl);
+  s.append(sv("line",{x1:PL,y1:38,x2:W-PR,y2:38,class:"gut-axis"}));
+  for(let hgt=0;hgt<=span;hgt+=12){ const x=X(hgt); s.append(sv("line",{x1:x,y1:62,x2:x,y2:66,class:"gut-axis"})); if(hgt%24===0){ const t=sv("text",{x,y:78,"text-anchor":hgt>=span-1?"start":hgt===0?"end":"middle",class:"gut-lab"}); t.textContent= hgt? hgt+"h before" : "poo"; s.append(t); } }
+  for(const m of f.all){ const r= m.type==="meal"? Math.max(4,Math.min(9,3+((m.n||{}).kcal||300)/120)) : 3; const inL=m.ago>=f.W.likeLo&&m.ago<=f.W.likeHi;
+    const c=sv("circle",{cx:X(m.ago),cy:38,r,class:"gut-dot"+(m.type==="drink"?" dr":"")+(inL?" in":"")}); const t=sv("title",{}); t.textContent=(m.meal||m.title||"")+" "+m.time; c.append(t); s.append(c); }
+  const px=X(0); const g=sv("g",{transform:"translate("+(px-14)+",24)"}); const b=bristolSvg(stool.bristol); b.setAttribute("width","28"); b.setAttribute("height","16"); b.setAttribute("x","0"); b.setAttribute("y","6"); g.append(b); s.append(g);
+  const k=sv("text",{x:PL,y:92,class:"gut-lab"}); k.textContent="● meal (bigger = more calories)   · drink"; s.append(k);
+  return s;
+}
+function gutFlow(stool, f){
+  const B=BRISTOL.find(r=>r[0]===stool.bristol)||[], col=STOOL_COL.find(c=>c[0]===stool.colour);
+  const stage=(ic,t,sub,cls)=>h("div",{class:"gf-st"+(cls?" "+cls:"")}, h("span",{class:"gf-ic","aria-hidden":"true"},ic), h("div",{}, h("b",{},t), sub? h("small",{},sub):null));
+  const food=f.likely.length? f.likely.map(m=>h("li",{}, h("span",{class:"gf-t"}, new Date(m.at).toLocaleDateString("en-GB",{weekday:"short"})+" "+(m.time||"")), h("span",{}, (m.meal?m.meal+": ":"")+(m.desc||(m.items||[]).map(i=>i.name).join(", ")||"meal")), h("span",{class:"gf-ago"}, Math.round(m.ago)+"h"))) : [h("li",{class:"none"},"No meals logged in the likely window.")];
+  return h("div",{class:"gut-flow"},
+    h("div",{class:"gf-st in"}, h("span",{class:"gf-ic","aria-hidden":"true"},"🍽️"), h("div",{}, h("b",{},"Food in"), h("ul",{class:"gf-food"},...food))),
+    stage("🥣","Stomach","about 2–5 hours: churned into a paste","mid"),
+    stage("〰️","Small intestine","about 2–6 hours: nutrients absorbed","mid"),
+    stage("🌀","Large intestine","about 10–60 hours: water taken back, poo formed","mid"),
+    h("div",{class:"gf-st out"}, h("span",{class:"gf-ic","aria-hidden":"true"}, bristolSvg(stool.bristol)), h("div",{}, h("b",{},"Out · "+new Date(stool.at).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})+" "+(stool.time||"")), h("small",{},"Type "+stool.bristol+" "+(B[1]||"").toLowerCase()+(col?" · "+col[1].toLowerCase():"")+((stool.flags||[]).length?" · "+stool.flags.join(", "):"")))));
+}
+function openGut(stoolId){
+  const st=allStools(); if(!st.length){ toast("Log a poo first."); return; }
+  let i= stoolId? Math.max(0,st.findIndex(x=>x.id===stoolId)) : st.length-1;
+  const body=h("div",{class:"gut-body"});
+  function draw(){
+    const stool=st[i], f=gutFacts(stool), sum=gutSummary(stool,f);
+    const ai=h("div",{class:"gut-ai"}); const ask=h("button",{class:"btn",type:"button",disabled:(!S.sample||S.aiOff)||null},"✦ Ask Claude about this one");
+    ask.addEventListener("click", async ()=>{
+      ask.disabled=true; ai.replaceChildren(h("p",{class:"hint"},"Claude is looking…"));
+      const meds=ofKind("medication").filter(m=>m.status!=="stopped").map(m=>m.title).join(", ")||"none recorded";
+      const conds=ofKind("condition").filter(c=>c.status!=="past").map(c=>c.title).join(", ")||"none recorded";
+      const meals=f.all.map(m=>"- "+fmtDate(m.date)+" "+(m.time||"")+" ("+Math.round(m.ago)+"h before): "+(m.type==="drink"? "drink "+(m.title||"") : (m.meal||"meal")+" "+(m.desc||(m.items||[]).map(x=>x.name+(x.amount?" "+x.amount:"")).join(", "))+(m.n?" ["+["kcal","protein","fibre","fat","sugar"].filter(k=>m.n[k]).map(k=>k+" "+Math.round(m.n[k])).join(", ")+"]":""))).join("\n")||"none logged";
+      const prompt="You are helping someone understand their own digestion from their private health diary. Be warm, plain and brief (British English, 4 to 6 short sentences, no headings). Do not diagnose.\n\nThey logged a poo: "+fmtDate(stool.date)+" "+(stool.time||"")+", Bristol type "+stool.bristol+", colour "+(stool.colour||"brown")+(stool.flags&&stool.flags.length?", also: "+stool.flags.join(", "):"")+(stool.details?", notes: "+stool.details:"")+".\nTime since the previous logged poo: "+(f.gap!=null?Math.round(f.gap)+" hours":"unknown")+".\nTheir "+(f.W.personal?"measured":"assumed typical")+" gut transit window: most likely "+f.W.likeLo+"–"+f.W.likeHi+" hours.\nFood and drink in the "+f.W.hi+" hours before:\n"+meals+"\nWater: "+(f.water!=null?f.water+" glasses a day":"not logged")+".\nCurrent medicines: "+meds+".\nConditions: "+conds+".\n\nExplain what this poo suggests, which of the foods or drinks in the likely window could have contributed and why (fibre, fat, fluid, caffeine, sweeteners, spice, dairy), anything about their medicines or conditions that commonly affects bowels, and one practical tip. Remember an urge soon after eating is the gastrocolic reflex, not that meal. If there is blood or black tar-like poo, tell them to contact their GP today or NHS 111.";
+      try{ const {text}=await S.sample(prompt,{modelTier:"quick",cache:false,onText:({text})=>{ ai.replaceChildren(md(text)); }}); ai.replaceChildren(md(text)); }
+      catch(e){ ai.replaceChildren(h("p",{class:"hint"}, aiErr(e)||"Couldn't reach Claude. Try again.")); ask.disabled=false; }
+    });
+    body.replaceChildren(
+      h("div",{class:"gut-nav"},
+        h("button",{class:"btn small",type:"button",disabled:i===0||null,"aria-label":"Earlier poo",onclick:()=>{ i--; draw(); }},"‹ Earlier"),
+        h("span",{class:"gut-when"}, new Date(st[i].at).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})+" "+(st[i].time||"")),
+        h("button",{class:"btn small",type:"button",disabled:i===st.length-1||null,"aria-label":"Later poo",onclick:()=>{ i++; draw(); }},"Later ›")),
+      gutDiagram(stool,f),
+      gutFlow(stool,f),
+      h("div",{class:"gut-sum"}, h("p",{class:"flabel"},"In short"), ...sum.map(t=>h("p",{},t))),
+      ...stoolWarn(stool).map(w=>h("div",{class:"lg-flag"}, h("span",{class:"wk-dot","aria-hidden":"true"}), h("span",{},w))),
+      ask, ai,
+      transitBox(),
+      h("p",{class:"fineprint"},"Food usually takes 1 to 3 days to come out, so these links are best guesses. "+(f.W.personal?"The window uses your measured gut speed.":"Do the sweetcorn test to make the window fit you.")));
+  }
+  openSheet("Gut journey",[body]);
+  draw();
+}
+function transitBox(){
+  const p=S.profile||{}, t=p.transitTest, sp=gutSpeed();
+  const box=h("div",{class:"gut-test"});
+  const head=h("p",{class:"flabel"},"🌽 Your gut speed"+(sp?": about "+Math.round(sp.hours)+" hours":""));
+  if(t&&t.start){
+    box.append(head, h("p",{class:"hint"},"Test running since "+new Date(t.start).toLocaleString("en-GB",{weekday:"short",hour:"2-digit",minute:"2-digit"})+". When you first see "+t.food+" in your poo, tick \"Saw the "+t.food+"\" when you log it."),
+      h("button",{class:"btn ghost",type:"button",onclick:async()=>{ await saveProfilePatch({transitTest:null}); closeSheet(); toast("Test cancelled"); }},"Cancel test"));
+  } else {
+    const go=food=>async()=>{ await saveProfilePatch({transitTest:{start:Date.now(),food}}); closeSheet(); toast("Test started. Tick it when you see the "+food+"."); };
+    box.append(head, h("p",{class:"hint"},(sp?"Measured "+fmtDate(sp.date)+". ":"")+"Eat a good portion of sweetcorn or beetroot, tap below, and tick it when it shows up in your poo. That measures how long food takes to go through you."),
+      h("div",{class:"row"}, h("button",{class:"btn small",type:"button",disabled:!S.canWrite||null,onclick:go("sweetcorn")},"I just ate sweetcorn"), h("button",{class:"btn small",type:"button",disabled:!S.canWrite||null,onclick:go("beetroot")},"I just ate beetroot")));
+  }
+  return box;
 }
 
 /* ---------- Apple Health and devices ---------- */
@@ -2910,6 +3061,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-04.10", items:[["🔄","Gut journey: see which meals most likely ended up in each poo, as a picture from food in to poo out, with a short summary. Tap the poo line on Home, or open any poo log."],["✦","Ask Claude about any poo and the food before it."],["🌽","Sweetcorn test: eat sweetcorn or beetroot, tick it when it shows up, and the app learns your own gut speed."]]},
  {v:"2026-11-04.9", items:[["💓","Heart episodes: tap Palpitations (or 💓 Heart episode) to log how long it lasted, what it felt like, your pulse and what was going on. Doctors ask exactly this."],["📍","Pain map: tap where it hurts on a body picture, front or back, and say what kind of pain. Places you've logged before are shaded."],["⚠️","Chest pain, fainting or bad breathlessness with either one flags when to call 999."]]},
  {v:"2026-11-04.8", items:[["💩","New optional poo tracker: tap the Bristol chart picture that matches, or take a photo and Claude suggests the type and colour. Photos are never saved."],["⚠️","Warning signs like blood or black, tar-like poo are flagged with what to do."],["🔗","Loose poo soon after meals now shows up in the after-eating patterns."]]},
  {v:"2026-11-04.7", items:[["📖","Recipes: tick \"This is a recipe\", paste the ingredients, say how many portions it makes and how many you had. Claude works out one portion and saves it to My recipes."],["🧮","Enter the day's nutrition as one total, for example from another app."],["🛠️","Fixed long recipes or meals sometimes failing to work out."]]},
