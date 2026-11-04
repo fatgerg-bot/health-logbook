@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.5">
+<meta name="app-version" content="2026-11-04.6">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -722,6 +722,17 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 .wn-l li{display:flex;gap:10px;align-items:flex-start;font-size:.95rem}
 .wn-i{flex:none;width:30px;height:30px;border-radius:9px;background:var(--soft);display:grid;place-items:center;font-size:.95rem}
 
+/* devices */
+.ci-dev{font-size:.84rem;background:var(--glass);border-radius:10px;padding:8px 11px}
+.ci-dev[hidden]{display:none}
+.cp-row{display:flex;gap:8px;align-items:center}
+.cp-in{flex:1;min-width:0;font-family:var(--f-mono);font-size:.78rem}
+.hs-key{display:flex;flex-direction:column;gap:10px}
+.hs-opt{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.hs-opt summary{font-weight:700;cursor:pointer}
+.hs-steps{margin:10px 0 0;padding-left:1.3em;display:flex;flex-direction:column;gap:8px;font-size:.92rem}
+.hs-steps code{font-family:var(--f-mono);font-size:.82rem;background:var(--bg);padding:1px 5px;border-radius:5px}
+
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
 .tab svg{width:54px;height:30px;padding:4px 16px;border-radius:99px;transition:background .15s ease}
@@ -761,6 +772,7 @@ details.fold[open] .fchev{transform:rotate(90deg)}
         <div class="pflow five" id="ciEnergy" role="group" aria-label="Energy today"></div>
       </div>
       <div class="ci-block sd" data-sec="sleepd" id="ciSleepD" hidden></div>
+      <p class="ci-dev" id="ciDev" hidden></p>
       <div class="ci-block">
         <div class="ci-row"><p class="ci-lab">Any symptoms today?</p><button class="ci-edit" id="ciSymEdit" type="button">Edit list</button></div>
         <div class="ci-chips" id="ciChips"></div>
@@ -868,6 +880,7 @@ details.fold[open] .fchev{transform:rotate(90deg)}
     <div class="set-head" id="setHead"></div>
     <article class="panel set-card"><h3 class="set-h">Your details</h3><div id="setDetails" class="set-body"></div></article>
     <article class="panel set-card"><h3 class="set-h">Trackers</h3><div id="setTrk" class="set-body"></div></article>
+    <article class="panel set-card"><h3 class="set-h">Phones and devices</h3><div id="setHealth" class="set-body"></div></article>
     <article class="panel set-card"><h3 class="set-h">Daily check-in</h3><div id="setCheckin" class="set-body"></div></article>
     <article class="panel set-card"><h3 class="set-h">Privacy and security</h3><div id="setPin" class="set-body"></div></article>
     <article class="panel set-card"><h3 class="set-h">App</h3><div id="setApp" class="set-body"></div></article>
@@ -1438,6 +1451,7 @@ function buildContext(){
       if(d.stress) b.push("stress "+STRESS[d.stress-1].toLowerCase());
       if(d.sleepLog){ const c=sleepCalc(d.sleepLog), L=d.sleepLog; b.push("sleep diary: bed "+L.bed+", woke "+L.wake+(L.fall!=null?", took ~"+L.fall+" min to fall asleep":"")+(L.wakes!=null?", woke "+L.wakes+"x in the night"+(L.wakes&&L.awake?" (awake ~"+L.awake+" min)":""):"")+(c?", about "+durTxt(c.asleep)+" asleep, "+c.eff+"% efficiency":"")); }
       if(d.water) b.push(d.water+" glasses of water");
+      { const dc=devContext(d); if(dc) b.push("from their watch/ring: "+dc); }
       const nt=dayNut(d.date); if(nt) b.push("nutrition total: "+NUTS.map(([k,l,u])=>Math.round(nt[k]||0)+(u||"")+" "+l).join(", "));
       if(Array.isArray(d.log)&&d.log.length) b.push("log: "+d.log.map(x=>(x.time||"?")+" "+(x.type==="meal"? (x.meal||"meal").toLowerCase()+": "+(x.desc||(x.items||[]).map(i=>i.name).join(", "))+(x.n&&x.n.kcal?" ("+Math.round(x.n.kcal)+" kcal)":"") : (LOGT[x.type]||LOGT.note).l.toLowerCase()+": "+x.title+(x.details?" - "+x.details:""))).join("; ").slice(0,900));
       if(Array.isArray(d.bp)&&d.bp.length) b.push("BP "+d.bp.map(r=>r.sys+"/"+r.dia+(r.pulse?" pulse "+r.pulse:"")+(r.time?" at "+r.time:"")).join(", "));
@@ -2004,7 +2018,8 @@ function renderSleepDiary(iso, day){
   const box=$("#ciSleepD"); if(!box) return;
   const on=trk().sleep; box.hidden=!on; const simple=document.querySelector('#checkin .ci-block[data-sec="sleep"]'); if(simple) simple.hidden=on;
   if(!on) return;
-  const L={bed:"23:00",wake:"07:00",fall:null,wakes:null,awake:null,q:null,...(day.sleepLog||{})};
+  const ds=devOf(day)&&devOf(day).sleep;
+  const L={bed:(ds&&ds.start)||"23:00",wake:(ds&&ds.end)||"07:00",fall:null,wakes:null,awake:null,q:null,...(day.sleepLog||{})};
   const ro=!S.canWrite||null;
   const seg=(arr,key,cls)=>h("div",{class:"pflow"+(cls?" "+cls:"")}, ...arr.map(([l,v])=>h("button",{type:"button",class:"pf","aria-pressed":String(L[key]===v),disabled:ro,onclick:()=>{ L[key]=L[key]===v?null:v; CI.edit.add("sleepd"); persist(false); }}, h("span",{},l))));
   function persist(done){ const c=sleepCalc(L); const patch={sleepLog:{...L}}; if(c){ patch.sleepMin=c.asleep; patch.sleepH=Math.round(c.asleep/6)/10; } if(L.q) patch.sleepQ=L.q; if(done) ciPicked("sleepd"); saveDay(iso,patch); }
@@ -2048,6 +2063,92 @@ function trackersBox(){
     tg);
   drawTargets();
   return box;
+}
+
+/* ---------- Apple Health and devices ---------- */
+const INGEST_URL=()=>FN+"/ingest";
+function devOf(d){ return (d&&d.dev)||null; }
+function devSleepTxt(s){ if(!s||!s.asleep) return ""; const parts=[durTxt(s.asleep)+" asleep"]; if(s.start&&s.end) parts.push(s.start+"–"+s.end); const st=[s.deep?"deep "+durTxt(s.deep):"", s.rem?"REM "+durTxt(s.rem):""].filter(Boolean); if(st.length) parts.push(st.join(", ")); if(s.estimate) parts.push("time in bed, estimated"); return parts.join(" · "); }
+function devHeartTxt(h){ if(!h) return ""; return [h.rest!=null?"resting "+Math.round(h.rest):"", h.avg!=null?"average "+Math.round(h.avg):"", h.max!=null?"highest "+Math.round(h.max):"", h.night!=null?"overnight "+Math.round(h.night):""].filter(Boolean).join(" · ")+(h.rest!=null||h.avg!=null?" bpm":""); }
+function devRows(d){
+  const v=devOf(d), out=[]; if(!v) return out;
+  if(v.sleep) out.push(["Device sleep", devSleepTxt(v.sleep)]);
+  if(v.hr) out.push(["Heart rate", devHeartTxt(v.hr)]);
+  if(v.hrv!=null) out.push(["HRV", Math.round(v.hrv)+" ms"]);
+  if(v.spo2) out.push(["Blood oxygen", Math.round(v.spo2.avg)+"%"+(v.spo2.min!=null?" (lowest "+Math.round(v.spo2.min)+"%)":"")]);
+  if(v.resp!=null) out.push(["Breathing rate", v.resp+" per min"]);
+  if(v.steps!=null) out.push(["Steps", Number(v.steps).toLocaleString("en-GB")]);
+  for(const e of (Array.isArray(d.ecg)?d.ecg:[])) out.push(["ECG "+e.time, e.result+(e.hr?" · "+Math.round(e.hr)+" bpm":"")]);
+  return out;
+}
+function devContext(d){
+  const v=devOf(d), b=[]; if(!v&&!(Array.isArray(d.ecg)&&d.ecg.length)) return "";
+  if(v&&v.sleep) b.push("device sleep "+devSleepTxt(v.sleep));
+  if(v&&v.hr) b.push("heart rate "+devHeartTxt(v.hr));
+  if(v&&v.hrv!=null) b.push("HRV "+v.hrv+" ms");
+  if(v&&v.spo2) b.push("SpO2 avg "+v.spo2.avg+"% min "+v.spo2.min+"%");
+  if(v&&v.resp!=null) b.push("breathing "+v.resp+"/min");
+  if(v&&v.steps!=null) b.push(v.steps+" steps");
+  if(Array.isArray(d.ecg)&&d.ecg.length) b.push("ECG: "+d.ecg.map(e=>e.time+" "+e.result+(e.hr?" "+Math.round(e.hr)+"bpm":"")).join(", "));
+  return b.join(" | ");
+}
+async function healthStatus(){ try{ return await fnCall("ingest?action=status",{}); }catch{ return null; } }
+function renderHealthCard(){
+  const box=$("#setHealth"); if(!box) return;
+  box.replaceChildren(h("p",{class:"none"},"Checking…"));
+  healthStatus().then(st=>{
+    const rows=[];
+    if(st&&st.connected){
+      const last=st.last_used_at? new Date(st.last_used_at) : null, sum=st.last_summary||{};
+      const when= last? last.toLocaleString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : null;
+      const what= sum.last? [sum.last.sleep?"sleep "+durTxt(sum.last.sleep.asleep):"", sum.last.hr&&sum.last.hr.rest!=null?"resting heart "+Math.round(sum.last.hr.rest):"", sum.last.steps!=null?Number(sum.last.steps).toLocaleString("en-GB")+" steps":""].filter(Boolean).join(", ") : "";
+      rows.push(setRow("⌚", when? "Connected · last data "+when : "Connected · waiting for the first data", when? (what?"Latest: "+what+". ":"")+"From "+(sum.source==="health-auto-export"?"Health Auto Export":"your iPhone Shortcut")+"." : "Run your Shortcut or Health Auto Export once to test it.", h("span",{class:"set-pill on"},"On")));
+      rows.push(h("div",{class:"row"}, h("button",{class:"btn",type:"button",onclick:()=>openHealthSetup()},"Setup instructions"), h("button",{class:"btn danger",type:"button",onclick:async(ev)=>{ if(!confirmTwice(ev.currentTarget)) return; try{ await fnCall("ingest?action=revoke",{}); toast("Turned off"); renderHealthCard(); }catch{ toast("Couldn't turn it off. Try again."); } }},"Turn off")));
+    } else {
+      rows.push(setRow("⌚","Sync from Apple Health","Sleep, heart rate, HRV, blood oxygen, steps and ECG from a watch, ring or band, sent to your logbook automatically.", h("span",{class:"set-pill"},"Off")));
+      rows.push(h("div",{}, h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null,onclick:()=>openHealthSetup()},"Set up automatic sync")));
+    }
+    box.replaceChildren(...rows);
+  });
+}
+function confirmTwice(btn){ if(btn.dataset.armed){ return true; } btn.dataset.armed="1"; const t=btn.textContent; btn.textContent="Tap again to confirm"; setTimeout(()=>{ delete btn.dataset.armed; btn.textContent=t; },4000); return false; }
+function copyBox(label, value){
+  const inp=h("input",{type:"text",readonly:true,value,class:"cp-in","aria-label":label});
+  return h("div",{class:"field"}, h("span",{class:"hint"},label), h("div",{class:"cp-row"}, inp, h("button",{class:"btn small",type:"button",onclick:async()=>{ try{ await navigator.clipboard.writeText(value); toast("Copied"); }catch{ inp.select(); toast("Selected. Use your phone's Copy."); } }},"Copy")));
+}
+function openHealthSetup(){
+  const keyBox=h("div",{class:"hs-key"});
+  const make=h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null},"Create my key");
+  make.addEventListener("click", async ()=>{
+    make.disabled=true; make.textContent="Creating…";
+    try{ const r=await fnCall("ingest?action=key",{}); keyBox.replaceChildren(copyBox("Your web address (URL)", INGEST_URL()), copyBox("Your private key (header name: X-Logbook-Key)", r.key), h("p",{class:"hint"},"Keep this key private: anyone with it can add data to your logbook. Making a new key stops the old one working. Copy it now; it won't be shown again.")); make.textContent="Make a new key"; renderHealthCard(); }
+    catch(e){ make.textContent="Create my key"; toast((e&&e.message)||"Couldn't create a key."); }
+    finally{ make.disabled=false; }
+  });
+  const step=(n,html)=>{ const li=h("li",{}); li.innerHTML=html; return li; };
+  const sc=h("details",{class:"hs-opt",open:true}, h("summary",{},"Option A · iPhone Shortcut (free)"),
+    h("ol",{class:"hs-steps"},
+      step(1,"Open the <b>Shortcuts</b> app, tap <b>+</b> and name it <b>Send to Logbook</b>."),
+      step(2,"Add <b>Find Health Samples</b>. Set Type to <b>Sleep Analysis</b>, Start Date <b>is in the last 2 days</b>, Sort by <b>Start Date</b>."),
+      step(3,"Add <b>Repeat with Each</b>. Inside it add <b>Text</b> and build: <code>Start Date|End Date|Value</code> using the Repeat Item's details, with a <b>|</b> between them. Tap each date and set Date Format to <b>ISO 8601</b>."),
+      step(4,"After <b>End Repeat</b>, add <b>Combine Text</b> (Repeat Results) with <b>New Lines</b>."),
+      step(5,"Do the same for <b>Resting Heart Rate</b> (Text: <code>Start Date|Value</code>), and if you like <b>Heart Rate</b>, <b>Heart Rate Variability</b> and <b>Step Count</b>."),
+      step(6,"Add <b>Get Contents of URL</b>: paste your web address, Method <b>POST</b>, add a Header <b>X-Logbook-Key</b> with your key, Request Body <b>JSON</b> with Text fields <b>sleep</b>, <b>rest</b>, <b>hr</b>, <b>hrv</b>, <b>steps</b>, each set to the matching Combined Text."),
+      step(7,"Add <b>Show Result</b>, then tap ▶. Allow access to Health when asked. It should say <i>Saved … to your logbook</i>."),
+      step(8,"Go to <b>Automation</b> → <b>+</b> → <b>Time of Day</b>, 9:00 daily, choose <b>Run Immediately</b>, and pick <b>Send to Logbook</b>. Done: it runs every morning.")));
+  const hae=h("details",{class:"hs-opt"}, h("summary",{},"Option B · Health Auto Export app (paid, easiest, includes ECG)"),
+    h("ol",{class:"hs-steps"},
+      step(1,"Install <b>Health Auto Export – JSON+CSV</b> from the App Store and get <b>Premium</b> (needed for automatic sending)."),
+      step(2,"Allow it to read your Health data."),
+      step(3,"Go to <b>Automations</b> → <b>New</b> → <b>REST API</b>."),
+      step(4,"Paste your web address as the URL, add a header <b>X-Logbook-Key</b> with your key, Export Format <b>JSON</b>."),
+      step(5,"Choose data: <b>Sleep Analysis</b>, <b>Heart Rate</b>, <b>Resting Heart Rate</b>, <b>Heart Rate Variability</b>, <b>Blood Oxygen Saturation</b>, <b>Respiratory Rate</b>, <b>Step Count</b>, <b>Weight</b>, and <b>ECG</b> if your watch records it."),
+      step(6,"Set it to send <b>every few hours</b> or <b>daily</b>, then tap <b>Manual export</b> once to test it.")));
+  openSheet("Sync from Apple Health",[
+    h("p",{class:"none"},"Whatever you wear (Apple Watch, Oura, RingConn, Xiaomi, Garmin, Withings), make sure its app is set to share with Apple Health. This sends Apple Health data to your logbook each day."),
+    h("p",{class:"flabel"},"1. Make your private key"), make, keyBox,
+    h("p",{class:"flabel"},"2. Choose how to send it"), sc, hae,
+    h("p",{class:"fineprint"},"Only you can send data to your logbook with your key, and only your logbook receives it. Your data goes from your iPhone to your logbook, not to anyone else.")]);
 }
 
 /* ---------- your week: day rings with "worse than usual" glow ---------- */
@@ -2106,6 +2207,7 @@ function renderWeek(){
   if(sy.n) rows.push(["Symptoms", sy.names.join(", ")]);
   if(d.period&&periodOn()) rows.push(["Period", d.period]);
   { const nt=dayNut(iso); if(nt) rows.push(["Food", nutLine(nt)]); }
+  rows.push(...devRows(d).slice(0,3));
   if(d.eat) rows.push(["Eating", EAT[d.eat-1]+(Array.isArray(d.eatWhy)&&d.eatWhy.length?" ("+d.eatWhy.join(", ").toLowerCase()+")":"")]);
   if(Array.isArray(d.medsTaken)&&d.medsTaken.length) rows.push(["Medicines", d.medsTaken.join(", ")]);
   $("#wkDetail").replaceChildren(...[
@@ -2138,6 +2240,7 @@ function renderCheckin(){
   if(pon){ flowButtons($("#ciFlow"), iso, "pf"); $("#ciPstat").textContent=cycleText(); }
   renderCheckinMore(iso, day);
   renderSleepDiary(iso, day);
+  { const v=devOf(day), el=$("#ciDev"); const t=[v&&v.sleep? "Last night "+durTxt(v.sleep.asleep)+" asleep"+(v.sleep.start&&v.sleep.end?" ("+v.sleep.start+"–"+v.sleep.end+")":"") : "", v&&v.hr&&v.hr.rest!=null? "resting heart "+Math.round(v.hr.rest) : ""].filter(Boolean).join(" · "); el.hidden=!t; el.textContent= t? "⌚ "+t : ""; }
   ciSection("feel", !!day.feel, "Feeling", day.feel? FACE[day.feel-1]+" "+FEEL[day.feel-1] : "");
   ciSection("energy", !!day.energy, "Energy", day.energy? ENERGY[day.energy-1] : "");
   if(pon) ciSection("period", !!(day.period||day.pnone), "Period", day.period? day.period[0].toUpperCase()+day.period.slice(1) : "None");
@@ -2442,6 +2545,7 @@ function renderSettings(full){
   }
   const tb=trackersBox(); tb.querySelectorAll(":scope > .flabel").forEach(e=>e.remove());
   $("#setTrk").replaceChildren(tb);
+  if(full) renderHealthCard();
   const nChips=symptomChips(40).length;
   $("#setCheckin").replaceChildren(
     setRow("🩺","Symptom buttons", nChips+" buttons. Add your own or hide ones you don't use.", null, ()=>openSymEdit()));
@@ -2465,6 +2569,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-04.6", items:[["⌚","Sync from Apple Health: sleep, heart rate, HRV, blood oxygen, steps and ECG from a watch, ring or band arrive automatically. Set it up in Settings → Phones and devices."],["📈","New timeline rows: resting heart rate, highest heart rate, HRV, blood oxygen, deep sleep and steps."]]},
  {v:"2026-11-04.5", items:[["🆕","A \"What's new\" box like this one after every update. See it again any time in Settings."]]},
  {v:"2026-11-04.4", items:[["⚙️","Settings have moved to the gear in the top right, with your details, trackers, PIN and account all in one place."],["ℹ️","The version number and a Check for updates button are in Settings."],["🔒","The lock button next to the gear locks the app straight away when you have a PIN."]]},
  {v:"2026-11-04.3", items:[["🧭","New optional trackers in Settings: Day log, Food and nutrition, and Sleep diary."],["📷","Log meals by photo, barcode or description. Claude works out calories, protein and more."],["⚠️","The day log spots symptoms that keep coming after meals."],["🌙","The sleep diary works out hours asleep and sleep efficiency."]]},
@@ -2980,7 +3085,13 @@ function tlLanes(){
   const L=[{id:"mood",name:"Mood",type:"strip"},{id:"energy",name:"Energy",type:"strip"},{id:"sleep",name:"Sleep",type:"strip"},{id:"eat",name:"Eating",type:"strip"},{id:"stress",name:"Stress",type:"strip"}];
   if(periodOn()) L.push({id:"period",name:"Period",type:"period"});
   L.push({id:"sym",name:"Symptoms",type:"sym"},{id:"weight",name:"Weight",type:"line",unit:"kg"},{id:"bp",name:"Blood pressure",type:"bp",unit:"mmHg"});
-  L.push({id:"sleeph",name:"Hours slept",type:"line",unit:"h",fn:d=>typeof d.sleepMin==="number"? Math.round(d.sleepMin/6)/10 : (typeof d.sleepH==="number"? d.sleepH : null)},
+  L.push({id:"sleeph",name:"Hours slept",type:"line",unit:"h",fn:d=>typeof d.sleepMin==="number"? Math.round(d.sleepMin/6)/10 : (d.dev&&d.dev.sleep&&d.dev.sleep.asleep? Math.round(d.dev.sleep.asleep/6)/10 : (typeof d.sleepH==="number"? d.sleepH : null))},
+         {id:"rhr",name:"Resting heart rate",type:"line",unit:"bpm",fn:d=>d.dev&&d.dev.hr&&d.dev.hr.rest!=null? Math.round(d.dev.hr.rest) : null},
+         {id:"maxhr",name:"Highest heart rate",type:"line",unit:"bpm",fn:d=>d.dev&&d.dev.hr&&d.dev.hr.max!=null? Math.round(d.dev.hr.max) : null},
+         {id:"hrv",name:"Heart rate variability",type:"line",unit:"ms",fn:d=>d.dev&&d.dev.hrv!=null? Math.round(d.dev.hrv) : null},
+         {id:"spo2",name:"Blood oxygen",type:"line",unit:"%",fn:d=>d.dev&&d.dev.spo2&&d.dev.spo2.avg!=null? Math.round(d.dev.spo2.avg) : null},
+         {id:"deep",name:"Deep sleep",type:"line",unit:"min",fn:d=>d.dev&&d.dev.sleep&&d.dev.sleep.deep? d.dev.sleep.deep : null},
+         {id:"steps",name:"Steps",type:"line",unit:"",fn:d=>d.dev&&d.dev.steps!=null? d.dev.steps : null},
          {id:"kcal",name:"Calories",type:"line",unit:"kcal",fn:d=>{ const n=dayNut(d.date); return n&&n.kcal? Math.round(n.kcal) : null; }},
          {id:"protein",name:"Protein",type:"line",unit:"g",fn:d=>{ const n=dayNut(d.date); return n&&n.protein? Math.round(n.protein) : null; }},
          {id:"water",name:"Water",type:"line",unit:"glasses",fn:d=>d.water||null});
@@ -3027,6 +3138,7 @@ function tlDayData(iso){
   for(const x of dayLog(iso)) out.push([x.time+" "+(x.type==="meal"?(x.meal||"Meal"):(LOGT[x.type]||LOGT.note).l), x.type==="meal"? [x.desc||(x.items||[]).map(i=>i.name).join(", "), nutLine(x.n)].filter(Boolean).join(" · ") : x.title]);
   { const nt=dayNut(iso); if(nt) out.push(["Nutrition", nutLine(nt)+(nt.fibre?" · "+Math.round(nt.fibre)+"g fibre":"")]); }
   if(d.water) out.push(["Water", d.water+" glasses"]);
+  out.push(...devRows(d));
   if(d.period&&periodOn()) out.push(["Period", d.period[0].toUpperCase()+d.period.slice(1)]);
   if(typeof d.weight==="number") out.push(["Weight", d.weight+" kg"]);
   for(const r of (Array.isArray(d.bp)?d.bp:[])) out.push(["Blood pressure", r.sys+"/"+r.dia+(r.time?" at "+r.time:"")]);
