@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.13">
+<meta name="app-version" content="2026-11-04.14">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -852,6 +852,16 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 .dq-x{border:0;background:transparent;color:var(--muted);font-size:1rem;cursor:pointer;padding:4px 8px}
 @media (prefers-reduced-motion:reduce){ .dq .dq-body,.dq-eyes,.dq.wave .dq-wingR,.dq.talk .dq-mouth,.dq.talk .dq-low,.dq.happy .dq-wingL,.dq.happy .dq-wingR{animation:none} }
 
+.qk{color:var(--ai);font-style:italic;font-weight:700;font-size:.88em;white-space:nowrap}
+.dq-welcome{align-items:flex-start}
+.dq-welcome .dq-bub::before{top:34px}
+.dq-lines p{margin:0 0 5px;font-size:.93rem}
+.dq-lines p:last-child{margin-bottom:0}
+.dq-hi{font-weight:800;font-size:1rem!important}
+.dq-tip{margin:8px 0 0;padding-top:8px;border-top:1px dashed color-mix(in srgb,var(--ai) 35%,transparent);font-size:.9rem}
+.dq-acts{padding-left:98px}
+@media (max-width:360px){ .dq-acts{padding-left:0} }
+
 /* gut journey animated scene */
 .gs-wrap{display:flex;flex-direction:column;gap:6px}
 .gs{width:100%;max-width:360px;height:auto;margin:0 auto;display:block;overflow:visible}
@@ -977,6 +987,7 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 
   <!-- OVERVIEW -->
   <section id="v-overview" class="view" aria-label="Overview">
+    <article class="panel dq-card" id="dqCard" hidden aria-label="Welcome from Dr Quackers" aria-live="polite"></article>
     <article class="checkin" id="checkin" aria-labelledby="ciTitle">
       <div class="ci-head">
         <div><p class="ci-eyebrow">Today's check-in<span class="ci-doneb" id="ciDoneB" hidden> · Done ✓</span></p><h2 id="ciTitle">How are you feeling?</h2></div>
@@ -1013,7 +1024,6 @@ details.fold[open] .fchev{transform:rotate(90deg)}
       </div>
     </article>
 
-    <article class="panel dq-card" id="dqCard" hidden aria-label="Dr Quackers suggests"></article>
     <article class="panel lgcard" id="logCard" hidden aria-labelledby="logH">
       <div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M7 4v16"/><circle cx="7" cy="7" r="2"/><circle cx="7" cy="14" r="2"/><path d="M11 7h8M11 14h6"/></svg></span><h2 id="logH">Today's log</h2><button class="more" type="button" id="logDiary">Diary ›</button></div>
       <div class="lg-body" id="logBody"></div>
@@ -1353,7 +1363,7 @@ const KINDS = {
 const ORDER = ["allergy","medication","condition","appointment","due","symptom","result","note"];
 const S = {db:null,col:null,user:null,sample:null,downloads:null,img:null,entries:[],profile:{},loaded:false,canWrite:true,aiOff:false,filter:"all",chat:[],chatFiles:[],prepCtl:null,chatCtl:null,prepText:"",prepFor:"",revCtl:null,revText:"",days:{},cal:null,selDay:null,notesFor:null};
 
-const GUIDE = "You are Dr Quackers (Doctor Quackers), a friendly cartoon duck in a white coat who is the health helper inside this personal health logbook app. You are an AI (Claude, made by Anthropic), not a real doctor: never claim medical qualifications or to be a person, and if asked what you are, say so plainly. In chat replies speak as Dr Quackers in the first person: warm, kind and plain-spoken, with at most a light touch of duck humour (an occasional quack) and none at all when something is worrying or serious. In briefs, notes and documents don't mention yourself.\nYou are helping a person in the UK keep track of their own health and push their care forward with the NHS (GP, nurse, hospital, pharmacist), especially when appointments have gone round in circles. Use UK English and NHS terms. Be warm, plain-spoken, direct and practical.\n"
+const GUIDE = "You are Dr Quackers (Doctor Quackers), a friendly cartoon duck in a white coat who is the health helper inside this personal health logbook app. You are an AI (Claude, made by Anthropic), not a real doctor: never claim medical qualifications or to be a person, and if asked what you are, say so plainly. In chat replies speak as Dr Quackers in the first person: warm, kind and plain-spoken, with gentle duck charm but no jokes when something is worrying or serious. Never write the word quack yourself: the app adds his quacks. In briefs, notes and documents don't mention yourself.\nYou are helping a person in the UK keep track of their own health and push their care forward with the NHS (GP, nurse, hospital, pharmacist), especially when appointments have gone round in circles. Use UK English and NHS terms. Be warm, plain-spoken, direct and practical.\n"
   + "Do help them think through what might be going on: connect symptoms, results and history (for example past operations such as bariatric surgery and the deficiencies that commonly follow them), name the possible explanations a clinician would consider, roughly most to least likely, and say what tests, checks or referrals could confirm or rule each one out. Mention relevant NHS or NICE guidance where you know it, and give wording they can use to ask for a test or referral. Say how sure you are, and be clear these are possibilities to put to their clinician, not a diagnosis, because you can't examine them or order tests.\n"
   + "Don't tell them to stop or change a prescribed medicine on their own; say to discuss it with their GP or pharmacist. Don't invent results or history that isn't in the logbook.\n"
   + "If anything they describe could be an emergency (for example chest pain, signs of a stroke, severe difficulty breathing, heavy bleeding, black or bloody stools, fainting, sudden severe headache, or thoughts of harming themselves), say clearly at the very start to call 999, or NHS 111 if it's urgent but not life-threatening.";
@@ -1739,6 +1749,7 @@ function show(v){
   if(location.hash.slice(1)!==v){ try{ history.replaceState(null,"","#"+v); }catch{} }
   window.scrollTo(0,0);
   if(v==="timeline" && typeof renderTimeline==="function") renderTimeline();
+  if(v==="overview"){ const d=document.querySelector("#dqCard .dq"); if(d){ d.classList.remove("wave"); void d.getBoundingClientRect(); d.classList.add("wave"); } }
   if(v==="ask"){ const p=document.querySelector("#dqHero .dq"); if(p){ p.classList.remove("wave"); void p.getBoundingClientRect(); p.classList.add("wave"); } }
   if(v==="settings" && typeof renderSettings==="function") renderSettings(true); else S.lastView=v;
   const g=$("#gearBtn"); if(g) g.classList.toggle("on", v==="settings");
@@ -2640,7 +2651,8 @@ function duckSvg(size, cls, label){
   return s;
 }
 function duckSay(text, cls){
-  return h("div",{class:"dq-say"}, duckSvg(70,cls||"wave"), h("div",{class:"dq-bub"}, text));
+  const bub=h("div",{class:"dq-bub"}, text); quackify(bub);
+  return h("div",{class:"dq-say"}, duckSvg(70,cls||"wave"), bub);
 }
 /* wrap Dr Quackers' chat bubbles with his face; he thinks while waiting and talks while text arrives */
 function duckWatch(log){
@@ -2649,41 +2661,85 @@ function duckWatch(log){
     for(const b of log.querySelectorAll(":scope > .bubble.claude")){ const row=h("div",{class:"dq-row"}, duckSvg(34,"")); log.insertBefore(row,b); row.append(b); }
     for(const r of log.querySelectorAll(":scope > .dq-row")){ const d=r.querySelector(".dq"); if(!d) continue; const thinking=!!r.querySelector(".thinking"), len=(r.querySelector(".bubble")||{}).textContent.length;
       d.classList.toggle("think",thinking); if(thinking){ r._len=0; continue; }
-      if(r._len!==len){ if(r._len!=null){ d.classList.add("talk"); clearTimeout(r._t); r._t=setTimeout(()=>d.classList.remove("talk"),900); } r._len=len; } }
+      if(r._len!==len){ const bb=r.querySelector(".bubble");
+        if(r._len!=null){ d.classList.add("talk"); clearTimeout(r._t); r._t=setTimeout(()=>{ d.classList.remove("talk"); quackify(bb); r._len=bb.textContent.length; },900); r._len=len; }
+        else { quackify(bb); r._len=bb.textContent.length; } } }
   };
   new MutationObserver(sync).observe(log,{childList:true,subtree:true,characterData:true}); sync();
 }
-/* daily suggestion card on Home */
+/* quacks: added on screen only, never saved; none when the message is about something urgent */
+const DQ_SERIOUS=/\b(999|111|A&E|emergency|urgent(ly)?|ambulance|chest pain|blood|bleed(ing)?|faint(ed|ing)?|suicid\w*|overdose|stroke|sepsis|collapse\w*|seizure|unconscious)\b/i;
+function quackify(el){
+  if(!el) return; const txt=el.textContent||"";
+  if(el._qk===txt.length) return;
+  if(DQ_SERIOUS.test(txt)){ el._qk=txt.length; return; }
+  const skip=n=>{ for(let p=n.parentNode;p&&p!==el;p=p.parentNode){ const t=p.nodeName; if(/^(CODE|PRE|BUTTON|A|TABLE|svg|TEXTAREA)$/i.test(t)||(p.classList&&(p.classList.contains("bub-actions")||p.classList.contains("qk")||p.classList.contains("mermaid")||p.classList.contains("thinking")))) return true; } return false; };
+  const tw=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null); const nodes=[]; let n; while((n=tw.nextNode())) if(!skip(n)&&/[.!?](\s|$)/.test(n.nodeValue)) nodes.push(n);
+  for(const t of nodes){
+    const parts=t.nodeValue.split(/(?<=[.!?])(?=\s|$)/); if(parts.length<1) continue;
+    const frag=document.createDocumentFragment();
+    parts.forEach((p,i)=>{ frag.append(document.createTextNode(p)); const next=parts[i+1]; const endsSentence=/[.!?]$/.test(p)&&!/\b(e\.g|i\.e|etc|Dr|Mr|Mrs|Ms|approx|vs)\.$/i.test(p.trim()); if(endsSentence&&(next===undefined? true : /^\s/.test(next))){ frag.append(h("span",{class:"qk"}," Quack!")); } });
+    t.parentNode.replaceChild(frag,t);
+  }
+  el._qk=(el.textContent||"").length;
+}
+/* daily tip cache */
 function dqKey(){ return "hl-dq-"+(S.uid||"me")+"-"+todayISO(); }
 function dqGet(){ try{ return JSON.parse(localStorage.getItem(dqKey())||"null"); }catch{ return null; } }
 function dqSet(v){ try{ localStorage.setItem(dqKey(),JSON.stringify(v)); }catch{} }
 function dqHist(){ try{ return JSON.parse(localStorage.getItem("hl-dq-hist-"+(S.uid||"me"))||"[]"); }catch{ return []; } }
 function dqHistAdd(t){ try{ localStorage.setItem("hl-dq-hist-"+(S.uid||"me"),JSON.stringify([t,...dqHist()].slice(0,8))); }catch{} }
 let dqBusy=false;
-function renderDqCard(){
+function dqWhen(iso){ const t=todayISO(); if(iso===t) return "today"; if(iso===addDays(t,1)) return "tomorrow"; const d=daysBetween(t,iso); return d>0&&d<7? "on "+new Date(iso+"T12:00").toLocaleDateString("en-GB",{weekday:"long"}) : "on "+fmtDate(iso); }
+function dqReminder(){
+  const t=todayISO(), soon=addDays(t,3), wk=addDays(t,7);
+  const due=ofKind("due").filter(e=>e.status!=="done"&&e.date&&e.date<=soon).sort((a,b)=>a.date.localeCompare(b.date))[0];
+  const appt=ofKind("appointment").filter(e=>e.date&&e.date>=t&&e.date<=wk).sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||"")))[0];
+  if(due&&(!appt||due.date<=appt.date)) return due.date<t? "⏰ Don't forget: "+due.title+" is overdue." : "⏰ Reminder: "+due.title+" is due "+dqWhen(due.date)+".";
+  if(appt) return "📅 Reminder: "+appt.title+" is "+dqWhen(appt.date)+(appt.time?" at "+appt.time:"")+(appt.place?", "+appt.place:"")+".";
+  return "";
+}
+function dqHello(){
+  const p=S.profile||{}, first=(p.name||"").trim().split(/\s+/)[0], hr=new Date().getHours();
+  const hi= hr<12? "Morning" : hr<18? "Afternoon" : "Evening";
+  return hi+(first?" "+first:"")+", lovely to see you!";
+}
+function dqFeeling(){
+  const d=(S.days||{})[todayISO()]||{};
+  if(!d.feel) return "How are you feeling today? Tap a face below to tell me.";
+  if(d.feel<=2) return "Sorry you're feeling "+FEEL[d.feel-1].toLowerCase()+" today. I'm here if you want to talk it through.";
+  return "Thanks for checking in today, you're feeling "+FEEL[d.feel-1].toLowerCase()+".";
+}
+function renderWelcome(){
   const card=$("#dqCard"); if(!card) return;
-  const has=S.loaded&&(S.entries.length||Object.keys(S.days||{}).length);
-  const cur=dqGet();
-  card.hidden= !has || !S.sample || S.aiOff || (cur&&cur.hidden);
+  card.hidden=!S.loaded;
   if(card.hidden) return;
-  if(card._iso===todayISO()&&card.childNodes.length&&!card._dirty) return;
-  card._iso=todayISO(); card._dirty=false;
-  const duck=duckSvg(74, cur&&cur.text? "" : "think");
-  const bub=h("div",{class:"dq-bub"}, cur&&cur.text? cur.text : h("span",{class:"thinking"},"Let me have a look at your logbook…"));
-  const chat=h("button",{class:"btn small",type:"button",disabled:!(cur&&cur.text)||null,onclick:()=>{ const t=(dqGet()||{}).text; if(!t) return; show("ask"); S.chat.push({role:"assistant",content:t}); addBubble("assistant",t); const c=$("#chatIn"); c.placeholder="Ask Dr Quackers about this…"; c.focus(); }},"💬 Chat about this");
-  const more=h("button",{class:"btn small ghost",type:"button",disabled:!(cur&&cur.text)||dqBusy||null,onclick:()=>{ dqSet(null); card._dirty=true; renderDqCard(); }},"Another tip");
-  const x=h("button",{class:"dq-x",type:"button","aria-label":"Hide until tomorrow",onclick:()=>{ dqSet({...(dqGet()||{}),hidden:true}); renderDqCard(); }},"✕");
-  card.replaceChildren(h("div",{class:"dq-head"}, h("p",{class:"dq-name"},"🩺 Dr Quackers suggests"), x), h("div",{class:"dq-say"}, duck, bub), h("div",{class:"row"}, chat, more));
-  if(cur&&cur.text) return;
-  if(dqBusy) return; dqBusy=true;
-  const prompt=GUIDE+"\n\nTheir health logbook:\n"+buildContext()+"\n\nToday is "+fmtDate(todayISO())+". As Dr Quackers, give ONE short, specific, useful suggestion for today based on their logbook: something worth logging, a pattern you can see, a question for an upcoming appointment, a test or medicine that's due, or a small healthy habit that fits their situation. At most 2 sentences and 45 words, plain text, no greeting or sign-off, no markdown. Make it different from these recent ones: "+(dqHist().join(" | ")||"none")+".";
+  if(!card._built){
+    card._built=true;
+    card._duck=duckSvg(86,"wave"); card._lines=h("div",{class:"dq-lines"});
+    card._tip=h("p",{class:"dq-tip",hidden:true});
+    card._chat=h("button",{class:"btn small",type:"button",onclick:()=>{ const t=(dqGet()||{}).text; show("ask"); if(t&&!S.chat.some(m=>m.content===t)){ S.chat.push({role:"assistant",content:t}); addBubble("assistant",t); } const c=$("#chatIn"); c.placeholder="Ask Dr Quackers anything…"; c.focus(); }},"💬 Chat with me");
+    card._more=h("button",{class:"btn small ghost",type:"button",onclick:()=>{ dqSet(null); card._tipFor=null; renderWelcome(); }},"Another tip");
+    card.replaceChildren(h("div",{class:"dq-say dq-welcome"}, card._duck, h("div",{class:"dq-bub"}, card._lines, card._tip)), h("div",{class:"row dq-acts"}, card._chat, card._more));
+  }
+  const lines=[dqHello(), dqFeeling(), dqReminder()].filter(Boolean);
+  const key=lines.join("|");
+  if(card._key!==key){ card._key=key; card._lines.replaceChildren(...lines.map((t,i)=>h("p",{class:i===0?"dq-hi":""},t))); card._lines._qk=null; quackify(card._lines); }
+  // daily AI tip
+  const ai=!!S.sample&&!S.aiOff&&(S.entries.length||Object.keys(S.days||{}).length);
+  card._more.hidden=!ai; card._tip.hidden=!ai; if(!ai) return;
+  const cur=dqGet();
+  if(cur&&cur.text){ if(card._tipFor!==cur.text){ card._tipFor=cur.text; card._tip.replaceChildren("💡 "+cur.text); card._tip._qk=null; quackify(card._tip); } return; }
+  if(dqBusy) return; dqBusy=true; card._tipFor=null;
+  card._tip.replaceChildren(h("span",{class:"thinking"},"💡 Let me have a look at your logbook for a tip…")); card._duck.classList.add("think"); card._more.disabled=true;
+  const prompt=GUIDE+"\n\nTheir health logbook:\n"+buildContext()+"\n\nToday is "+fmtDate(todayISO())+". As Dr Quackers, give ONE short, specific, useful tip for today based on their logbook: something worth logging, a pattern you can see, a question for an upcoming appointment, or a small healthy habit that fits their situation. Don't repeat the reminder they've already been given: \""+dqReminder()+"\". At most 2 sentences and 40 words, plain text, no greeting, no sign-off, no markdown. Make it different from these recent ones: "+(dqHist().join(" | ")||"none")+".";
   S.sample(prompt,{modelTier:"quick",cache:false}).then(({text})=>{
-    text=String(text||"").replace(/^["\s]+|["\s]+$/g,"").trim(); if(!text) throw new Error("empty");
-    dqSet({text}); dqHistAdd(text);
-    bub.replaceChildren(text); duck.classList.remove("think"); duck.classList.add("talk"); setTimeout(()=>duck.classList.remove("talk"),1800);
-    chat.disabled=false; more.disabled=false;
-  }).catch(e=>{ bub.replaceChildren(aiErr(e)||"I couldn't think of anything just now. Try again later."); duck.classList.remove("think"); more.disabled=false; })
-  .finally(()=>{ dqBusy=false; });
+    text=String(text||"").replace(/^["\s]+|["\s]+$/g,"").replace(/\s*\bquack!?/gi,"").trim(); if(!text) throw new Error("empty");
+    dqSet({text}); dqHistAdd(text); card._tipFor=text;
+    card._tip.replaceChildren("💡 "+text); card._tip._qk=null; quackify(card._tip);
+    card._duck.classList.remove("think"); card._duck.classList.add("talk"); setTimeout(()=>card._duck.classList.remove("talk"),1800);
+  }).catch(e=>{ card._tip.replaceChildren(aiErr(e)||"I couldn't think of a tip just now. Try again later."); card._duck.classList.remove("think"); })
+  .finally(()=>{ dqBusy=false; card._more.disabled=false; });
 }
 
 /* ---------- gut journey: food in, poo out ---------- */
@@ -2760,8 +2816,8 @@ function openGut(stoolId){
       const meds=ofKind("medication").filter(m=>m.status!=="stopped").map(m=>m.title).join(", ")||"none recorded";
       const conds=ofKind("condition").filter(c=>c.status!=="past").map(c=>c.title).join(", ")||"none recorded";
       const meals=f.all.map(m=>"- "+fmtDate(m.date)+" "+(m.time||"")+" ("+Math.round(m.ago)+"h before): "+(m.type==="drink"? "drink "+(m.title||"") : (m.meal||"meal")+" "+(m.desc||(m.items||[]).map(x=>x.name+(x.amount?" "+x.amount:"")).join(", "))+(m.n?" ["+["kcal","protein","fibre","fat","sugar"].filter(k=>m.n[k]).map(k=>k+" "+Math.round(m.n[k])).join(", ")+"]":""))).join("\n")||"none logged";
-      const prompt="You are Dr Quackers, the friendly cartoon duck health helper in this logbook app (an AI powered by Claude, not a real doctor). You are helping someone understand their own digestion from their private health diary. Be warm, plain and brief (British English, 4 to 6 short sentences, no headings). Do not diagnose.\n\nThey logged a poo: "+fmtDate(stool.date)+" "+(stool.time||"")+", Bristol type "+stool.bristol+", colour "+(stool.colour||"brown")+(stool.flags&&stool.flags.length?", also: "+stool.flags.join(", "):"")+(stool.details?", notes: "+stool.details:"")+".\nTime since the previous logged poo: "+(f.gap!=null?Math.round(f.gap)+" hours":"unknown")+".\nTheir "+(f.W.personal?"measured":"assumed typical")+" gut transit window: most likely "+f.W.likeLo+"–"+f.W.likeHi+" hours.\nFood and drink in the "+f.W.hi+" hours before:\n"+meals+"\nWater: "+(f.water!=null?f.water+" glasses a day":"not logged")+".\nCurrent medicines: "+meds+".\nConditions: "+conds+".\n\nExplain what this poo suggests, which of the foods or drinks in the likely window could have contributed and why (fibre, fat, fluid, caffeine, sweeteners, spice, dairy), anything about their medicines or conditions that commonly affects bowels, and one practical tip. Remember an urge soon after eating is the gastrocolic reflex, not that meal. If there is blood or black tar-like poo, tell them to contact their GP today or NHS 111.";
-      try{ const {text}=await S.sample(prompt,{modelTier:"quick",cache:false,onText:({text})=>{ ai.replaceChildren(md(text)); }}); ai.replaceChildren(md(text)); }
+      const prompt="You are Dr Quackers, the friendly cartoon duck health helper in this logbook app (an AI powered by Claude, not a real doctor; never write the word quack yourself, the app adds it). You are helping someone understand their own digestion from their private health diary. Be warm, plain and brief (British English, 4 to 6 short sentences, no headings). Do not diagnose.\n\nThey logged a poo: "+fmtDate(stool.date)+" "+(stool.time||"")+", Bristol type "+stool.bristol+", colour "+(stool.colour||"brown")+(stool.flags&&stool.flags.length?", also: "+stool.flags.join(", "):"")+(stool.details?", notes: "+stool.details:"")+".\nTime since the previous logged poo: "+(f.gap!=null?Math.round(f.gap)+" hours":"unknown")+".\nTheir "+(f.W.personal?"measured":"assumed typical")+" gut transit window: most likely "+f.W.likeLo+"–"+f.W.likeHi+" hours.\nFood and drink in the "+f.W.hi+" hours before:\n"+meals+"\nWater: "+(f.water!=null?f.water+" glasses a day":"not logged")+".\nCurrent medicines: "+meds+".\nConditions: "+conds+".\n\nExplain what this poo suggests, which of the foods or drinks in the likely window could have contributed and why (fibre, fat, fluid, caffeine, sweeteners, spice, dairy), anything about their medicines or conditions that commonly affects bowels, and one practical tip. Remember an urge soon after eating is the gastrocolic reflex, not that meal. If there is blood or black tar-like poo, tell them to contact their GP today or NHS 111.";
+      try{ const {text}=await S.sample(prompt,{modelTier:"quick",cache:false,onText:({text})=>{ ai.replaceChildren(md(text)); }}); ai.replaceChildren(md(text)); quackify(ai); }
       catch(e){ ai.replaceChildren(h("p",{class:"hint"}, aiErr(e)||"Couldn't reach Dr Quackers. Try again.")); ask.disabled=false; }
     });
     body.replaceChildren(
@@ -3165,7 +3221,7 @@ function renderOverview(){
   $("#who").textContent = greeting()+(first?", "+first:"");
   $("#topDate").textContent = new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
   renderCheckin();
-  renderDqCard();
+  renderWelcome();
   renderLogCard();
   renderWeek();
   renderCycle();
@@ -3465,6 +3521,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-04.14", items:[["👋","Dr Quackers now welcomes you at the top of Home: he says hello, asks how you're feeling, reminds you about anything due soon, and gives you his tip for the day."],["🦆","He says quack after every sentence now (on screen only, and never when something's urgent)."]]},
  {v:"2026-11-04.13", items:[["🦆","Dr Quackers has arrived! He's your new health helper (taking over from Pip): he answers your questions, reads your letters and explains your charts, and his beak moves as he talks."],["💡","Each day Dr Quackers looks at your logbook and gives you one suggestion on Home. Tap Chat about this to talk it over, or ✕ to hide it for the day."],["🩺","He's an AI, not a real doctor, so check anything important with your GP or pharmacist."]]},
  {v:"2026-11-04.12", items:[["❤️","Meet Pip, your health helper! Pip answers your questions, reads your letters, guesses your food and poo from photos, and explains your charts. Pip is an AI powered by Claude."],["💬","Ask is now Pip's page, and Pip thinks out loud while working on an answer."]]},
  {v:"2026-11-04.11", items:[["🎬","The gut journey is now an animated body diagram: watch each meal travel from your mouth through the stomach and intestines, turn into poo and land in the loo. Drag the slider to move through time yourself."],["🫁","Organs are labelled, and the stomach, small intestine and large intestine light up while food is in them."]]},
@@ -3487,7 +3544,7 @@ function cmpVer(a,b){ const p=x=>{ const m=/^(\d{4}-\d{2}-\d{2})\.(\d+)$/.exec(x
 function showWhatsNew(list, title){
   if(!list.length) return;
   const blocks=list.slice(0,5).map(c=>h("div",{class:"wn-v"}, h("p",{class:"wn-d"}, fmtVersion(c.v)), h("ul",{class:"wn-l"}, ...c.items.map(([ic,t])=>h("li",{}, h("span",{class:"wn-i","aria-hidden":"true"},ic), h("span",{},t))))));
-  openSheet(title||"What's new",[duckSay(list.length>1? "Quack! Here's what's changed since you last opened the app." : "Quack! Here's what's new in this update.","happy"), ...blocks,
+  openSheet(title||"What's new",[duckSay(list.length>1? "Here's what's changed since you last opened the app." : "Here's what's new in this update.","happy"), ...blocks,
     list.length>5? h("p",{class:"fineprint"},"And more. See Settings → What's new.") : null,
     h("button",{class:"btn primary",type:"button",onclick:closeSheet},"Got it")].filter(Boolean));
   const card=document.querySelector("#sheet .sheet-card"); if(card) card.scrollTop=0; const c=$("#sheetClose"); if(c) c.focus({preventScroll:true});
@@ -4364,7 +4421,7 @@ async function sendChat(){
 }
 $("#chatSend").addEventListener("click",sendChat);
 duckWatch($("#chatlog")); duckWatch($("#tlLog"));
-$("#dqHero").replaceChildren(duckSay("Quack! I'm Dr Quackers, your health helper. I can see your logbook, so ask me anything: a symptom, a letter, a result, or what to say to the GP."));
+$("#dqHero").replaceChildren(duckSay("Hello, I'm Dr Quackers, your health helper. I can see your logbook, so ask me anything: a symptom, a letter, a result, or what to say to the GP."));
 { const t=document.querySelector(".tab-dq"); if(t) t.replaceChildren(duckSvg(25,"still")); }
 $("#chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); sendChat(); }});
 $("#chatStop").addEventListener("click",()=>S.chatCtl&&S.chatCtl.abort());
