@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.6">
+<meta name="app-version" content="2026-11-04.7">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -732,6 +732,17 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 .hs-opt summary{font-weight:700;cursor:pointer}
 .hs-steps{margin:10px 0 0;padding-left:1.3em;display:flex;flex-direction:column;gap:8px;font-size:.92rem}
 .hs-steps code{font-family:var(--f-mono);font-size:.82rem;background:var(--bg);padding:1px 5px;border-radius:5px}
+
+/* recipes + day total */
+.ml-chk{display:flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer}
+.ml-chk input{width:20px;height:20px}
+.ml-rec{display:flex;flex-direction:column;gap:8px;background:var(--bg);border-radius:12px;padding:10px 12px}
+.ml-rec[hidden]{display:none}
+.ml-rq{display:flex;align-items:center;gap:8px;font-size:.9rem}
+.ml-rq input{width:5rem;min-height:38px;padding:4px 8px}
+.ml-rr{display:flex;align-items:center;gap:6px}
+.ml-rr .fchip{flex:1}
+.nb-tot{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:7px;font-size:.84rem}
 
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
@@ -1756,7 +1767,7 @@ function mealName(t){ const m=hm2m(t); if(m==null) return "Snack"; return m<660?
 function dayLog(iso){ const d=(S.days||{})[iso]||{}; return Array.isArray(d.log)? d.log : []; }
 function sumNut(items){ const t={}; for(const it of items||[]) for(const [k] of NUTS) t[k]=Math.round(((t[k]||0)+(+it[k]||0))*10)/10; return t; }
 function nutLine(n){ if(!n) return ""; return [n.kcal?Math.round(n.kcal)+" kcal":"", n.protein?Math.round(n.protein)+"g protein":""].filter(Boolean).join(" · "); }
-function dayNut(iso){ let any=false; const tot={}; for(const x of dayLog(iso)) if(x.n&&(x.type==="meal"||x.type==="drink")){ any=true; for(const [k] of NUTS) tot[k]=Math.round(((tot[k]||0)+(+x.n[k]||0))*10)/10; } return any? tot : null; }
+function dayNut(iso){ const dd=(S.days||{})[iso]||{}; if(dd.nutDay&&Object.keys(dd.nutDay).length) return {...dd.nutDay, _total:true}; let any=false; const tot={}; for(const x of dayLog(iso)) if(x.n&&(x.type==="meal"||x.type==="drink")){ any=true; for(const [k] of NUTS) tot[k]=Math.round(((tot[k]||0)+(+x.n[k]||0))*10)/10; } return any? tot : null; }
 function dayEvents(iso){
   const d=(S.days||{})[iso]||{}, ev=[];
   if(d.sleepLog&&d.sleepLog.wake) ev.push({time:d.sleepLog.wake,type:"wake",title:"Woke up",sub: typeof d.sleepMin==="number"? "Slept "+durTxt(d.sleepMin) : ""});
@@ -1817,7 +1828,16 @@ function nutPanel(iso){
       h("span",{}, water+(T.water?" / "+T.water:"")+" glass"+(water===1?"":"es")),
       h("button",{type:"button",class:"wbtn","aria-label":"One more glass",disabled:!S.canWrite||null,onclick:()=>saveDay(iso,{water:water+1})},"+"))),
       h("div",{class:"nb-b"}, h("i",{style:"width:"+(T.water? Math.min(100,water/T.water*100) : Math.min(100,water*12.5))+"%;background:#7FB4EA"}))),
-    (n.carbs||n.fat||n.sugar)? h("p",{class:"nb-more"}, "Carbs "+Math.round(n.carbs||0)+"g · Fat "+Math.round(n.fat||0)+"g · Sugar "+Math.round(n.sugar||0)+"g") : null);
+    (n.carbs||n.fat||n.sugar)? h("p",{class:"nb-more"}, "Carbs "+Math.round(n.carbs||0)+"g · Fat "+Math.round(n.fat||0)+"g · Sugar "+Math.round(n.sugar||0)+"g") : null,
+    h("div",{class:"nb-tot"}, n._total? h("span",{class:"hint"},"Entered as a total for the day") : h("span",{class:"hint"},"Track in another app?"), h("button",{class:"linkbtn",type:"button",onclick:()=>openDayTotal(iso)}, n._total?"Edit day total":"Enter the day's total")));
+}
+function openDayTotal(iso){
+  const d=(S.days||{})[iso]||{}, cur=d.nutDay||{};
+  const ins={}; const grid=h("div",{class:"ml-grid"}, ...NUTS.map(([k,l,u])=>{ const i=h("input",{type:"number",inputmode:"decimal",min:"0",step:"any",value:cur[k]!=null?String(cur[k]):"","aria-label":l}); ins[k]=i; return h("label",{class:"ml-n"}, i, h("span",{},l+(u?" ("+u+")":""))); }));
+  const save=h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null},"Save day total");
+  save.addEventListener("click", async ()=>{ const nd={}; for(const [k] of NUTS){ const v=ins[k].value.trim(); if(v!==""&&isFinite(+v)) nd[k]=+v; } if(!Object.keys(nd).length){ toast("Enter at least calories."); return; } save.disabled=true; const ok=await saveDay(iso,{nutDay:nd}); save.disabled=false; if(ok) closeSheet(); });
+  openSheet("Day's nutrition total",[h("p",{class:"none"},"Type in the totals for "+(iso===todayISO()?"today":longDate(iso))+", for example from MyFitnessPal or a food diary. This is used instead of adding up the meals you've logged. You can still log meals for the times."), grid,
+    h("div",{class:"row",style:"justify-content:space-between"}, cur&&Object.keys(cur).length? h("button",{class:"btn danger",type:"button",onclick:async()=>{ if(await saveDay(iso,{nutDay:null})) closeSheet(); }},"Remove total") : h("span"), save)]);
 }
 function renderLogCard(){
   const card=$("#logCard"); if(!card) return;
@@ -1877,9 +1897,11 @@ function openDrink(iso, item){
 
 /* meals */
 const ZXING_SRC="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";
-function foodPrompt(desc, fromPhoto){
+function foodPrompt(desc, fromPhoto, recipe, short){
   return "Estimate the food and drink "+(fromPhoto?"in this photo of a meal":"described below")+" for a UK food diary. "
     +(desc? "The person says: \""+desc+"\". " : "")
+    +(recipe? "This is a recipe that makes "+recipe.portions+" portion"+(recipe.portions==1?"":"s")+" and they ate "+recipe.eaten+" portion"+(recipe.eaten==1?"":"s")+". Work out the whole recipe from its ingredients, then give the items and nutrition for the amount they ate only ("+recipe.eaten+"/"+recipe.portions+" of the recipe). Also include \"name\": a short name for the recipe, and \"per_portion\": {\"kcal\",\"protein\",\"carbs\",\"fat\",\"fibre\",\"sugar\"} for one portion. " : "")
+    +"Keep the reply compact: JSON on one line with no extra spaces, at most "+(short?6:10)+" items, each \"amount\" under 30 characters. Combine small ingredients (herbs, spices, seasoning, stock, a splash of oil) into one item called \"Other ingredients\". "
     +"Make a sensible rough guess at each item and its amount in everyday UK terms (grams, slices, tablespoons, a typical portion), including likely hidden extras such as cooking oil, butter, sauces or milk in drinks. Give nutrition for the amount eaten, using typical UK values.\n"
     +'Reply with only JSON: {"description": short plain description of the whole meal, "items":[{"name": item name, "amount": amount as eaten e.g. "2 large eggs (about 120g)", "kcal": number, "protein": grams, "carbs": grams, "fat": grams, "fibre": grams, "sugar": grams}], "confidence": "low", "medium" or "high", "note": one short sentence on anything you could not see or had to guess}. '
     +"If it isn't food or drink, reply {\"items\":[],\"note\":\"why\"}.";
@@ -1925,6 +1947,22 @@ function openMeal(iso, item){
   const tm=h("input",{type:"time",id:"ml-time",value:item.time||nowHM()});
   const desc=h("textarea",{id:"ml-desc",rows:"2",placeholder:"e.g. ham sandwich on white bread, packet of crisps, can of Coke"}); desc.value=item.desc||"";
   const itemsBox=h("div",{class:"ml-items"}), totBox=h("div",{class:"ml-tot"});
+  let lastRecipe=null;
+  const recipeOn=h("input",{type:"checkbox",id:"ml-rec"}), portionsIn=h("input",{type:"number",min:"1",step:"1",value:"4",inputmode:"numeric"}), eatenIn=h("input",{type:"number",min:"0.25",step:"0.25",value:"1",inputmode:"decimal"}), saveRec=h("input",{type:"checkbox",id:"ml-save"});
+  const recBox=h("div",{class:"ml-rec",hidden:true}, h("label",{class:"ml-rq"}, h("span",{},"Recipe makes"), portionsIn, h("span",{},"portions")), h("label",{class:"ml-rq"}, h("span",{},"I had"), eatenIn, h("span",{},"portion(s)")), h("label",{class:"ml-chk",for:"ml-save"}, saveRec, " Save to My recipes for next time"));
+  recipeOn.addEventListener("change",()=>{ recBox.hidden=!recipeOn.checked; desc.rows=recipeOn.checked?7:2; desc.placeholder=recipeOn.checked?"Paste or type the recipe: ingredients and amounts, e.g.\n500g beef mince\n1 onion\n400g tin tomatoes\n300g spaghetti (dry)":"e.g. ham sandwich on white bread, packet of crisps, can of Coke"; });
+  function myRecipes(){
+    const list=((S.profile||{}).recipes||[]);
+    if(!list.length){ st.textContent="No saved recipes yet. Tick \"This is a recipe\", paste it in and tap Work it out, and it's saved for next time."; return; }
+    st.replaceChildren(h("span",{class:"flabel"},"My recipes"), h("div",{class:"ml-rep"}, ...list.map(r=>h("div",{class:"ml-rr"},
+      h("button",{class:"fchip",type:"button",onclick:()=>{
+        const qty=h("input",{type:"number",inputmode:"decimal",min:"0.25",step:"0.25",value:"1",style:"max-width:5rem"});
+        const add=h("button",{class:"btn primary small",type:"button"},"Add");
+        add.addEventListener("click",()=>{ const q=+qty.value||0; if(!(q>0)) return;
+          items=[{name:r.name, amount:(q==1?"1 portion":q+" portions")+" (recipe makes "+r.portions+")", src:"recipe", ...Object.fromEntries(NUTS.map(([k])=>[k,Math.round((+r.per[k]||0)*q*10)/10]))}]; manual=false; if(!desc.value.trim()) desc.value=r.name; drawItems(); st.textContent="Added "+(q==1?"one portion":q+" portions")+" of "+r.name+"."; });
+        st.replaceChildren(h("span",{class:"ml-found"}, h("b",{},r.name), " · "+Math.round(r.per.kcal)+" kcal a portion", h("br"), "How many portions did you have? ", qty, " ", add)); }}, r.name+" · "+Math.round(r.per.kcal)+" kcal a portion"),
+      h("button",{class:"btn ghost small",type:"button","aria-label":"Delete recipe "+r.name,onclick:async()=>{ await saveProfilePatch({recipes:((S.profile||{}).recipes||[]).filter(x=>x.id!==r.id)}); myRecipes(); }},"✕")))));
+  }
   const photoIn=h("input",{type:"file",accept:"image/*",capture:"environment",hidden:true});
   const codeIn=h("input",{type:"file",accept:"image/*",capture:"environment",hidden:true});
   const labelIn=h("input",{type:"file",accept:"image/*",capture:"environment",hidden:true});
@@ -1937,15 +1975,21 @@ function openMeal(iso, item){
   }
   async function estimate(blob){
     if(!S.sample||S.aiOff){ st.textContent="Claude isn't available here. Type the numbers in instead."; return; }
-    st.textContent= blob? "Claude is looking at your photo…" : "Claude is working out the nutrition…";
+    const rec= recipeOn.checked? {portions:Math.max(1,+portionsIn.value||1), eaten:Math.max(0.1,+eatenIn.value||1)} : null;
+    st.textContent= blob? "Claude is looking at your photo…" : rec? "Claude is working through your recipe…" : "Claude is working out the nutrition…";
     try{
       const opts={modelTier:"quick"}; if(blob) opts.images=[blob];
-      const r=await S.sample.json(foodPrompt(desc.value.trim(), !!blob), opts);
+      let r;
+      try{ r=await S.sample.json(foodPrompt(desc.value.trim(), !!blob, rec, false), opts); }
+      catch(e){ if(e&&e.code==="invalid_json"){ st.textContent="That was a long one. Trying a shorter summary…"; r=await S.sample.json(foodPrompt(desc.value.trim(), !!blob, rec, true), opts); } else throw e; }
+      lastRecipe=null;
+      if(rec&&r&&r.per_portion){ const pp={}; for(const [k] of NUTS) pp[k]=+r.per_portion[k]||0; lastRecipe={name:String(r.name||desc.value.split("\n")[0]||"My recipe").slice(0,60), text:desc.value.trim().slice(0,3000), portions:rec.portions, per:pp}; }
       const got=(r&&Array.isArray(r.items)?r.items:[]).filter(x=>x&&x.name).map(x=>({name:String(x.name).slice(0,80),amount:String(x.amount||"").slice(0,80),kcal:+x.kcal||0,protein:+x.protein||0,carbs:+x.carbs||0,fat:+x.fat||0,fibre:+x.fibre||0,sugar:+x.sugar||0,src:"ai"}));
       if(!got.length){ st.textContent=(r&&r.note)||"Claude couldn't make out any food. Try a clearer photo or describe it."; return; }
       items=[...items.filter(i=>i.src!=="ai"), ...got]; manual=false;
       if(!desc.value.trim()&&r.description) desc.value=String(r.description).slice(0,200);
-      drawItems(); st.textContent="✦ Claude's rough guess"+(r.confidence?" ("+r.confidence+" confidence)":"")+". Check the amounts."+(r.note?" "+r.note:"");
+      drawItems(); st.textContent="✦ Claude's rough guess"+(r.confidence?" ("+r.confidence+" confidence)":"")+(lastRecipe?" for "+(rec.eaten==1?"one portion":rec.eaten+" portions")+" of "+lastRecipe.name+" ("+Math.round(lastRecipe.per.kcal)+" kcal a portion)":"")+". Check the amounts."+(r.note?" "+r.note:"");
+      if(lastRecipe&&!saveRec.checked) saveRec.checked=true;
     }catch(e){ st.textContent=aiErr(e)||"Couldn't work it out. Try again."; }
   }
   photoIn.addEventListener("change", async ()=>{ const f=photoIn.files[0]; photoIn.value=""; if(!f) return; const b=await imageToJpeg(f,1400); estimate(b||f); });
@@ -1986,6 +2030,7 @@ function openMeal(iso, item){
     if(!desc.value.trim()&&!items.length){ desc.focus(); toast("Say what you ate first."); return; }
     save.disabled=true;
     const nn={}; for(const [k] of NUTS) if(n[k]!=null&&n[k]!==""&&isFinite(+n[k])) nn[k]=Math.round(+n[k]*10)/10;
+    if(lastRecipe&&saveRec.checked){ const list=((S.profile||{}).recipes||[]).filter(x=>x.name.toLowerCase()!==lastRecipe.name.toLowerCase()); list.unshift({id:"r"+Date.now().toString(36),...lastRecipe}); saveProfilePatch({recipes:list.slice(0,60)}); }
     const ok=await addLog(iso,{id:item.id,type:"meal",meal:mealSel.value,time:tm.value||nowHM(),desc:desc.value.trim()||undefined,title:mealSel.value,items:items.length?items:undefined,n:Object.keys(nn).length?nn:undefined,manualN:manual||undefined});
     save.disabled=false; if(ok) closeSheet();
   });
@@ -1993,10 +2038,12 @@ function openMeal(iso, item){
   openSheet(isNew?"Log what you ate":"Edit "+item.meal.toLowerCase(),[...[
     h("div",{class:"fields2"}, h("div",{class:"field"}, h("label",{for:"ml-meal"},"Meal"), mealSel), h("div",{class:"field"}, h("label",{for:"ml-time"},"Time"), tm)),
     h("div",{class:"field"}, h("label",{for:"ml-desc"},"What did you eat and drink?"), desc),
+    t.food? h("label",{class:"ml-chk",for:"ml-rec"}, recipeOn, " This is a recipe (I'll paste the ingredients)") : null, t.food? recBox : null,
     t.food? h("div",{class:"ml-btns"},
       h("button",{class:"btn",type:"button",disabled:ro,onclick:()=>photoIn.click()},"📷 Photo of meal"),
       h("button",{class:"btn",type:"button",disabled:ro,onclick:()=>codeIn.click()},"▥ Scan barcode"),
       h("button",{class:"btn",type:"button",disabled:ro,onclick:()=>repeat()},"↻ Same as before"),
+      h("button",{class:"btn",type:"button",disabled:ro,onclick:()=>myRecipes()},"📖 My recipes"),
       h("button",{class:"btn ai",type:"button",disabled:ro,onclick:()=>{ if(!desc.value.trim()){ desc.focus(); toast("Describe it first, or take a photo."); return; } estimate(null); }},"✦ Work it out")) : null,
     photoIn, codeIn, labelIn, st,
     t.food? itemsBox : null, t.food? totBox : null,
@@ -2569,6 +2616,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-04.7", items:[["📖","Recipes: tick \"This is a recipe\", paste the ingredients, say how many portions it makes and how many you had. Claude works out one portion and saves it to My recipes."],["🧮","Enter the day's nutrition as one total, for example from another app."],["🛠️","Fixed long recipes or meals sometimes failing to work out."]]},
  {v:"2026-11-04.6", items:[["⌚","Sync from Apple Health: sleep, heart rate, HRV, blood oxygen, steps and ECG from a watch, ring or band arrive automatically. Set it up in Settings → Phones and devices."],["📈","New timeline rows: resting heart rate, highest heart rate, HRV, blood oxygen, deep sleep and steps."]]},
  {v:"2026-11-04.5", items:[["🆕","A \"What's new\" box like this one after every update. See it again any time in Settings."]]},
  {v:"2026-11-04.4", items:[["⚙️","Settings have moved to the gear in the top right, with your details, trackers, PIN and account all in one place."],["ℹ️","The version number and a Check for updates button are in Settings."],["🔒","The lock button next to the gear locks the app straight away when you have a PIN."]]},
