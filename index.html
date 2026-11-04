@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.1">
+<meta name="app-version" content="2026-11-04.2">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -626,6 +626,14 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 .wk-why{display:flex;gap:8px;align-items:flex-start;background:color-mix(in srgb,var(--wk-bad) 10%,transparent);color:var(--ink);border-radius:10px;padding:8px 10px;font-size:.88rem}
 .wk-dot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--wk-bad);box-shadow:0 0 8px var(--wk-bad);margin-top:5px}
 
+/* eating: why */
+.ci-why{display:flex;flex-direction:column;gap:8px;background:var(--glass);border-radius:12px;padding:10px 12px;margin-top:2px}
+.ci-why[hidden]{display:none}
+.ci-lab.sm{font-size:.8rem}
+.ci-tip{font-size:.8rem;opacity:.9}
+.ci-tip[hidden]{display:none}
+.ci-ok{align-self:flex-end;background:#FFFFFF;color:#16302A;border:0;border-radius:99px;padding:7px 16px;font-weight:700;font-size:.85rem;cursor:pointer}
+
 /* tab bar */
 .tabs{box-shadow:0 -4px 20px rgba(22,48,42,.06)}
 .tab svg{width:54px;height:30px;padding:4px 16px;border-radius:99px;transition:background .15s ease}
@@ -674,7 +682,8 @@ details.fold[open] .fchev{transform:rotate(90deg)}
       <button class="ci-expand" id="ciXBtn" type="button" aria-expanded="false" aria-controls="ciX"><span>More about today</span><span class="ci-xsum" id="ciXSum">Sleep, eating, medicines, stress</span><span class="ci-chev" aria-hidden="true">›</span></button>
       <div class="ci-x" id="ciX" hidden>
         <div class="ci-block" data-sec="sleep"><p class="ci-lab">How did you sleep?</p><div class="pflow" id="ciSleepQ" role="group" aria-label="Sleep quality"></div><div class="pflow four sm" id="ciSleepH" role="group" aria-label="Hours of sleep"></div></div>
-        <div class="ci-block" data-sec="eat"><p class="ci-lab">How much have you eaten?</p><div class="pflow four" id="ciEat" role="group" aria-label="How much you ate"></div></div>
+        <div class="ci-block" data-sec="eat"><p class="ci-lab">How much have you eaten?</p><div class="pflow four" id="ciEat" role="group" aria-label="How much you ate"></div>
+          <div class="ci-why" id="ciEatWhy" hidden><p class="ci-lab sm">Why? Tap any that fit</p><div class="ci-chips" id="ciEatWhyChips"></div><p class="ci-tip" id="ciEatTip" hidden>Tip: log the symptom too (dizzy, palpitations, sweaty) so the time is saved.</p><button class="ci-ok" id="ciEatOk" type="button">Done</button></div></div>
         <div class="ci-block" id="ciMedsB"><p class="ci-lab">Medicines taken today</p><div class="ci-chips" id="ciMeds"></div></div>
         <div class="ci-block" data-sec="stress"><p class="ci-lab">Stress or anxiety?</p><div class="pflow" id="ciStress" role="group" aria-label="Stress or anxiety today"></div></div>
       </div>
@@ -1310,7 +1319,7 @@ function buildContext(){
       if(d.feel) b.push("feeling "+d.feel+"/5 ("+FEEL[d.feel-1]+")");
       if(d.energy) b.push("energy "+d.energy+"/5");
       if(d.sleepQ||d.sleepH) b.push("slept "+[d.sleepQ?SLEEPQ[d.sleepQ-1].toLowerCase():"", d.sleepH?"about "+d.sleepH+"h":""].filter(Boolean).join(", "));
-      if(d.eat) b.push("ate: "+EAT[d.eat-1].toLowerCase());
+      if(d.eat) b.push("ate: "+EAT[d.eat-1].toLowerCase()+(Array.isArray(d.eatWhy)&&d.eatWhy.length?" because "+d.eatWhy.join(", ").toLowerCase():""));
       if(Array.isArray(d.medsTaken)&&d.medsTaken.length) b.push("took "+d.medsTaken.join(", "));
       if(d.stress) b.push("stress "+STRESS[d.stress-1].toLowerCase());
       if(Array.isArray(d.bp)&&d.bp.length) b.push("BP "+d.bp.map(r=>r.sys+"/"+r.dia+(r.pulse?" pulse "+r.pulse:"")+(r.time?" at "+r.time:"")).join(", "));
@@ -1499,6 +1508,7 @@ function renderCycle(){
   }));
   $("#cycNote").textContent= (c.avg? "Based on your last "+c.cycles+" cycle"+(c.cycles===1?"":"s")+"." : "Using a 28-day cycle until two periods are logged.")+" The fertile window is a rough estimate, not contraception.";
 }
+const EATWHY=["Not hungry","Full quickly","Felt sick","Unwell after eating","Forgot or too busy"];
 const SLEEPQ=["Badly","OK","Well"], SLEEPH=[["Under 5h",4],["5–6h",5.5],["7–8h",7.5],["9h+",9]], EAT=["Barely","Less than usual","Normal","More"], STRESS=["Low","Some","High"];
 function symptomChips(max){
   const p=S.profile||{}, hidden=new Set((p.symHidden||[]).map(x=>x.toLowerCase()));
@@ -1545,7 +1555,11 @@ function renderCheckinMore(iso, day){
   segButtons($("#ciEnergy"), ENERGY, day.energy, v=>{ ciPicked("energy"); saveDay(iso,{energy:v}); }, "en");
   segButtons($("#ciSleepQ"), SLEEPQ, day.sleepQ, v=>{ if(day.sleepH) ciPicked("sleep"); saveDay(iso,{sleepQ:v}); });
   $("#ciSleepH").replaceChildren(...SLEEPH.map(([l,v])=>h("button",{type:"button",class:"pf","aria-pressed":String(day.sleepH===v),disabled:ro,onclick:()=>{ if(day.sleepQ) ciPicked("sleep"); saveDay(iso,{sleepH:day.sleepH===v?null:v}); }}, h("span",{},l))));
-  segButtons($("#ciEat"), EAT, day.eat, v=>{ ciPicked("eat"); saveDay(iso,{eat:v}); });
+  segButtons($("#ciEat"), EAT, day.eat, v=>{ if(v&&v<=2){ CI.edit.add("eat"); saveDay(iso,{eat:v}); } else { ciPicked("eat"); saveDay(iso,{eat:v,eatWhy:null}); } });
+  const why=new Set(Array.isArray(day.eatWhy)?day.eatWhy:[]);
+  $("#ciEatWhy").hidden=!(day.eat&&day.eat<=2);
+  $("#ciEatWhyChips").replaceChildren(...EATWHY.map(w=>h("button",{type:"button",class:"ci-chip"+(why.has(w)?" on":""),"aria-pressed":String(why.has(w)),disabled:ro,onclick:()=>{ const n=new Set(why); n.has(w)?n.delete(w):n.add(w); CI.edit.add("eat"); saveDay(iso,{eatWhy:n.size?[...n]:null}); }}, (why.has(w)?"✓ ":"")+w)));
+  $("#ciEatTip").hidden=!why.has("Unwell after eating");
   segButtons($("#ciStress"), STRESS, day.stress, v=>{ ciPicked("stress"); saveDay(iso,{stress:v}); });
   const meds=ofKind("medication").filter(m=>m.status==="current").map(m=>shortMed(m.title)).filter((v,i,a)=>v&&a.indexOf(v)===i);
   const taken=new Set(Array.isArray(day.medsTaken)?day.medsTaken:[]);
@@ -1647,6 +1661,7 @@ function renderWeek(){
   if(d.sleepQ||d.sleepH) rows.push(["Sleep", [d.sleepQ?SLEEPQ[d.sleepQ-1]:"", d.sleepH?(SLEEPH.find(x=>x[1]===d.sleepH)||[""])[0]:""].filter(Boolean).join(", ")]);
   if(sy.n) rows.push(["Symptoms", sy.names.join(", ")]);
   if(d.period&&periodOn()) rows.push(["Period", d.period]);
+  if(d.eat) rows.push(["Eating", EAT[d.eat-1]+(Array.isArray(d.eatWhy)&&d.eatWhy.length?" ("+d.eatWhy.join(", ").toLowerCase()+")":"")]);
   if(Array.isArray(d.medsTaken)&&d.medsTaken.length) rows.push(["Medicines", d.medsTaken.join(", ")]);
   $("#wkDetail").replaceChildren(...[
     h("div",{class:"tl-dh"}, h("strong",{}, longDate(iso)+(iso===today?" (today)":"")), h("button",{class:"btn ghost small",type:"button",onclick:()=>openDay(iso)},"Open day ›")),
@@ -1681,7 +1696,8 @@ function renderCheckin(){
   ciSection("energy", !!day.energy, "Energy", day.energy? ENERGY[day.energy-1] : "");
   if(pon) ciSection("period", !!(day.period||day.pnone), "Period", day.period? day.period[0].toUpperCase()+day.period.slice(1) : "None");
   ciSection("sleep", !!(day.sleepQ&&day.sleepH), "Sleep", [day.sleepQ?"Slept "+SLEEPQ[day.sleepQ-1].toLowerCase():"", day.sleepH?(SLEEPH.find(x=>x[1]===day.sleepH)||[""])[0]:""].filter(Boolean).join(", "));
-  ciSection("eat", !!day.eat, "Eating", day.eat? EAT[day.eat-1] : "");
+  const ew=Array.isArray(day.eatWhy)?day.eatWhy:[];
+  ciSection("eat", !!day.eat && (day.eat>=3 || ew.length>0 || CI.eatDone===iso), "Eating", day.eat? EAT[day.eat-1]+(ew.length?" · "+ew.join(", ").toLowerCase():"") : "");
   ciSection("stress", !!day.stress, "Stress", day.stress? STRESS[day.stress-1] : "");
   $("#ciDoneB").hidden=!(day.feel&&day.energy&&(!pon||day.period||day.pnone));
 }
@@ -2422,6 +2438,7 @@ $("#ciMore").addEventListener("click",()=>openDay(todayISO()));
 $("#tlOpen").addEventListener("click",()=>show("timeline"));
 $("#tlBack").addEventListener("click",()=>show("overview"));
 $("#ciSymEdit").addEventListener("click",openSymEdit);
+$("#ciEatOk").addEventListener("click",()=>{ CI.eatDone=todayISO(); ciPicked("eat"); renderCheckin(); });
 $("#ciXBtn").addEventListener("click",()=>{ const open=$("#ciX").hidden; $("#ciX").hidden=!open; $("#ciXBtn").setAttribute("aria-expanded",String(open)); try{ localStorage.setItem("hl-ci-more",open?"1":"0"); }catch{} });
 $("#wkTl").addEventListener("click",()=>show("timeline"));
 $("#cycDiary").addEventListener("click",()=>openDay(todayISO()));
@@ -2498,7 +2515,7 @@ function tlDayData(iso){
   if(d.feel) out.push(["Mood", FACE[d.feel-1]+" "+FEEL[d.feel-1]]);
   if(d.energy) out.push(["Energy", ENERGY[d.energy-1]]);
   if(d.sleepQ||d.sleepH) out.push(["Sleep", [d.sleepQ?SLEEPQ[d.sleepQ-1]:"", d.sleepH?(SLEEPH.find(x=>x[1]===d.sleepH)||[""])[0]:""].filter(Boolean).join(", ")]);
-  if(d.eat) out.push(["Eating", EAT[d.eat-1]]);
+  if(d.eat) out.push(["Eating", EAT[d.eat-1]+(Array.isArray(d.eatWhy)&&d.eatWhy.length?" ("+d.eatWhy.join(", ").toLowerCase()+")":"")]);
   if(Array.isArray(d.medsTaken)&&d.medsTaken.length) out.push(["Medicines taken", d.medsTaken.join(", ")]);
   if(d.stress) out.push(["Stress", STRESS[d.stress-1]]);
   if(d.period&&periodOn()) out.push(["Period", d.period[0].toUpperCase()+d.period.slice(1)]);
@@ -2548,7 +2565,7 @@ function drawTimeline(lanes, from, to){
       svg.append(sv("rect",{x:PL,y,width:W-PL-PR,height:H.strip,rx:4,fill:"var(--bg)"}));
       for(const d of pts) svg.append(sv("rect",{x:X(d.date)-bw/2,y,width:bw,height:H.strip,rx:Math.min(2,bw/2),fill:"var(--mood"+toMood(d[key])+")"}));
       if(!pts.length) tlEmpty(svg,W,y,H.strip,"Nothing logged yet. Use the daily check-in.");
-      summary.push(L.name+": "+(pts.length? pts.map(d=>d.date.slice(5)+"="+d[key]).join(", ") : "none logged"));
+      summary.push(L.name+(key==="eat"?" (1 barely, 2 less than usual, 3 normal, 4 more)":key==="sleepQ"?" (1 badly, 2 OK, 3 well)":key==="stress"?" (1 low, 3 high)":"")+": "+(pts.length? pts.map(d=>d.date.slice(5)+"="+d[key]+(key==="eat"&&Array.isArray(d.eatWhy)&&d.eatWhy.length?" ("+d.eatWhy.join("/").toLowerCase()+")":"")).join(", ") : "none logged"));
       y+=H.strip;
     } else if(L.type==="period"){
       const pts=Object.values(days).filter(d=>d.period&&inR(d.date));
