@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.11">
+<meta name="app-version" content="2026-11-04.12">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -796,6 +796,46 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 :root[data-theme="dark"] .gf-st.out{background:#3A2A1F;color:#F3E9E1}
 :root[data-theme="dark"] .gf-st.out small{color:#D8C2B0}
 
+/* Pip */
+.pip{overflow:visible;flex:none}
+.pip .p-body{transform-box:fill-box;transform-origin:50% 100%;animation:pipFloat 3.2s ease-in-out infinite}
+.pip.still .p-body,.pip.still .p-eye{animation:none}
+@keyframes pipFloat{50%{transform:translateY(-3px) scale(1.015,.985)}}
+.pip .p-shadow{fill:rgba(0,0,0,.12)}
+.pip .p-arm{fill:none;stroke:#F0625A;stroke-width:7;stroke-linecap:round}
+.pip .p-armR{transform-box:view-box;transform-origin:85px 52px}
+.pip.wave .p-armR{animation:pipWave .8s ease-in-out 3}
+@keyframes pipWave{30%{transform:rotate(-28deg)}70%{transform:rotate(14deg)}}
+.pip .p-heart{stroke:#C93A33;stroke-width:1.2}
+.pip .p-shine{fill:#fff;opacity:.5}
+.pip .p-steth{fill:none;stroke:#4E5D66;stroke-width:2.4;stroke-linecap:round}
+.pip .p-ear{fill:#2F3A40}
+.pip .p-cp{fill:#D5DEE3;stroke:#7F8F98;stroke-width:1.2}
+.pip .p-cp2{fill:#AEBBC2}
+.pip .p-chest{transform-box:view-box;transform-origin:50px 72px}
+.pip .p-white{fill:#fff}
+.pip .p-dark{fill:#3A1F1D}
+.pip .p-spark{fill:#fff}
+.pip .p-pupil{transition:transform .3s}
+.pip .p-eye{transform-box:fill-box;transform-origin:center;animation:pipBlink 4.6s infinite}
+@keyframes pipBlink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.pip .p-cheek{fill:#FFC2BA;opacity:.85}
+.pip .p-mouth{fill:none;stroke:#3A1F1D;stroke-width:2.4;stroke-linecap:round}
+.pip.think .p-body{animation:pipThink .8s ease-in-out infinite}
+@keyframes pipThink{50%{transform:translateY(-5px) rotate(3deg)}}
+.pip.think .p-pupil{transform:translate(1.6px,-2.4px)}
+.pip.think .p-chest{animation:pipSwing .8s ease-in-out infinite}
+@keyframes pipSwing{50%{transform:rotate(14deg)}}
+.pip.happy .p-body{animation:pipHop .7s cubic-bezier(.3,1.7,.5,1) 2,pipFloat 3.2s ease-in-out 1.4s infinite}
+@keyframes pipHop{40%{transform:translateY(-9px) scale(.96,1.05)}}
+.pip-say{display:flex;gap:12px;align-items:center}
+.pip-bub{position:relative;background:var(--ai-soft);border-radius:16px;padding:10px 13px;font-size:.92rem;line-height:1.4}
+.pip-bub::before{content:"";position:absolute;left:-7px;top:50%;margin-top:-7px;border:7px solid transparent;border-right-color:var(--ai-soft);border-left:0}
+.pip-row{display:flex;gap:8px;align-items:flex-end;align-self:flex-start;max-width:96%}
+.pip-row .bubble{max-width:100%}
+.tab-pip{display:flex;justify-content:center;height:26px;margin-bottom:1px}
+@media (prefers-reduced-motion:reduce){ .pip .p-body,.pip .p-eye,.pip.wave .p-armR,.pip.think .p-chest{animation:none} }
+
 /* gut journey animated scene */
 .gs-wrap{display:flex;flex-direction:column;gap:6px}
 .gs{width:100%;max-width:360px;height:auto;margin:0 auto;display:block;overflow:visible}
@@ -995,7 +1035,7 @@ details.fold[open] .fchev{transform:rotate(90deg)}
       <h2>Start your logbook</h2>
       <ol>
         <li>In the NHS App, download letters from <strong>Documents</strong>, and screenshot your <strong>GP health record</strong> pages (allergies, medicines, conditions, test results).</li>
-        <li>Tap <strong>Import documents or photos</strong>. Add the PDFs and screenshots, or photograph paper letters. Claude reads them, summarises each letter and lists what it found for you to check.</li>
+        <li>Tap <strong>Import documents or photos</strong>. Add the PDFs and screenshots, or photograph paper letters. Pip reads them, summarises each letter and lists what it found for you to check.</li>
         <li>Add anything else by hand: symptoms as they happen, upcoming appointments, what the doctor said.</li>
       </ol>
       <p class="fineprint">For your complete record, you can ask your GP surgery for a copy (a subject access request). It's free.</p>
@@ -1061,7 +1101,7 @@ details.fold[open] .fchev{transform:rotate(90deg)}
       <div id="tlDetail" class="tl-detail" aria-live="polite"></div>
     </article>
     <div class="row">
-      <button class="btn ai" id="tlAsk" type="button">Ask Claude to analyse this chart</button>
+      <button class="btn ai" id="tlAsk" type="button">Ask Pip to analyse this chart</button>
       <button class="btn" id="tlStop" type="button" hidden>Stop</button>
     </div>
     <div class="chatlog" id="tlLog" aria-live="polite"></div>
@@ -1150,7 +1190,7 @@ details.fold[open] .fchev{transform:rotate(90deg)}
       </div>
       <input type="file" id="recCam" accept="image/*" capture="environment" hidden>
       <input type="file" id="recFiles" accept="image/*,application/pdf,.pdf" multiple hidden>
-      <p class="fineprint">Claude reads it and lists what it found. You tick what to keep before anything is added.</p>
+      <p class="fineprint">Pip reads it and lists what it found. You tick what to keep before anything is added.</p>
     </div>
     <div class="chips" id="filters" role="group" aria-label="Show"></div>
     <div class="panel"><ul class="list" id="recList"></ul></div>
@@ -1159,7 +1199,7 @@ details.fold[open] .fchev{transform:rotate(90deg)}
   <!-- PREPARE -->
   <section id="v-prepare" class="view" aria-label="Prepare" hidden>
     <h2 class="vh">Get ready for an appointment</h2>
-    <p class="lede">Claude reads your logbook and writes a short brief: what to say first, a timeline, the medicines to mention, and questions to ask.</p>
+    <p class="lede">Pip reads your logbook and writes a short brief: what to say first, a timeline, the medicines to mention, and questions to ask.</p>
     <div id="aiOffPrep" class="notice warn" hidden></div>
     <div class="field">
       <label for="prepAppt">Which appointment?</label>
@@ -1182,7 +1222,7 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 
     <hr class="sep">
     <h2 class="vh">Look at the whole picture</h2>
-    <p class="lede">For when appointments keep going round in circles. Claude reviews everything in your logbook and suggests what might tie it together, what hasn't been checked yet, and how to ask for it.</p>
+    <p class="lede">For when appointments keep going round in circles. Pip reviews everything in your logbook and suggests what might tie it together, what hasn't been checked yet, and how to ask for it.</p>
     <div class="field">
       <label for="revQ">What's still unexplained or worrying you?</label>
       <textarea id="revQ" rows="3" placeholder="e.g. Still exhausted even though my iron tablets are meant to be working. Hair thinning and pins and needles in my feet."></textarea>
@@ -1200,9 +1240,10 @@ details.fold[open] .fchev{transform:rotate(90deg)}
   </section>
 
   <!-- ASK -->
-  <section id="v-ask" class="view" aria-label="Ask Claude" hidden>
-    <h2 class="vh">Talk it through</h2>
-    <p class="lede">Ask what could be behind a symptom, what a result or letter means, or how to push for a test. Claude can see your logbook. Chats aren't saved.</p>
+  <section id="v-ask" class="view" aria-label="Ask Pip" hidden>
+    <h2 class="vh">Ask Pip</h2>
+    <div id="pipHero"></div>
+    <p class="lede">Ask what could be behind a symptom, what a result or letter means, or how to push for a test. Pip can see your logbook. Chats aren't saved.</p>
     <div id="aiOffAsk" class="notice warn" hidden></div>
     <div class="chips" id="starters"></div>
     <div class="chatlog" id="chatlog" aria-live="polite"></div>
@@ -1231,7 +1272,7 @@ details.fold[open] .fchev{transform:rotate(90deg)}
     <button class="tab tab-tl" data-view="timeline" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h9M4 12h14M4 18h6"/><circle cx="16" cy="6" r="2"/><circle cx="13" cy="18" r="2"/></svg>Timeline</button>
     <button class="tab" data-view="records" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Records</button>
     <button class="tab" data-view="prepare" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4"/></svg>Prepare</button>
-    <button class="tab" data-view="ask" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 4v-4H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>Ask</button>
+    <button class="tab" data-view="ask" type="button"><span class="tab-pip" aria-hidden="true"></span>Pip</button>
   </div>
 </nav>
 
@@ -1295,7 +1336,7 @@ const KINDS = {
 const ORDER = ["allergy","medication","condition","appointment","due","symptom","result","note"];
 const S = {db:null,col:null,user:null,sample:null,downloads:null,img:null,entries:[],profile:{},loaded:false,canWrite:true,aiOff:false,filter:"all",chat:[],chatFiles:[],prepCtl:null,chatCtl:null,prepText:"",prepFor:"",revCtl:null,revText:"",days:{},cal:null,selDay:null,notesFor:null};
 
-const GUIDE = "You are helping a person in the UK keep track of their own health and push their care forward with the NHS (GP, nurse, hospital, pharmacist), especially when appointments have gone round in circles. Use UK English and NHS terms. Be warm, plain-spoken, direct and practical.\n"
+const GUIDE = "You are Pip, the friendly health helper inside this personal health logbook app. Under the hood you are Claude, an AI made by Anthropic: if asked what you are, say so plainly, and never claim to be a person, doctor or nurse. In chat replies speak as Pip in the first person, warm and kind; in briefs, notes and documents don't mention yourself.\nYou are helping a person in the UK keep track of their own health and push their care forward with the NHS (GP, nurse, hospital, pharmacist), especially when appointments have gone round in circles. Use UK English and NHS terms. Be warm, plain-spoken, direct and practical.\n"
   + "Do help them think through what might be going on: connect symptoms, results and history (for example past operations such as bariatric surgery and the deficiencies that commonly follow them), name the possible explanations a clinician would consider, roughly most to least likely, and say what tests, checks or referrals could confirm or rule each one out. Mention relevant NHS or NICE guidance where you know it, and give wording they can use to ask for a test or referral. Say how sure you are, and be clear these are possibilities to put to their clinician, not a diagnosis, because you can't examine them or order tests.\n"
   + "Don't tell them to stop or change a prescribed medicine on their own; say to discuss it with their GP or pharmacist. Don't invent results or history that isn't in the logbook.\n"
   + "If anything they describe could be an emergency (for example chest pain, signs of a stroke, severe difficulty breathing, heavy bleeding, black or bloody stools, fainting, sudden severe headache, or thoughts of harming themselves), say clearly at the very start to call 999, or NHS 111 if it's urgent but not life-threatening.";
@@ -1461,7 +1502,7 @@ function plainForNote(text){
 }
 function docTitleOf(text, fallback){ const m=String(text).match(/^\s*#{1,2}\s+(.+)$/m); return (m&&m[1].replace(/[*_`]/g,"").trim().slice(0,90)) || fallback; }
 async function saveReplyNote(text, title){
-  const ok=await saveEntry({kind:"note", title:title||docTitleOf(text,"From a chat with Claude"), date:todayISO(), details:plainForNote(text), md:text, source:"claude"});
+  const ok=await saveEntry({kind:"note", title:title||docTitleOf(text,"From a chat with Pip"), date:todayISO(), details:plainForNote(text), md:text, source:"claude"});
   if(ok) toast("Saved to Notes & reviews");
   return ok;
 }
@@ -1483,7 +1524,7 @@ function buildDocPage(text, title){
   return h("div",{class:"docpage"},
     h("div",{class:"doc-head"}, h("img",{src:"icon-180.png",alt:"",width:"34",height:"34"}), h("div",{}, h("p",{class:"doc-k"},"Health Logbook"), h("p",{class:"doc-who"},who||"My health"))),
     h("h1",{class:"doc-title"},title),
-    h("p",{class:"doc-date"},"Written "+new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})+" with help from Claude, from my own health logbook"),
+    h("p",{class:"doc-date"},"Written "+new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})+" with help from Pip (AI), from my own health logbook"),
     h("div",{class:"doc-body"},body),
     h("p",{class:"doc-foot"},"This is my own summary to help with my care. It is not a medical record or a diagnosis. Please check anything important against my records."));
 }
@@ -1550,18 +1591,18 @@ function aiErr(e){
   switch(e&&e.code){
     case "cancelled": return "";
     case "not_granted": case "sampling_disabled": case "not_declared": case "capability_disabled": case "capability_removed":
-      disableAI("Your account can't use Claude in this app. Ask the administrator."); return "Your account can't use Claude in this app.";
-    case "rate_limited": return "Claude is busy, or you've reached today's limit. Try again later.";
+      disableAI("Your account can't use Pip in this app. Ask the administrator."); return "Your account can't use Pip in this app.";
+    case "rate_limited": return "Pip is busy, or you've reached today's limit. Try again later.";
     case "session_expired": return "You've been signed out. Sign in again, then try once more.";
     case "not_configured": return "Claude hasn't been switched on for this app yet. Ask the administrator to add the API key.";
     case "no_credit": return "The app's Claude credit has run out. Ask the administrator to top it up.";
-    case "image_rejected": return "Claude couldn't read that picture. Try a clearer screenshot saved as JPEG or PNG.";
-    case "images_unavailable": return "Pictures can't be sent to Claude from this app. Type the details in instead.";
-    case "refused": return "Claude didn't answer that. Try wording it differently.";
+    case "image_rejected": return "Pip couldn't read that picture. Try a clearer screenshot saved as JPEG or PNG.";
+    case "images_unavailable": return "Pictures can't be sent to Pip from this app. Type the details in instead.";
+    case "refused": return "Pip didn't answer that. Try wording it differently.";
     case "prompt_too_large": return "That's too much to send in one go. Try fewer pictures or a shorter message.";
-    case "invalid_json": return "Claude's reply couldn't be turned into entries. Try again, or with fewer pictures.";
-    case "empty_completion": return "Claude didn't write anything back. Try asking in a different way.";
-    default: return "Couldn't reach Claude. Check your connection and try again.";
+    case "invalid_json": return "Pip's reply couldn't be turned into entries. Try again, or with fewer pictures.";
+    case "empty_completion": return "Pip didn't write anything back. Try asking in a different way.";
+    default: return "Couldn't reach Pip. Check your connection and try again.";
   }
 }
 function disableAI(msg){
@@ -1681,6 +1722,7 @@ function show(v){
   if(location.hash.slice(1)!==v){ try{ history.replaceState(null,"","#"+v); }catch{} }
   window.scrollTo(0,0);
   if(v==="timeline" && typeof renderTimeline==="function") renderTimeline();
+  if(v==="ask"){ const p=document.querySelector("#pipHero .pip"); if(p){ p.classList.remove("wave"); void p.getBoundingClientRect(); p.classList.add("wave"); } }
   if(v==="settings" && typeof renderSettings==="function") renderSettings(true); else S.lastView=v;
   const g=$("#gearBtn"); if(g) g.classList.toggle("on", v==="settings");
 }
@@ -2130,9 +2172,9 @@ function openMeal(iso, item){
       inp.addEventListener("input",()=>{ manual=true; n={...n,[k]:inp.value===""?undefined:+inp.value}; }); return h("label",{class:"ml-n"}, inp, h("span",{}, l+(u?" ("+u+")":""))); })));
   }
   async function estimate(blob){
-    if(!S.sample||S.aiOff){ st.textContent="Claude isn't available here. Type the numbers in instead."; return; }
+    if(!S.sample||S.aiOff){ st.textContent="Pip isn't available here. Type the numbers in instead."; return; }
     const rec= recipeOn.checked? {portions:Math.max(1,+portionsIn.value||1), eaten:Math.max(0.1,+eatenIn.value||1)} : null;
-    st.textContent= blob? "Claude is looking at your photo…" : rec? "Claude is working through your recipe…" : "Claude is working out the nutrition…";
+    st.textContent= blob? "Pip is looking at your photo…" : rec? "Pip is working through your recipe…" : "Pip is working out the nutrition…";
     try{
       const opts={modelTier:"quick"}; if(blob) opts.images=[blob];
       let r;
@@ -2141,17 +2183,17 @@ function openMeal(iso, item){
       lastRecipe=null;
       if(rec&&r&&r.per_portion){ const pp={}; for(const [k] of NUTS) pp[k]=+r.per_portion[k]||0; lastRecipe={name:String(r.name||desc.value.split("\n")[0]||"My recipe").slice(0,60), text:desc.value.trim().slice(0,3000), portions:rec.portions, per:pp}; }
       const got=(r&&Array.isArray(r.items)?r.items:[]).filter(x=>x&&x.name).map(x=>({name:String(x.name).slice(0,80),amount:String(x.amount||"").slice(0,80),kcal:+x.kcal||0,protein:+x.protein||0,carbs:+x.carbs||0,fat:+x.fat||0,fibre:+x.fibre||0,sugar:+x.sugar||0,src:"ai"}));
-      if(!got.length){ st.textContent=(r&&r.note)||"Claude couldn't make out any food. Try a clearer photo or describe it."; return; }
+      if(!got.length){ st.textContent=(r&&r.note)||"Pip couldn't make out any food. Try a clearer photo or describe it."; return; }
       items=[...items.filter(i=>i.src!=="ai"), ...got]; manual=false;
       if(!desc.value.trim()&&r.description) desc.value=String(r.description).slice(0,200);
-      drawItems(); st.textContent="✦ Claude's rough guess"+(r.confidence?" ("+r.confidence+" confidence)":"")+(lastRecipe?" for "+(rec.eaten==1?"one portion":rec.eaten+" portions")+" of "+lastRecipe.name+" ("+Math.round(lastRecipe.per.kcal)+" kcal a portion)":"")+". Check the amounts."+(r.note?" "+r.note:"");
+      drawItems(); st.textContent="✦ Pip's rough guess"+(r.confidence?" ("+r.confidence+" confidence)":"")+(lastRecipe?" for "+(rec.eaten==1?"one portion":rec.eaten+" portions")+" of "+lastRecipe.name+" ("+Math.round(lastRecipe.per.kcal)+" kcal a portion)":"")+". Check the amounts."+(r.note?" "+r.note:"");
       if(lastRecipe&&!saveRec.checked) saveRec.checked=true;
     }catch(e){ st.textContent=aiErr(e)||"Couldn't work it out. Try again."; }
   }
   photoIn.addEventListener("change", async ()=>{ const f=photoIn.files[0]; photoIn.value=""; if(!f) return; const b=await imageToJpeg(f,1400); estimate(b||f); });
   labelIn.addEventListener("change", async ()=>{ const f=labelIn.files[0]; labelIn.value=""; if(!f) return; const b=await imageToJpeg(f,1600);
-    if(!S.sample||S.aiOff){ st.textContent="Claude isn't available here."; return; }
-    st.textContent="Claude is reading the label…";
+    if(!S.sample||S.aiOff){ st.textContent="Pip isn't available here."; return; }
+    st.textContent="Pip is reading the label…";
     try{ const r=await S.sample.json('This is a photo of a food packet or nutrition label. Reply with only JSON: {"name": product name, "per100": {"kcal":n,"protein":g,"carbs":g,"fat":g,"fibre":g,"sugar":g}, "serving_g": grams per serving if shown or null}. Use null for anything you cannot read.',{modelTier:"quick",images:[b||f]});
       if(!r||!r.per100){ st.textContent="Couldn't read the label. Try a closer, flatter photo."; return; }
       askAmount({name:r.name||"Packaged food", per:r.per100, serving:+r.serving_g||null, servingTxt:r.serving_g?r.serving_g+"g":""});
@@ -2162,7 +2204,7 @@ function openMeal(iso, item){
     if(!code){ st.replaceChildren("Couldn't read the barcode. Try again closer and in good light, or ", h("button",{class:"linkbtn",type:"button",onclick:()=>labelIn.click()},"photograph the nutrition label"),"."); return; }
     st.textContent="Looking up "+code+"…";
     let p=null; try{ p=await lookupBarcode(code); }catch{}
-    if(!p||!isFinite(p.per.kcal)){ st.replaceChildren("Barcode "+code+" isn't in the food database. ", h("button",{class:"linkbtn",type:"button",onclick:()=>labelIn.click()},"Photograph the nutrition label"), " and Claude will read it."); return; }
+    if(!p||!isFinite(p.per.kcal)){ st.replaceChildren("Barcode "+code+" isn't in the food database. ", h("button",{class:"linkbtn",type:"button",onclick:()=>labelIn.click()},"Photograph the nutrition label"), " and Pip will read it."); return; }
     askAmount(p);
   });
   function askAmount(p){
@@ -2264,7 +2306,7 @@ function trackersBox(){
     sw("sleep","Sleep diary","Bedtime, time to fall asleep, night wakings and hours slept.",!!t.sleep,v=>setT("sleep",v)),
     sw("heart","Heart episodes","Palpitations logged in detail: how long, what it felt like, pulse, what was going on.",t.heart!==false,v=>setT("heart",v)),
     sw("pain","Pain map","Tap where it hurts on a body picture, with what kind of pain.",t.pain!==false,v=>setT("pain",v)),
-    sw("stool","Poo tracker","Bristol chart and colour, with an optional photo Claude looks at. Flags warning signs.",!!t.stool,v=>setT("stool",v)),
+    sw("stool","Poo tracker","Bristol chart and colour, with an optional photo Pip looks at. Flags warning signs.",!!t.stool,v=>setT("stool",v)),
     p.sex==="male"? null : sw("period","Period tracker","Cycle ring, predictions and period days.",!p.periodOff,v=>saveProfilePatch({periodOff:v?undefined:true}).then(()=>renderAll())),
     tg);
   drawTargets();
@@ -2488,17 +2530,17 @@ function openStool(iso, item){
   }
   photoIn.addEventListener("change", async ()=>{
     const f=photoIn.files[0]; photoIn.value=""; if(!f) return;
-    if(!S.sample||S.aiOff){ st.textContent="Claude isn't available here. Pick the type yourself."; return; }
-    st.textContent="Claude is looking at the photo…";
+    if(!S.sample||S.aiOff){ st.textContent="Pip isn't available here. Pick the type yourself."; return; }
+    st.textContent="Pip is looking at the photo…";
     try{
       const b=await imageToJpeg(f,1200);
       const r=await S.sample.json('This is a photo of a stool (poo) that the person took for their own private health diary, to help their doctor. Classify it using the Bristol Stool Scale (1 separate hard lumps, 2 lumpy sausage, 3 sausage with cracks, 4 smooth soft sausage, 5 soft blobs with clear edges, 6 fluffy mushy pieces, 7 watery). Reply with only compact JSON: {"bristol": 1 to 7 or null if you cannot tell, "colour": one of "brown","dark","black","pale","yellow","green","red", "blood": true or false (visible red blood), "mucus": true or false, "greasy": true or false (oily sheen or floating), "confidence": "low","medium" or "high", "note": one short plain sentence}. If the photo is not a stool, reply {"bristol":null,"note":"why"}.',{modelTier:"quick",images:[b||f]});
-      if(!r||!r.bristol){ st.textContent=(r&&r.note)||"Claude couldn't tell from that photo. Pick the type yourself."; return; }
+      if(!r||!r.bristol){ st.textContent=(r&&r.note)||"Pip couldn't tell from that photo. Pick the type yourself."; return; }
       item.bristol=Math.max(1,Math.min(7,Math.round(+r.bristol)));
       if(STOOL_COL.some(c=>c[0]===r.colour)) item.colour=r.colour;
       const fl=new Set(item.flags||[]); if(r.blood) fl.add("blood"); if(r.mucus) fl.add("mucus"); if(r.greasy) fl.add("greasy"); item.flags=[...fl];
       item.src="ai"; draw();
-      st.textContent="✦ Claude's guess: type "+item.bristol+(r.confidence?" ("+r.confidence+" confidence)":"")+". Check it matches what you saw."+(r.note?" "+r.note:"");
+      st.textContent="✦ Pip's guess: type "+item.bristol+(r.confidence?" ("+r.confidence+" confidence)":"")+". Check it matches what you saw."+(r.note?" "+r.note:"");
     }catch(e){ st.textContent=aiErr(e)||"Couldn't look at the photo. Pick the type yourself."; }
   });
   const save=h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null},"Save");
@@ -2518,10 +2560,46 @@ function openStool(iso, item){
     h("p",{class:"flabel"},"Colour"), cols,
     h("p",{class:"flabel"},"Anything else?"), flags, mk,
     warn, h("div",{class:"fields2"}, h("div",{class:"field"}, h("label",{for:"st-time"},"Time"), tm)), h("div",{class:"field"}, h("label",{for:"st-det"},"Notes"), det),
-    h("p",{class:"fineprint"},"Photos are only looked at by Claude to suggest the type and are never saved."),
+    h("p",{class:"fineprint"},"Photos are only looked at by Pip to suggest the type and are never saved."),
     isNew? null : h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); openGut(item.id); }},"🔄 See its gut journey"),
     h("div",{class:"row",style:"justify-content:space-between"}, isNew? h("span") : h("button",{class:"btn danger",type:"button",onclick:async()=>{ if(await removeLog(iso,item.id)) closeSheet(); }},"Delete"), save)].filter(Boolean));
   draw();
+}
+
+/* ---------- Pip, the app's health helper ---------- */
+let pipN=0;
+function pipSvg(size, cls, label){
+  const id="pg"+(++pipN);
+  const s=sv("svg",{viewBox:"0 0 100 100",width:size,height:size,class:"pip"+(cls?" "+cls:""),role:label?"img":null,"aria-hidden":label?null:"true","aria-label":label||null});
+  const defs=sv("defs",{}); const g=sv("radialGradient",{id,cx:".38",cy:".3",r:".85"});
+  for(const [o,c] of [["0","#FFB4A8"],[".45","#FF7B70"],["1","#E0473F"]]) g.append(sv("stop",{offset:o,"stop-color":c}));
+  defs.append(g); s.append(defs);
+  const b=sv("g",{class:"p-body"}); s.append(b);
+  const add=(tag,a,p)=>{ const e=sv(tag,a); (p||b).append(e); return e; };
+  add("ellipse",{cx:50,cy:95,rx:22,ry:3.5,class:"p-shadow"},s); s.insertBefore(s.lastChild, b);
+  add("path",{d:"M15 52 Q 4 58 8 68",class:"p-arm"});
+  const armR=add("path",{d:"M85 52 Q 96 46 93 36",class:"p-arm p-armR"});
+  add("path",{d:"M50 90 C 20 70, 7 52, 11 33 C 14 18, 30 11, 40 15 C 46 17, 49 21, 50 25 C 51 21, 54 17, 60 15 C 70 11, 86 18, 89 33 C 93 52, 80 70, 50 90 Z",fill:"url(#"+id+")",class:"p-heart"});
+  add("ellipse",{cx:28,cy:27,rx:8,ry:4,class:"p-shine",transform:"rotate(-30 28 27)"});
+  add("path",{d:"M30 21 C 20 36, 24 56, 42 70 Q 50 76 58 70 C 76 56, 80 36, 70 21",class:"p-steth"});
+  add("circle",{cx:30,cy:20,r:2.3,class:"p-ear"}); add("circle",{cx:70,cy:20,r:2.3,class:"p-ear"});
+  const chest=add("g",{class:"p-chest"}); add("line",{x1:50,y1:74,x2:50,y2:78,class:"p-steth"},chest); add("circle",{cx:50,cy:81,r:4.6,class:"p-cp"},chest); add("circle",{cx:50,cy:81,r:2,class:"p-cp2"},chest);
+  for(const x of [38,62]){ const e=add("g",{class:"p-eye"}); add("ellipse",{cx:x,cy:42,rx:5.4,ry:6.6,class:"p-white"},e); const pu=add("g",{class:"p-pupil"},e); add("ellipse",{cx:x,cy:43,rx:3.1,ry:3.9,class:"p-dark"},pu); add("circle",{cx:x+1.3,cy:41.2,r:1.2,class:"p-spark"},pu); }
+  add("ellipse",{cx:28,cy:54,rx:5,ry:3,class:"p-cheek"}); add("ellipse",{cx:72,cy:54,rx:5,ry:3,class:"p-cheek"});
+  add("path",{d:"M43 55 Q 50 62 57 55",class:"p-mouth"});
+  return s;
+}
+function pipSay(text, cls){
+  return h("div",{class:"pip-say"}, pipSvg(64,cls||"wave"), h("div",{class:"pip-bub"}, text));
+}
+/* wrap Pip's chat bubbles with an avatar, and make Pip think while waiting */
+function pipWatch(log){
+  if(!log||log._pip) return; log._pip=true;
+  const sync=()=>{
+    for(const b of log.querySelectorAll(":scope > .bubble.claude")){ const row=h("div",{class:"pip-row"}, pipSvg(30,"")); log.insertBefore(row,b); row.append(b); }
+    for(const r of log.querySelectorAll(":scope > .pip-row")){ const p=r.querySelector(".pip"), thinking=!!r.querySelector(".thinking"); if(p) p.classList.toggle("think",thinking); }
+  };
+  new MutationObserver(sync).observe(log,{childList:true,subtree:true}); sync();
 }
 
 /* ---------- gut journey: food in, poo out ---------- */
@@ -2592,15 +2670,15 @@ function openGut(stoolId){
   const body=h("div",{class:"gut-body"});
   function draw(){
     const stool=st[i], f=gutFacts(stool), sum=gutSummary(stool,f);
-    const ai=h("div",{class:"gut-ai"}); const ask=h("button",{class:"btn",type:"button",disabled:(!S.sample||S.aiOff)||null},"✦ Ask Claude about this one");
+    const ai=h("div",{class:"gut-ai"}); const ask=h("button",{class:"btn",type:"button",disabled:(!S.sample||S.aiOff)||null},"✦ Ask Pip about this one");
     ask.addEventListener("click", async ()=>{
-      ask.disabled=true; ai.replaceChildren(h("p",{class:"hint"},"Claude is looking…"));
+      ask.disabled=true; ai.replaceChildren(h("p",{class:"hint"},"Pip is looking…"));
       const meds=ofKind("medication").filter(m=>m.status!=="stopped").map(m=>m.title).join(", ")||"none recorded";
       const conds=ofKind("condition").filter(c=>c.status!=="past").map(c=>c.title).join(", ")||"none recorded";
       const meals=f.all.map(m=>"- "+fmtDate(m.date)+" "+(m.time||"")+" ("+Math.round(m.ago)+"h before): "+(m.type==="drink"? "drink "+(m.title||"") : (m.meal||"meal")+" "+(m.desc||(m.items||[]).map(x=>x.name+(x.amount?" "+x.amount:"")).join(", "))+(m.n?" ["+["kcal","protein","fibre","fat","sugar"].filter(k=>m.n[k]).map(k=>k+" "+Math.round(m.n[k])).join(", ")+"]":""))).join("\n")||"none logged";
-      const prompt="You are helping someone understand their own digestion from their private health diary. Be warm, plain and brief (British English, 4 to 6 short sentences, no headings). Do not diagnose.\n\nThey logged a poo: "+fmtDate(stool.date)+" "+(stool.time||"")+", Bristol type "+stool.bristol+", colour "+(stool.colour||"brown")+(stool.flags&&stool.flags.length?", also: "+stool.flags.join(", "):"")+(stool.details?", notes: "+stool.details:"")+".\nTime since the previous logged poo: "+(f.gap!=null?Math.round(f.gap)+" hours":"unknown")+".\nTheir "+(f.W.personal?"measured":"assumed typical")+" gut transit window: most likely "+f.W.likeLo+"–"+f.W.likeHi+" hours.\nFood and drink in the "+f.W.hi+" hours before:\n"+meals+"\nWater: "+(f.water!=null?f.water+" glasses a day":"not logged")+".\nCurrent medicines: "+meds+".\nConditions: "+conds+".\n\nExplain what this poo suggests, which of the foods or drinks in the likely window could have contributed and why (fibre, fat, fluid, caffeine, sweeteners, spice, dairy), anything about their medicines or conditions that commonly affects bowels, and one practical tip. Remember an urge soon after eating is the gastrocolic reflex, not that meal. If there is blood or black tar-like poo, tell them to contact their GP today or NHS 111.";
+      const prompt="You are Pip, the friendly health helper in this logbook app (an AI, powered by Claude). You are helping someone understand their own digestion from their private health diary. Be warm, plain and brief (British English, 4 to 6 short sentences, no headings). Do not diagnose.\n\nThey logged a poo: "+fmtDate(stool.date)+" "+(stool.time||"")+", Bristol type "+stool.bristol+", colour "+(stool.colour||"brown")+(stool.flags&&stool.flags.length?", also: "+stool.flags.join(", "):"")+(stool.details?", notes: "+stool.details:"")+".\nTime since the previous logged poo: "+(f.gap!=null?Math.round(f.gap)+" hours":"unknown")+".\nTheir "+(f.W.personal?"measured":"assumed typical")+" gut transit window: most likely "+f.W.likeLo+"–"+f.W.likeHi+" hours.\nFood and drink in the "+f.W.hi+" hours before:\n"+meals+"\nWater: "+(f.water!=null?f.water+" glasses a day":"not logged")+".\nCurrent medicines: "+meds+".\nConditions: "+conds+".\n\nExplain what this poo suggests, which of the foods or drinks in the likely window could have contributed and why (fibre, fat, fluid, caffeine, sweeteners, spice, dairy), anything about their medicines or conditions that commonly affects bowels, and one practical tip. Remember an urge soon after eating is the gastrocolic reflex, not that meal. If there is blood or black tar-like poo, tell them to contact their GP today or NHS 111.";
       try{ const {text}=await S.sample(prompt,{modelTier:"quick",cache:false,onText:({text})=>{ ai.replaceChildren(md(text)); }}); ai.replaceChildren(md(text)); }
-      catch(e){ ai.replaceChildren(h("p",{class:"hint"}, aiErr(e)||"Couldn't reach Claude. Try again.")); ask.disabled=false; }
+      catch(e){ ai.replaceChildren(h("p",{class:"hint"}, aiErr(e)||"Couldn't reach Pip. Try again.")); ask.disabled=false; }
     });
     body.replaceChildren(
       h("div",{class:"gut-nav"},
@@ -3292,7 +3370,7 @@ function renderSettings(full){
       : h("div",{}, h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>showLock("set",savePin)},"Set a PIN")));
   const ib=installBox(); ib.querySelectorAll(":scope > .flabel").forEach(e=>e.remove());
   const upd=h("button",{class:"btn small",type:"button",onclick:async()=>{ upd.disabled=true; upd.textContent="Checking…"; const before=APP_VERSION; await checkForUpdate(); setTimeout(()=>{ upd.disabled=false; upd.textContent="Check for updates"; toast(before===APP_VERSION?"You're on the latest version":"Updating…"); },900); }},"Check for updates");
-  $("#setApp").replaceChildren(ib, setRow("ℹ️","Version", APP_VERSION? fmtVersion(APP_VERSION) : "Development copy", upd),
+  $("#setApp").replaceChildren(setRow("❤️","Pip, your health helper","Pip is an AI powered by Claude, made by Anthropic. Pip can make mistakes, so check anything important with your GP or pharmacist."), ib, setRow("ℹ️","Version", APP_VERSION? fmtVersion(APP_VERSION) : "Development copy", upd),
     setRow("🆕","What's new","Recent changes to the app.", null, ()=>showWhatsNew(CHANGES.filter(c=>cmpVer(c.v,APP_VERSION)<=0).slice(0,5),"Recent updates")));
   $("#setAcct").replaceChildren(...[
     setRow("🔑","Change password","", null, ()=>openPassword()),
@@ -3302,6 +3380,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-04.12", items:[["❤️","Meet Pip, your health helper! Pip answers your questions, reads your letters, guesses your food and poo from photos, and explains your charts. Pip is an AI powered by Claude."],["💬","Ask is now Pip's page, and Pip thinks out loud while working on an answer."]]},
  {v:"2026-11-04.11", items:[["🎬","The gut journey is now an animated body diagram: watch each meal travel from your mouth through the stomach and intestines, turn into poo and land in the loo. Drag the slider to move through time yourself."],["🫁","Organs are labelled, and the stomach, small intestine and large intestine light up while food is in them."]]},
  {v:"2026-11-04.10", items:[["🔄","Gut journey: see which meals most likely ended up in each poo, as a picture from food in to poo out, with a short summary. Tap the poo line on Home, or open any poo log."],["✦","Ask Claude about any poo and the food before it."],["🌽","Sweetcorn test: eat sweetcorn or beetroot, tick it when it shows up, and the app learns your own gut speed."]]},
  {v:"2026-11-04.9", items:[["💓","Heart episodes: tap Palpitations (or 💓 Heart episode) to log how long it lasted, what it felt like, your pulse and what was going on. Doctors ask exactly this."],["📍","Pain map: tap where it hurts on a body picture, front or back, and say what kind of pain. Places you've logged before are shaded."],["⚠️","Chest pain, fainting or bad breathlessness with either one flags when to call 999."]]},
@@ -3322,7 +3401,7 @@ function cmpVer(a,b){ const p=x=>{ const m=/^(\d{4}-\d{2}-\d{2})\.(\d+)$/.exec(x
 function showWhatsNew(list, title){
   if(!list.length) return;
   const blocks=list.slice(0,5).map(c=>h("div",{class:"wn-v"}, h("p",{class:"wn-d"}, fmtVersion(c.v)), h("ul",{class:"wn-l"}, ...c.items.map(([ic,t])=>h("li",{}, h("span",{class:"wn-i","aria-hidden":"true"},ic), h("span",{},t))))));
-  openSheet(title||"What's new",[h("p",{class:"none"}, list.length>1? "Here's what's changed since you last opened the app." : "Here's what's changed in this update."), ...blocks,
+  openSheet(title||"What's new",[pipSay(list.length>1? "Hi! Here's what's changed since you last opened the app." : "Hi! Here's what's new in this update.","happy"), ...blocks,
     list.length>5? h("p",{class:"fineprint"},"And more. See Settings → What's new.") : null,
     h("button",{class:"btn primary",type:"button",onclick:closeSheet},"Got it")].filter(Boolean));
   const card=document.querySelector("#sheet .sheet-card"); if(card) card.scrollTop=0; const c=$("#sheetClose"); if(c) c.focus({preventScroll:true});
@@ -3489,13 +3568,13 @@ const isPdf=f=> f.type==="application/pdf" || /\.pdf$/i.test(f.name||"");
 const MAX_PAGES=30;
 
 function openImport(initial){
-  if(!S.sample || S.aiOff){ openSheet("Import documents",[h("p",{},"Importing needs Claude, which isn't available on this page right now. You can still add entries by hand.")]); return; }
+  if(!S.sample || S.aiOff){ openSheet("Import documents",[h("p",{},"Importing needs Pip, which isn't available on this page right now. You can still add entries by hand.")]); return; }
   const canImg=!!S.img;
   let files=[], ctl=null;
   const camIn=h("input",{type:"file",id:"imp-cam",accept:"image/*",capture:"environment",hidden:true});
   const pickIn=h("input",{type:"file",id:"imp-files",multiple:true,accept:canImg?"image/*,application/pdf,.pdf":"application/pdf,.pdf",hidden:true});
   const chosen=h("ul",{class:"list"});
-  const go=h("button",{class:"btn ai",type:"button",disabled:true},"Read with Claude");
+  const go=h("button",{class:"btn ai",type:"button",disabled:true},"Read with Pip");
   const stop=h("button",{class:"btn",type:"button",hidden:true},"Stop");
   const out=h("div",{style:"display:flex;flex-direction:column;gap:10px"});
   function drawChosen(){
@@ -3552,7 +3631,7 @@ function openImport(initial){
       const existing=S.entries.map(e=>e.kind+": "+e.title+(e.date?" ("+e.date+")":"")).slice(-300).join("; ");
       const docs=[], items=[];
       for(let bi=0; bi<batches.length; bi++){
-        say(batches.length>1? "Claude is reading part "+(bi+1)+" of "+batches.length+"… This can take a minute." : "Claude is reading your paperwork… This can take a minute.");
+        say(batches.length>1? "Pip is reading part "+(bi+1)+" of "+batches.length+"… This can take a minute." : "Pip is reading your paperwork… This can take a minute.");
         const b=batches[bi];
         const prompt = "You are reading someone's own health paperwork from the UK: pages of the NHS App (GP health record), letters downloaded from the NHS App, hospital or clinic letters, discharge summaries, test results or prescriptions. "
           + (b.length? "The attached "+b.length+" image"+(b.length>1?"s are":" is")+" photos or screenshots ("+b.map(x=>x.name).join(", ")+"); photos may be at an angle. " : "")
@@ -3592,18 +3671,18 @@ function openImport(initial){
   if(canImg) btns.append(h("label",{class:"btn"+(more?"":" primary"),for:"imp-cam"}, more?"Take another photo":"Take a photo"));
   btns.append(h("label",{class:"btn",for:"imp-files"}, more? "Add more pages" : canImg? "Choose files or screenshots" : "Choose PDF files"));
   openSheet("Import documents",[
-    h("p",{class:"none"},"Add PDFs downloaded from the NHS App (Documents section), screenshots of your GP record, or photos of letters and paperwork. Add as many pages as you like, then let Claude read them."),
+    h("p",{class:"none"},"Add PDFs downloaded from the NHS App (Documents section), screenshots of your GP record, or photos of letters and paperwork. Add as many pages as you like, then let Pip read them."),
     camIn, pickIn, btns, chosen,
     h("div",{class:"row"},go,stop),
     out,
-    h("p",{class:"fineprint"},"Only what Claude reads out is kept, in your private logbook. The pictures and files themselves aren't stored.")
+    h("p",{class:"fineprint"},"Only what Pip reads out is kept, in your private logbook. The pictures and files themselves aren't stored.")
   ]);
   if(initial&&initial.length){ addFiles(initial); if(files.length) go.classList.add("pulse"); }
   drawChosen();
 }
 for(const id of ["#recCam","#recFiles"]) $(id).addEventListener("change",e=>{ const fs=[...e.target.files]; e.target.value=""; if(fs.length) openImport(fs); });
 function showImportResults(out, docs, items, skipped){
-  if(!docs.length && !items.length){ out.replaceChildren(h("p",{class:"notice"},"Claude couldn't find anything new in those pages. Try clearer photos in good light, or different pages.")); return; }
+  if(!docs.length && !items.length){ out.replaceChildren(h("p",{class:"notice"},"Pip couldn't find anything new in those pages. Try clearer photos in good light, or different pages.")); return; }
   const dChecks=[], iChecks=[];
   const docRows=docs.map((d,i)=>{ const cb=h("input",{type:"checkbox",id:"impd-"+i,checked:true}); dChecks.push(cb);
     return h("div",{class:"imp-item"}, cb, h("div",{style:"display:flex;flex-direction:column;gap:4px;min-width:0"},
@@ -3656,10 +3735,10 @@ $("#prepAppt").addEventListener("change",()=>{
   updatePrepTools();
 });
 $("#prepGo").addEventListener("click", async ()=>{
-  if(!S.sample){ disableAI("Claude isn't available on this page right now."); return; }
+  if(!S.sample){ disableAI("Pip isn't available on this page right now."); return; }
   const a=selectedAppt(); const goal=$("#prepGoal").value.trim();
   if(!a && !goal){ $("#prepGoal").focus(); toast("Say what the appointment is about first."); return; }
-  const out=$("#prepOut"); out.hidden=false; out.replaceChildren(h("p",{class:"thinking"},"Claude is reading your logbook…"));
+  const out=$("#prepOut"); out.hidden=false; out.replaceChildren(h("p",{class:"thinking"},"Pip is reading your logbook…"));
   $("#prepTools").hidden=true; $("#prepGo").disabled=true; $("#prepStop").hidden=false;
   S.prepCtl=new AbortController();
   const apptText = a? [a.date?fmtDate(a.date):"", a.time, a.title, a.place, a.details].filter(Boolean).join(", ") : "Not in the logbook yet.";
@@ -3677,7 +3756,7 @@ $("#prepGo").addEventListener("click", async ()=>{
     const {text,truncated}=await S.sample(prompt,{signal:S.prepCtl.signal, cache:false, onText:({text})=>{ out.replaceChildren(md(text)); }});
     S.prepText=text; S.prepFor=a?a.id:"";
     out.replaceChildren(md(text));
-    if(truncated) out.append(h("p",{class:"fineprint"},"Claude ran out of room. Ask for less detail if anything's missing."));
+    if(truncated) out.append(h("p",{class:"fineprint"},"Pip ran out of room. Ask for less detail if anything's missing."));
     $("#prepTools").hidden=false; $("#prepSave").textContent="Save to this appointment"; updatePrepTools();
   }catch(e){
     const msg=aiErr(e);
@@ -4084,11 +4163,11 @@ function tlRules(){
     +"\n\nVISUALS: a chart of their own numbers is a ```chart code block holding only JSON like {\"title\":\"...\",\"tests\":[\"Ferritin\"]} (test names as in the logbook, or Blood pressure, Weight, Mood, Energy, Cycle length, Period length); never put numbers in it. Tables use markdown pipes.";
 }
 async function tlTurn(userText, first){
-  if(!S.sample){ disableAI("Claude isn't available on this page right now."); return; }
+  if(!S.sample){ disableAI("Pip isn't available on this page right now."); return; }
   const log=$("#tlLog");
   if(!first){ log.append(h("div",{class:"bubble me"},userText)); }
   TL.chat.push({role:"user",content:userText});
-  const bub=h("div",{class:"bubble claude"}, h("span",{class:"thinking"}, first? "Claude is analysing your chart…" : "Thinking…")); log.append(bub); bub.scrollIntoView({block:"end",behavior:"smooth"});
+  const bub=h("div",{class:"bubble claude"}, h("span",{class:"thinking"}, first? "Pip is analysing your chart…" : "Thinking…")); log.append(bub); bub.scrollIntoView({block:"end",behavior:"smooth"});
   $("#tlAsk").disabled=true; $("#tlSend").disabled=true; $("#tlStop").hidden=false; TL.ctl=new AbortController();
   try{
     const {text}=await S.sample([{role:"user",content:tlRules()}, ...TL.chat.slice(-16)],{signal:TL.ctl.signal,cache:false,modelTier:"complex",onText:({text})=>{ bub.replaceChildren(md(text)); }});
@@ -4112,10 +4191,10 @@ $("#tlStop").addEventListener("click",()=>TL.ctl&&TL.ctl.abort());
 
 /* ---------- whole-history review ---------- */
 $("#revGo").addEventListener("click", async ()=>{
-  if(!S.sample){ disableAI("Claude isn't available on this page right now."); return; }
+  if(!S.sample){ disableAI("Pip isn't available on this page right now."); return; }
   if(!S.entries.length){ toast("Add some of your history first."); return; }
   const q=$("#revQ").value.trim();
-  const out=$("#revOut"); out.hidden=false; out.replaceChildren(h("p",{class:"thinking"},"Claude is going through your whole history. This can take a minute or two…"));
+  const out=$("#revOut"); out.hidden=false; out.replaceChildren(h("p",{class:"thinking"},"Pip is going through your whole history. This can take a minute or two…"));
   $("#revTools").hidden=true; $("#revGo").disabled=true; $("#revStop").hidden=false;
   S.revCtl=new AbortController();
   const prompt = GUIDE + "\n\nTheir full health logbook:\n" + buildContext()
@@ -4130,7 +4209,7 @@ $("#revGo").addEventListener("click", async ()=>{
   try{
     const {text,truncated}=await S.sample(prompt,{signal:S.revCtl.signal, cache:false, modelTier:"complex", onText:({text})=>{ out.replaceChildren(md(text)); }});
     S.revText=text; out.replaceChildren(md(text));
-    if(truncated) out.append(h("p",{class:"fineprint"},"Claude ran out of room. Try asking about one problem at a time."));
+    if(truncated) out.append(h("p",{class:"fineprint"},"Pip ran out of room. Try asking about one problem at a time."));
     $("#revTools").hidden=false; $("#revSave").hidden=!S.canWrite; $("#revSave").textContent="Save to my logbook"; $("#revFile").hidden=!S.downloads;
   }catch(e){
     const msg=aiErr(e);
@@ -4168,7 +4247,7 @@ $("#chatFile").addEventListener("change",()=>{
   n.textContent=S.chatFiles.length? S.chatFiles.length+" photo"+(S.chatFiles.length>1?"s":"")+" attached" : "";
 });
 async function sendChat(){
-  if(!S.sample){ disableAI("Claude isn't available on this page right now."); return; }
+  if(!S.sample){ disableAI("Pip isn't available on this page right now."); return; }
   const box=$("#chatIn"); const text=box.value.trim(); const files=S.chatFiles;
   if(!text && !files.length) return;
   const shown=(text||"(photo)")+(files.length?"\n[ "+files.length+" photo"+(files.length>1?"s":"")+" attached ]":"");
@@ -4198,6 +4277,9 @@ async function sendChat(){
   }finally{ $("#chatSend").disabled=S.aiOff; $("#chatStop").hidden=true; }
 }
 $("#chatSend").addEventListener("click",sendChat);
+pipWatch($("#chatlog")); pipWatch($("#tlLog"));
+$("#pipHero").replaceChildren(pipSay("Hi, I'm Pip, your health helper. I can see your logbook, so ask me anything: a symptom, a letter, a result, or what to say to the GP."));
+{ const t=document.querySelector(".tab-pip"); if(t) t.replaceChildren(pipSvg(26,"still")); }
 $("#chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); sendChat(); }});
 $("#chatStop").addEventListener("click",()=>S.chatCtl&&S.chatCtl.abort());
 $("#chatClear").addEventListener("click",()=>{ S.chatCtl&&S.chatCtl.abort(); S.chat=[]; $("#chatlog").replaceChildren(); });
