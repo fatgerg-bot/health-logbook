@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-05.7">
+<meta name="app-version" content="2026-11-05.8">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -159,6 +159,19 @@ textarea{resize:vertical;min-height:90px}
 .bubble.claude h3{color:var(--ai);font-size:.98rem}
 .bubble.claude ul,.bubble.claude ol{margin:0;padding-left:1.2em}
 .bubble .err{color:var(--alert);font-size:.88rem}
+.mind-tgl{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;color:var(--ink);font:inherit;cursor:pointer;margin:4px 0 10px}
+.mind-tgl .mt-ic{font-size:1.6rem}.mind-tgl .mt-tx{flex:1;display:flex;flex-direction:column;gap:2px}.mind-tgl small{color:var(--muted);font-size:.85rem}
+.mind-tgl .mt-state{font-weight:700;font-size:.85rem;padding:4px 10px;border-radius:99px;background:var(--line);color:var(--muted)}
+.mind-tgl[aria-pressed="true"]{background:#ECE8F6;border-color:#B9AEDB;color:#1F1A33}.mind-tgl[aria-pressed="true"] small{color:#4A4360}.mind-tgl[aria-pressed="true"] .mt-state{background:#5A4A8A;color:#fff}
+.mind-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}.mind-tools .mt-help{border-color:var(--alert,#A8261D);color:var(--alert,#A8261D)}
+body.mind #v-ask .bubble.claude{background:#ECE8F6;color:#1F1A33}
+body.mind #v-ask .dq-bub{background:#ECE8F6;color:#1F1A33}
+.bubble-help{max-width:92%;align-self:stretch}.mind-ppl{margin:6px 0 0;font-size:.9rem}
+.br-wrap{display:flex;justify-content:center;align-items:center;height:220px}
+.br-ball{width:180px;height:180px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#CFC6EC,#7E6CB8);animation:brBall 10s ease-in-out infinite;transform:scale(.45)}
+@keyframes brBall{0%{transform:scale(.45)}40%{transform:scale(1)}100%{transform:scale(.45)}}
+.br-say{font-size:1.4rem;text-align:center;margin:6px 0;font-weight:700}
+.gr-step{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:18px 0}.gr-ic{font-size:3rem}
 .composer{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px}
 .composer textarea{min-height:64px;background:transparent;border:0;padding:4px}
 .composer textarea:focus-visible{outline:none}
@@ -1532,7 +1545,13 @@ body.on-home .top{display:none}
   <!-- ASK -->
   <section id="v-ask" class="view" aria-label="Ask Dr Quackers" hidden>
     <div id="dqHero"></div>
-    <p class="lede">Ask what could be behind a symptom, what a result or letter means, or how to push for a test. Dr Quackers can see your logbook. Chats aren't saved.</p>
+    <button class="mind-tgl" id="mindTgl" type="button" aria-pressed="false"><span class="mt-ic" aria-hidden="true">🧠</span><span class="mt-tx"><b>Mind mode</b><small>A calm space to talk things through, with CBT self-help skills</small></span><span class="mt-state">Off</span></button>
+    <div class="mind-tools" id="mindTools" hidden>
+      <button class="fchip" type="button" id="mtBreathe">🫁 Breathe with me</button>
+      <button class="fchip" type="button" id="mtGround">🖐️ Grounding</button>
+      <button class="fchip mt-help" type="button" id="mtHelp">🆘 Help now</button>
+    </div>
+    <p class="lede" id="askLede">Ask what could be behind a symptom, what a result or letter means, or how to push for a test. Dr Quackers can see your logbook. Chats aren't saved.</p>
     <div id="aiOffAsk" class="notice warn" hidden></div>
     <div class="chips" id="starters"></div>
     <div class="chatlog" id="chatlog" aria-live="polite"></div>
@@ -3080,6 +3099,7 @@ function dqIdleTick(){
     if(!d.isConnected){ if(d._seen) DQ_IDLE.delete(d); continue; } d._seen=true;
     if(!d.getClientRects().length) continue;
     if(d._asleep) continue;
+    if(S.mind&&d.closest("#v-ask")) continue;
     if(["think","talk","wave","happy","look","scratch","smoke","fart","sleep","wake","flirt"].some(c=>d.classList.contains(c))) continue;
     if(Date.now()-dqLastInput>45000){ d._asleep=true; d.classList.add("sleep"); continue; }
     if(Math.random()>.6) continue;
@@ -3113,7 +3133,7 @@ const DQ_SERIOUS=/\b(999|111|A&E|emergency|urgent(ly)?|ambulance|chest pain|bloo
 function quackify(el){
   if(!el) return; const txt=el.textContent||"";
   if(el._qk===txt.length) return;
-  if(DQ_SERIOUS.test(txt)){ el._qk=txt.length; return; }
+  if(DQ_SERIOUS.test(txt)||(S.mind&&el.closest&&el.closest("#chatlog"))){ el._qk=txt.length; return; }
   const skip=n=>{ for(let p=n.parentNode;p&&p!==el;p=p.parentNode){ const t=p.nodeName; if(/^(CODE|PRE|BUTTON|A|TABLE|svg|TEXTAREA)$/i.test(t)||(p.classList&&(p.classList.contains("bub-actions")||p.classList.contains("qk")||p.classList.contains("mermaid")||p.classList.contains("thinking")))) return true; } return false; };
   const tw=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null); const nodes=[]; let n; while((n=tw.nextNode())) if(!skip(n)&&/[.!?](\s|$)/.test(n.nodeValue)) nodes.push(n);
   for(const t of nodes){
@@ -3255,6 +3275,7 @@ function thingsPackBtns(x){
   const W=!S.canWrite||null;
   if(x.kind==="pack suggest") return [h("button",{class:"btn small primary",type:"button",disabled:W,onclick:()=>packSet(x.pack,true).then(()=>toast(PACKS[x.pack].name+" pack is on"))},"Switch it on"), h("button",{class:"btn small ghost",type:"button",disabled:W,onclick:()=>saveProfilePatch({packsNo:[...((S.profile||{}).packsNo||[]),x.pack]}).then(renderAll)},"Not now")];
   if(x.q) return [h("button",{class:"btn small primary",type:"button",disabled:W,onclick:()=>openQuestionnaire(x.q)},"Start (2 min)")];
+  if(x.pack==="mental") return [h("button",{class:"btn small primary",type:"button",onclick:openMind},"Talk it through"), h("button",{class:"btn small ghost",type:"button",onclick:()=>openPackPlan("mental")},"My plan")];
   return [h("button",{class:"btn small primary",type:"button",onclick:()=>openPackPlan(x.pack)},"My plan"), h("button",{class:"btn small ghost",type:"button",onclick:()=>show("track")},"See my scores")];
 }
 function dqReminder(){ const r=dqThingsList()[0]; return r? r.text : ""; }
@@ -3745,7 +3766,8 @@ function renderPackCard(){
     blocks.push(h("div",{class:"pk-block"},
       h("div",{class:"pk-h"}, h("b",{},P.ic+" "+P.name), h("button",{class:"btn small ghost",type:"button",onclick:()=>openPackPlan(k)},"My plan ›")),
       h("p",{class:"fineprint"}, k==="crohns"? (last? "Home flare score: "+last.v+" ("+hbiBand(last.v)+"). Under 5 is quiet." : "Do the daily flare check in Today's check-in to see your score.") : (vals.length? "Mood over 30 days (taller is better)." : "Tap a face each day to see your mood here.")),
-      bars, qs.length? h("div",{class:"pk-qs"}, ...qs) : null));
+      bars, qs.length? h("div",{class:"pk-qs"}, ...qs) : null,
+      k==="mental"? h("button",{class:"btn ai",type:"button",onclick:openMind},"🧠 Talk it through in Mind mode") : null));
   }
   for(const w of packWarnings().filter(w=>w.level!=="due")) blocks.push(h("p",{class:"love-flag"}, h("b",{},"⚠️ "+w.text)));
   $("#packBody").replaceChildren(...blocks);
@@ -4596,6 +4618,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-05.8", items:[["🧠","New Mind mode in the Quackers tab: a calm space to talk things through. No jokes, one question at a time."],["🧩","Dr Quackers can take you through self-help skills from CBT: untangling a thought, thinking traps, planning small steps when you're low, the worry tree, sleep tips and being kinder to yourself."],["🫁","Breathe with me and 5-4-3-2-1 grounding buttons for anxious moments."],["🆘","Help now is always one tap away, with crisis numbers and the people in your plan. If you mention not being safe, it shows straight away in any chat."]]},
  {v:"2026-11-05.7", items:[["🩺","New care packs in Settings, under My conditions. Switch one on for each condition you live with: Mental health and Crohn's and colitis to start, with more coming."],["✅","Each pack adds a few quick taps to Today's check-in, so it's still one check-in a day."],["📈","Crohn's gets a home flare score, like the one IBD teams use. Mental health gets the 2-minute monthly mood and anxiety questionnaires GPs use."],["⚠️","Dr Quackers warns you early when a flare or a low patch looks like it's building, and points you to your own plan and the right help."]]},
  {v:"2026-11-05.6", items:[["🔗","Connections: Dr Quackers now looks at all your illnesses together and shows which might be linked, how strongly, the evidence from your own records, and how to test the link."],["🧩","He also says which problems look unrelated, and merges files that turn out to be one illness."]]},
  {v:"2026-11-05.5", items:[["🔍","New My illnesses: Dr Quackers keeps a file for each health problem, from first symptoms to investigating, diagnosis, care plan and getting better."],["📊","Each file shows your numbers and a chart, possible causes ranked Likely, Possible or Less likely, every test (done, waiting, worth asking for), a timeline, and what to do next."],["➕","Feeling off? Tap Something's not right, say it in your own words, and he opens a file straight away. Short illnesses like a cold close themselves when you're better."],["⚠️","Every file starts with the warning signs that mean getting help straight away."]]},
@@ -5500,7 +5523,91 @@ const STARTERS=[
   ["What's changed lately?","Looking at my logbook, what's changed in the last few months that I should mention to my GP?"],
   ["Explain a word","What does this medical word mean: "]
 ];
-$("#starters").replaceChildren(...STARTERS.map(([l,t])=>h("button",{class:"fchip",type:"button",onclick:()=>{ const c=$("#chatIn"); c.value=t; c.focus(); if(l==="Explain a letter"&&!$("#attachLbl").hidden) toast("Add a photo of the letter, then Send."); }},l)));
+/* ---------- Mind mode: a calm chat with CBT-based self-help tools ---------- */
+const MIND_GUIDE = "You are Dr Quackers, the health helper in this personal health logbook app, and the person has switched on MIND MODE: a calm space to talk about how they're feeling and practise self-help skills. You are an AI (Claude, made by Anthropic), not a therapist or a doctor; if asked, say so plainly. Speak in the first person as Dr Quackers, warm, calm, steady and kind, in plain UK English. In Mind mode there are NO jokes, no duck humour, no innuendo and no love-life nudges at all.\n"
++ "HOW YOU WORK: Listen first. Reflect back in a sentence what you've heard and how it sounds like it feels before offering anything. Ask ONE question at a time and wait for the answer. Keep replies short (usually under 120 words) unless you're teaching a skill. Offer a technique, don't push one: some people just want to be heard. Never argue with a feeling. Be curious, not clinical. Use their name now and then if you know it.\n"
++ "YOUR TOOLS (self-help techniques from cognitive behavioural therapy (CBT) and related evidence-based approaches): "
++ "1) Thought record: situation, the feeling and how strong 0-100, the hot thought, evidence for and against it, a more balanced thought, then re-rate the feeling. Go step by step. "
++ "2) Thinking traps, named gently as things everyone's brain does: all-or-nothing, catastrophising, mind reading, fortune telling, should statements, labelling, overgeneralising, discounting the positive, emotional reasoning, personalising. "
++ "3) Behavioural activation for low mood: one or two small, specific, doable activities (something enjoyable and something that gives a sense of achievement), when exactly they'll do them, and noticing mood before and after. "
++ "4) For worry: the worry tree (is this a problem I can do something about now? If yes, make a plan; if not, let it go for now) and a daily 15-minute worry time. "
++ "5) Problem solving: define the problem, list options, pick one, plan the first step. "
++ "6) Calming the body: slow breathing (in for 4, out for 6) and 5-4-3-2-1 grounding. The app has a Breathe with me button and a Grounding button they can tap. "
++ "7) Sleep: CBT-for-insomnia basics: same wake time every day, bed only for sleep, get up after about 20 minutes awake and do something calm, wind-down hour, no clock watching. "
++ "8) Self-compassion: what would you say to a friend in this situation? "
++ "When an exercise finishes, give a short summary under a heading like '## My thought record' or '## My plan for tomorrow' so they can tap Save to logbook, and ask how they feel now.\n"
++ "USE THEIR LOGBOOK gently: their mood diary, PHQ-9 and GAD-7 scores and their mental health plan (early warning signs, what helps them, people they can talk to) are below. Draw on what helps them and the people in their plan. Don't recite their records back at them or mention physical health unless it matters.\n"
++ "LIMITS: Don't diagnose. Don't advise starting, stopping or changing medicines: that's for their GP or pharmacist. For anything more than a few low days, encourage their GP, and NHS Talking Therapies, where people in England can refer themselves online for free CBT with a trained therapist. You're a stepping stone to real-world support, not a replacement for it.\n"
++ "SAFETY COMES FIRST: if they mention suicide, wanting to die, not wanting to be here, self-harm, harming someone else, being hurt by someone, or being in danger, stop any exercise straight away. Respond with warmth and take it seriously, ask directly whether they are safe right now, and give these in plain words: in immediate danger call 999 or go to A&E; NHS 111 option 2 for urgent mental health help any time; Samaritans on 116 123, free, day or night; or text SHOUT to 85258. Encourage them to reach out to someone in their plan now. Stay with the subject, don't hurry back to techniques, and never promise that what they say is confidential.\n";
+const MIND_RISK=/\b(suicid\w*|kill (my ?self|me)|end (it all|my life|things)|want(ed)? to die|better off dead|don'?t want to (be here|live|wake up)|no (point|reason) (in )?(living|going on)|self[- ]?harm\w*|hurt(ing)? my ?self|cut(ting)? my ?self|overdos\w*|take all my (pills|tablets))\b/i;
+const MIND_STARTERS=[
+  ["🧩 Untangle a thought","Something's going round my head and I'd like to untangle it. Can we do a thought record together, one step at a time?"],
+  ["😰 Anxious right now","I'm feeling anxious right now. Can you help me calm down first, then look at what's going on?"],
+  ["🛋️ Can't get going","I'm struggling to get going and do anything. Can you help me plan one or two small things?"],
+  ["🌳 A worry","I've got a worry I can't shake. Can you take me through the worry tree?"],
+  ["🌙 Can't sleep","I'm struggling with sleep. What can I try tonight?"],
+  ["💛 Hard on myself","I'm being really hard on myself. Can you help me look at it more kindly?"],
+  ["🎓 Learn a skill","Teach me one CBT skill I can practise this week, in plain words."],
+  ["💬 Just talk","I just want to talk for a bit."]
+];
+function mindPlan(){ return (((S.profile||{}).plans)||{}).mental||{}; }
+function mindHelpBox(){
+  const pl=mindPlan();
+  return h("div",{class:"cs-red mind-help"},
+    h("b",{},"If you're not safe right now, please reach out:"),
+    h("ul",{class:"cs-ul"}, ...CRISIS.map(t=>h("li",{},t))),
+    pl.people? h("p",{class:"mind-ppl"}, h("b",{},"People in your plan: "), pl.people) : null,
+    pl.pros? h("p",{class:"mind-ppl"}, h("b",{},"Your professionals: "), pl.pros) : null);
+}
+function openMindHelp(){
+  const pl=mindPlan();
+  openSheet("🆘 Help now",[mindHelpBox(),
+    pl.helps? h("div",{class:"il-sec"}, h("b",{class:"il-h"},"Things that help you"), h("p",{},pl.helps)) : null,
+    h("div",{class:"row"}, h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); openBreathe(); }},"🫁 Breathe with me"), h("button",{class:"btn ghost",type:"button",onclick:()=>{ closeSheet(); openPackPlan("mental"); }},"My plan")),
+    h("p",{class:"fineprint"},"You don't have to be in crisis to call. Samaritans are there for anyone who's struggling.")].filter(Boolean));
+}
+function openBreathe(){
+  const ball=h("div",{class:"br-ball","aria-hidden":"true"}), say=h("p",{class:"br-say","aria-live":"polite"},"Breathe in…"), cnt=h("p",{class:"fineprint"},"");
+  let n=0; const start=Date.now();
+  const tick=()=>{ if(!ball.isConnected){ clearInterval(iv); return; } const t=(Date.now()-start)/1000, ph=t%10; say.textContent= ph<4? "Breathe in…" : "And slowly out…"; n=Math.floor(t/10); cnt.textContent=n? n+" breath"+(n>1?"s":"")+". Keep going for as long as you like." : "In through your nose for 4, out through your mouth for 6."; };
+  const iv=setInterval(tick,250); tick();
+  openSheet("🫁 Breathe with me",[h("div",{class:"br-wrap"},ball), say, cnt, h("p",{class:"fineprint"},"Slow breathing with a longer out-breath tells your body it's safe. Try it for 2 minutes.")]);
+}
+function openGround(){
+  const steps=[["👀","5 things you can see","Look around and name them, out loud or in your head."],["✋","4 things you can feel","Your feet on the floor, your clothes, the chair, the air."],["👂","3 things you can hear","Near and far. Traffic, a clock, your own breathing."],["👃","2 things you can smell","Or two smells you like, if nothing's around."],["👅","1 thing you can taste","Or take a sip of water and notice it."]];
+  let i=0; const box=h("div",{class:"gr-step"}), next=h("button",{class:"btn primary",type:"button"},"Next");
+  const draw=()=>{ if(i>=steps.length){ box.replaceChildren(h("p",{class:"br-say"},"Well done."), h("p",{class:"none"},"Notice how you feel now compared with a few minutes ago. You can come back to this any time.")); next.textContent="Done"; next.onclick=closeSheet; return; }
+    const [ic,t,s]=steps[i]; box.replaceChildren(h("span",{class:"gr-ic","aria-hidden":"true"},ic), h("p",{class:"br-say"},t), h("p",{class:"none"},s), h("p",{class:"fineprint"},"Step "+(i+1)+" of 5")); };
+  next.onclick=()=>{ i++; draw(); }; draw();
+  openSheet("🖐️ 5-4-3-2-1 grounding",[box, next, h("p",{class:"fineprint"},"Grounding pulls your attention back to right now when anxiety or a panic takes over.")]);
+}
+function renderStarters(){
+  const L= S.mind? MIND_STARTERS : STARTERS;
+  $("#starters").replaceChildren(...L.map(([l,t])=>h("button",{class:"fchip",type:"button",onclick:()=>{ const c=$("#chatIn"); c.value=t; c.focus(); if(l==="Explain a letter"&&!$("#attachLbl").hidden) toast("Add a photo of the letter, then Send."); }},l)));
+}
+function renderMindBar(){
+  const on=!!S.mind, tg=$("#mindTgl");
+  tg.setAttribute("aria-pressed",String(on)); tg.querySelector(".mt-state").textContent= on? "On" : "Off";
+  $("#mindTools").hidden=!on;
+  document.body.classList.toggle("mind",on);
+  $("#askLede").textContent= on? "A calm space to talk things through. Dr Quackers uses self-help skills from CBT (cognitive behavioural therapy): one question at a time, no jokes. He's not a therapist. Chats aren't saved unless you tap Save." : "Ask what could be behind a symptom, what a result or letter means, or how to push for a test. Dr Quackers can see your logbook. Chats aren't saved.";
+  $("#dqHero").replaceChildren(on? h("div",{class:"dq-say"}, duckSvg(70,"still"), h("div",{class:"dq-bub"}, "This is a calm space"+((S.profile||{}).name?", "+String(S.profile.name).split(/\s+/)[0]:"")+". Tell me what's on your mind, or pick something below. We'll go one step at a time.")) : duckSay("Hello, I'm Dr Quackers, your health helper. I can see your logbook, so ask me anything: a symptom, a letter, a result, or what to say to the GP."));
+  $("#chatIn").placeholder= on? "What's on your mind?" : "Type a question…";
+  $("#attachLbl").hidden= on || !S.sample;
+  renderStarters();
+}
+function setMind(on){
+  if(!!S.mind===!!on) return;
+  S.chatCtl&&S.chatCtl.abort(); S.chat=[]; $("#chatlog").replaceChildren();
+  S.mind=!!on; renderMindBar();
+}
+function openMind(){ show("ask"); setMind(true); setTimeout(()=>$("#chatIn").focus(),100); }
+function mindRules(){
+  return MIND_GUIDE+"\n\nTheir health logbook (for context):\n"+buildContext({noCases:true})+"\n\nUse '## ' headings and '- ' bullets only when they help, mainly for exercise summaries. Never use charts or diagrams in Mind mode.";
+}
+renderStarters();
+$("#mindTgl").addEventListener("click",()=>setMind(!S.mind));
+$("#mtBreathe").addEventListener("click",openBreathe); $("#mtGround").addEventListener("click",openGround); $("#mtHelp").addEventListener("click",openMindHelp);
 function addBubble(role, content){
   const b=h("div",{class:"bubble "+(role==="user"?"me":"claude")});
   if(role==="user") b.textContent=content; else b.append(md(content), replyActions(content));
@@ -5518,18 +5625,19 @@ async function sendChat(){
   if(!text && !files.length) return;
   const shown=(text||"(photo)")+(files.length?"\n[ "+files.length+" photo"+(files.length>1?"s":"")+" attached ]":"");
   addBubble("user", shown);
+  if(MIND_RISK.test(text)){ const hb=mindHelpBox(); hb.classList.add("bubble-help"); $("#chatlog").append(hb); }
   S.chat.push({role:"user", content:(text||"Please look at this.")+(files.length?"\n\n(I've attached "+files.length+" photo"+(files.length>1?"s":"")+".)":"")});
   box.value=""; S.chatFiles=[]; $("#chatFile").value=""; $("#attachNote").hidden=true;
   const bub=h("div",{class:"bubble claude"}, h("span",{class:"thinking"},"Thinking…")); $("#chatlog").append(bub); bub.scrollIntoView({block:"end",behavior:"smooth"});
   $("#chatSend").disabled=true; $("#chatStop").hidden=false;
   S.chatCtl=new AbortController();
-  const rules=guideTxt()+"\n\nHere is their health logbook:\n"+buildContext()+"\n\nAnswer their questions, using the logbook where it's relevant. If they share a photo of a letter or result, explain it in plain English, define medical terms, and point out anything worth asking the doctor about. Keep answers fairly short (under 250 words) unless they ask for more, and ask a follow-up question when the answer depends on details the logbook lacks. Use '## ' headings and '- ' bullets only when they help."
+  const rules= S.mind? mindRules() : guideTxt()+"\n\nHere is their health logbook:\n"+buildContext()+"\n\nAnswer their questions, using the logbook where it's relevant. If they share a photo of a letter or result, explain it in plain English, define medical terms, and point out anything worth asking the doctor about. Keep answers fairly short (under 250 words) unless they ask for more, and ask a follow-up question when the answer depends on details the logbook lacks. Use '## ' headings and '- ' bullets only when they help."
     + "\n\nVISUALS. The app can show three kinds of visual inside your reply. Use one when it genuinely makes things clearer (a pattern over time, how things connect, a sequence of steps, a comparison), not in every answer, and say in a sentence what it shows."
     + "\n1. A chart of their OWN numbers: a fenced code block with the language 'chart' containing only JSON, e.g. ```chart\n{\"title\":\"Iron levels\",\"tests\":[\"Ferritin\",\"Haemoglobin\"]}\n``` The app draws it from the real values in the logbook, so never put numbers in it. 'tests' takes up to 4 test names exactly as they appear in the logbook, or the special names \"Blood pressure\", \"Weight\", \"Mood\", \"Energy\", \"Cycle length\", \"Period length\". Optional \"from\":\"YYYY-MM-DD\"."
     + "\n2. A diagram: a fenced code block with the language 'mermaid' using 'flowchart TD' (or 'timeline' for dated events). At most 12 boxes, short plain labels in double quotes, no styling, no HTML, no special characters like ( ) inside unquoted labels."
     + "\n3. A table: standard markdown pipe table with a header row, for comparisons."
     + "\nNOTES AND DOCUMENTS. Under each of your replies there are buttons to save it to their logbook or turn it into a PDF document. If they ask for a note, letter, summary or document (for example something to hand to the GP), write the whole reply as that document: start with a '# Title' line, write it in the first person as them where it's for a clinician, keep it clear and well organised, include a chart if results matter, and finish with a line telling them to tap Make a document to save or share it as a PDF.";
-  const turns=S.chat.slice(-20);
+  const turns=S.chat.slice(S.mind?-30:-20);
   try{
     const opts={signal:S.chatCtl.signal, cache:false, onText:({text})=>{ bub.replaceChildren(md(text)); }};
     if(files.length) opts.images=files;
@@ -5544,7 +5652,7 @@ async function sendChat(){
 }
 $("#chatSend").addEventListener("click",sendChat);
 duckWatch($("#chatlog")); duckWatch($("#tlLog"));
-$("#dqHero").replaceChildren(duckSay("Hello, I'm Dr Quackers, your health helper. I can see your logbook, so ask me anything: a symptom, a letter, a result, or what to say to the GP."));
+renderMindBar();
 { const t=document.querySelector(".tab-dq"); if(t) t.replaceChildren(duckSvg(25,"still")); }
 $("#chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); sendChat(); }});
 $("#chatStop").addEventListener("click",()=>S.chatCtl&&S.chatCtl.abort());
@@ -5773,7 +5881,7 @@ async function startSession(user){
 }
 function onSignedOut(){
   if(S.unsub) S.unsub(); S.unsub=null; S.store=null; S.col=null; S.uid=null;
-  S.entries=[]; S.days={}; S.profile={}; S.cases=null; S.loaded=false; S.chat=[]; $("#chatlog").replaceChildren();
+  S.entries=[]; S.days={}; S.profile={}; S.cases=null; S.loaded=false; S.chat=[]; $("#chatlog").replaceChildren(); if(S.mind){ S.mind=false; renderMindBar(); }
   LOCK.unlocked=false; hideLock(); renderAll(); showAuth("signin");
 }
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden && S.store) S.store.reload(); });
@@ -5784,7 +5892,7 @@ async function boot(){
   sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
   S.sample=makeSample(); S.downloads=makeDownloads();
   try{ const lim=await S.sample.limits(); S.img=lim.images; }catch{}
-  $("#attachLbl").hidden=false; $("#chatFile").accept="image/*";
+  $("#attachLbl").hidden=!!S.mind; $("#chatFile").accept="image/*";
   updatePrepTools();
   sb.auth.onAuthStateChange(ev=>{ if(ev==="SIGNED_OUT") onSignedOut(); });
   const {data:{session}}=await sb.auth.getSession();
