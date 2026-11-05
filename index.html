@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-05.3">
+<meta name="app-version" content="2026-11-05.4">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -404,6 +404,27 @@ main{padding-top:10px}
 .love-flag{display:flex;flex-direction:column;gap:2px;margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--alert-soft,#FBE8E5);color:var(--ink);font-size:14px}
 .love-flag b{color:var(--alert,#A8261D)}
 .love-form .flabel{margin:12px 0 6px}
+.cs-card{display:flex;flex-direction:column;gap:6px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;color:var(--ink);font:inherit;cursor:pointer}
+.cs-card.solved{opacity:.8}
+.cs-t{font-weight:700;font-size:1.02rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cs-new{font-size:.72rem;font-weight:700;background:var(--ai-soft,#ECE8F6);color:var(--ai,#5A4A8A);padding:2px 8px;border-radius:99px}
+.cs-causes{display:flex;flex-direction:column;gap:5px}
+.cs-c{display:grid;grid-template-columns:58px 1fr auto;gap:8px;align-items:center;font-size:.9rem}
+.cs-c small,.cs-ch small{color:var(--muted);font-size:.75rem;white-space:nowrap}
+.cs-s{font-size:.82rem;color:var(--muted)}
+.cs-bar{display:block;height:8px;border-radius:99px;background:var(--soft);overflow:hidden;min-width:58px}
+.cs-bar i{display:block;height:100%;border-radius:99px;background:var(--accent)}
+.cs-bar.b3 i{width:100%}.cs-bar.b2 i{width:62%;opacity:.8}.cs-bar.b1 i{width:28%;opacity:.6}
+.cs-cause{border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;background:var(--surface)}
+.cs-ch{display:grid;grid-template-columns:58px 1fr auto;gap:8px;align-items:center;margin-bottom:6px}
+.cs-ev{display:grid;grid-template-columns:82px 1fr;gap:6px;align-items:start;margin-top:4px}
+.cs-lab{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:99px;text-align:center;margin-top:3px}
+.cs-lab.yes{background:var(--soft);color:var(--accent)}.cs-lab.no{background:var(--alert-soft,#FBE8E5);color:var(--alert,#A8261D)}
+.cs-ul{margin:0;padding-left:18px;font-size:.9rem;line-height:1.45}
+.cs-conf{margin:8px 0 0;font-size:.88rem}
+.cs-red{background:var(--alert-soft,#FBE8E5);color:var(--ink);border-radius:14px;padding:12px 14px;margin-bottom:10px}.cs-red b{color:var(--alert,#A8261D)}
+.cs-next{background:var(--ai-soft,#ECE8F6);border-radius:14px;padding:4px 14px 12px;margin:6px 0 10px}
+.cs-log summary{cursor:pointer;font-weight:700;margin:6px 0}
 .love-form .ci-chips{display:flex;flex-wrap:wrap;gap:8px}
 .love-form .ci-chip{background:var(--surface);border:1px solid var(--line);color:var(--ink)}
 .love-form .ci-chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
@@ -1838,8 +1859,8 @@ async function copyText(text, el){
 }
 
 /* ---------- context for Claude ---------- */
-function buildContext(){
-  const p=S.profile||{}; const lines=[];
+function buildContext(opts){
+  opts=opts||{}; const p=S.profile||{}; const lines=[];
   lines.push("Today's date: "+fmtDate(todayISO()));
   if(p.name) lines.push("Name: "+p.name);
   if(p.dob) lines.push("Date of birth: "+fmtDate(p.dob));
@@ -1892,6 +1913,7 @@ function buildContext(){
   if(periodOn()&&dd.some(d=>d.period)){ const c=cycleInfo(); lines.push("\nPERIOD CYCLE (from the diary): "+c.starts.length+" periods logged; "+(c.avg?"average cycle "+c.avg+" days over the last "+c.cycles+" cycles":"not enough cycles for an average")+"; last period started "+fmtDate(c.last)+(c.len?", lasting "+c.len+" days":"")+".");
     for(const x of cycleList().slice(-8)) lines.push("- period started "+fmtDate(x.start)+": bled "+x.plen+" days ("+x.heavy+" heavy)"+(x.len?", cycle "+x.len+" days":", current cycle")); }
   const pats=afterEatingPatterns(60); if(pats.length) lines.push("\nPATTERNS FOUND BY THE APP: "+pats.map(p=>p.title+" came within 3 hours of eating on "+p.after+" of "+p.n+" logged occasions (average "+p.avg+" min after)").join("; ")+".");
+  if(!opts.noCases){ const ct=casesContext(); if(ct) lines.push(ct); }
   if(lines.length<2) lines.push("(The logbook is empty so far.)");
   const txt=lines.join("\n");
   return txt.length>80000? txt.slice(0,80000)+"\n(…logbook cut short)" : txt;
@@ -3224,6 +3246,7 @@ const IC={
   gut:"M7 4c-3 0-3 5 0 5h10c3 0 3 5 0 5H7c-3 0-3 5 0 5h7",
   cycle:"M12 2.7s-6 7-6 11.3a6 6 0 0 0 12 0c0-4.3-6-11.3-6-11.3z",
   heart:"M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z",
+  case:"M10.5 17a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13zM15.2 15.2L20 20M8 10.5h5M10.5 8v5",
   love:"M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10zM9 10.5c.6-1 1.6-1.4 2.6-1",
   pain:"M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11zM12 7v4M12 14h.01",
   tests:"M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3",
@@ -3256,6 +3279,7 @@ function renderTiles(){
     periodOn()? ["Cycle","cycle","k",()=>{ show("track"); const c=$("#cycCard"); if(c) c.scrollIntoView({block:"start",behavior:"smooth"}); }] : null,
     hp.heart? ["Heart","heart","r",()=>tlWith(["heart","rhr"]),hearts] : null,
     hp.pain? ["Pain map","pain","r",()=>openPain(todayISO())] : null,
+    ["Case files","case","r",()=>openCases(),casesBadge()],
     ["Blood tests","tests","a",()=>recFilter("result"),lowTests],
     ["Medicines","meds","p",()=>recFilter("medication")],
     ["Get ready","prep","p",()=>show("prepare")],
@@ -3321,6 +3345,95 @@ const EVT_EMO=Object.fromEntries(EVT.map(([k,e])=>[k,e])), EVT_NAME=Object.fromE
 function evLabel(e){ return (EVT_EMO[e.etype]||"🚩")+" "+e.title; }
 function evWhen(e){ return fmtDate(e.date)+(e.endDate&&e.endDate>e.date? " to "+fmtDate(e.endDate) : ""); }
 function bigEventsOn(iso){ return ofKind("event").filter(e=>e.date&&(e.date===iso||(e.endDate&&e.date<=iso&&e.endDate>=iso))); }
+/* ---------- case files: Dr Quackers' working list of possible explanations, updated as new data arrives ---------- */
+const CASE_BAND={likely:["Likely",3],possible:["Possible",2],"less likely":["Less likely",1]};
+function casesList(){ return (S.cases&&Array.isArray(S.cases.list))? S.cases.list : []; }
+function casesSig(){ let m=0; for(const e of S.entries) m=Math.max(m,e.updatedAt||0); for(const d of Object.values(S.days||{})) m=Math.max(m,d.updatedAt||0); return S.entries.length+"|"+Object.keys(S.days||{}).length+"|"+m; }
+function casesSeen(){ try{ return +localStorage.getItem("hl-cases-seen-"+(S.uid||"me"))||0; }catch{ return 0; } }
+function casesMarkSeen(){ try{ localStorage.setItem("hl-cases-seen-"+(S.uid||"me"),String(Date.now())); }catch{} }
+function casesBadge(){ const seen=casesSeen(); const n=casesList().filter(c=>c.status!=="solved"&&(c.changedAt||0)>seen).length; return n||undefined; }
+function casesContext(){
+  const open=casesList(); if(!open.length) return "";
+  return "\nDR QUACKERS' CASE FILES (his own working list of possible explanations to discuss with the doctor, NOT diagnoses):\n"+open.map(c=>"- "+c.title+(c.status==="solved"?" [solved: "+(c.diagnosis||"")+"]":"")+": "+(c.causes||[]).map(x=>x.name+" ("+x.band+")").join("; ")+(c.next&&c.next.length?". Next steps: "+c.next.join("; "):"")).join("\n");
+}
+function casesSave(list){
+  const body={kind:"cases", list, sig:casesSig(), at:Date.now(), updatedAt:Date.now()};
+  S.cases=body;
+  return write(()=>S.col.doc("cases").set(cleanBody(body)));
+}
+async function casesUpdate(){
+  if(!S.sample||S.aiOff) throw new Error("Dr Quackers isn't available here.");
+  if(S._casesRunning) return null; S._casesRunning=true;
+  try{
+    const old=casesList();
+    const prevTxt= old.length? JSON.stringify(old.map(c=>({id:c.id,title:c.title,status:c.status,summary:c.summary,causes:(c.causes||[]).map(x=>({name:x.name,band:x.band})),diagnosis:c.diagnosis}))) : "none yet";
+    const prompt=guideTxt()+"\n\nTheir full health logbook:\n"+buildContext({noCases:true})+"\n\nYour previous case files: "+prevTxt+
+      "\n\nYou are keeping CASE FILES for this person: one per real, ongoing health problem they are trying to get to the bottom of (for example 'Right-sided tummy pain' or 'Palpitations'). Think like a careful GP doing a differential diagnosis, using everything in the logbook: symptoms and when they happen, pain and heart logs, food and poo patterns, results with their ranges, scans, letters, medicines, the cycle, and big events. Update the previous case files with any new information, keep their ids, add a new case only for a genuine new problem, and mark a case 'solved' only when a doctor's letter or result has confirmed the cause. At most 5 cases; skip one-off minor things and problems already fully treated."+
+      "\nFor each case give 2 to 5 possible causes ranked by how well the evidence fits, each with a band: 'likely', 'possible' or 'less likely'. NEVER give percentages. Never say a cause is ruled out unless a test actually ruled it out. For each cause list the evidence for and against from THEIR logbook (short, with dates), and the test or sign that would confirm or rule it out. Then 'next': 2 to 4 concrete things to ask their GP for or to log, most useful first. Then 'redflags': the warning signs for this problem that mean calling 111, going to A&E or calling 999. Plain UK English, short sentences, no jargon without a plain explanation in brackets."+
+      "\nReply with only JSON: {\"cases\":[{\"id\":\"existing id or empty for new\",\"title\":\"short problem name\",\"status\":\"open\"|\"solved\",\"summary\":\"2-3 sentences: what's been happening and what's been done so far\",\"causes\":[{\"name\":\"\",\"band\":\"likely\"|\"possible\"|\"less likely\",\"for\":[\"\"],\"against\":[\"\"],\"confirm\":\"\"}],\"next\":[\"\"],\"redflags\":[\"\"],\"diagnosis\":\"only if solved: what was confirmed and by whom\",\"changed\":\"one sentence on what changed since your previous version and why, or empty if nothing changed\"}]}";
+    const res=await S.sample.json(prompt,{modelTier:"complex"});
+    const now=Date.now(), byId=Object.fromEntries(old.map(c=>[c.id,c]));
+    const arr=((res&&res.cases)||[]).filter(c=>c&&c.title).slice(0,5).map(c=>{
+      const prev=byId[c.id]||old.find(o=>o.title===c.title)||null;
+      const id=(prev&&prev.id)||("c"+now.toString(36)+Math.random().toString(36).slice(2,6));
+      const changed=String(c.changed||"").trim().slice(0,300);
+      const causes=(Array.isArray(c.causes)?c.causes:[]).slice(0,5).map(x=>({name:String(x.name||"").slice(0,120), band:CASE_BAND[x.band]?x.band:"possible", for:(Array.isArray(x.for)?x.for:[]).map(String).slice(0,5), against:(Array.isArray(x.against)?x.against:[]).map(String).slice(0,5), confirm:String(x.confirm||"").slice(0,300)})).filter(x=>x.name);
+      const log=[...((prev&&prev.log)||[])];
+      if(!prev) log.unshift({at:now,text:"Case opened."}); else if(changed) log.unshift({at:now,text:changed});
+      return {id, title:String(c.title).slice(0,80), status:c.status==="solved"?"solved":"open", summary:String(c.summary||"").slice(0,700), causes, next:(Array.isArray(c.next)?c.next:[]).map(String).slice(0,4), redflags:(Array.isArray(c.redflags)?c.redflags:[]).map(String).slice(0,5), diagnosis:String(c.diagnosis||"").slice(0,300), log:log.slice(0,15), changedAt:(!prev||changed)?now:(prev.changedAt||now), openedAt:(prev&&prev.openedAt)||now};
+    });
+    for(const o of old) if(!arr.some(c=>c.id===o.id)&&o.status==="solved") arr.push(o);
+    if(S.canWrite) await casesSave(arr); else S.cases={list:arr,at:now};
+    return arr;
+  } finally { S._casesRunning=false; }
+}
+function casesAutoCheck(){
+  if(!S.loaded||!S.canWrite||!S.sample||S.aiOff||S._casesRunning) return;
+  const c=S.cases, enough=S.entries.length+Object.keys(S.days||{}).length>=5;
+  if(!enough) return;
+  const stale= !c || (c.sig!==casesSig() && Date.now()-(c.at||0)>2*3600*1000);
+  if(!stale) return;
+  clearTimeout(S._casesT);
+  S._casesT=setTimeout(async()=>{ try{ const before=casesBadge()||0; const r=await casesUpdate(); if(r&&(casesBadge()||0)>before) toast("🔍 Dr Quackers updated your case files"); renderTiles(); }catch{} }, 4000);
+}
+function caseBar(band){ const n=(CASE_BAND[band]||CASE_BAND.possible)[1]; return h("span",{class:"cs-bar b"+n,"aria-hidden":"true"}, h("i",{})); }
+function openCases(){
+  const list=casesList(), open=list.filter(c=>c.status!=="solved"), solved=list.filter(c=>c.status==="solved");
+  const st=h("p",{class:"none"}), seen=casesSeen();
+  const go=h("button",{class:"btn primary",type:"button",disabled:(!S.canWrite||!S.sample||S.aiOff)||null}, list.length?"🔄 Update now":"🔍 Open my case files");
+  go.addEventListener("click", async()=>{ go.disabled=true; st.className="thinking"; st.textContent="Dr Quackers is going through your whole logbook… This can take a minute.";
+    try{ await casesUpdate(); closeSheet(); openCases(); renderTiles(); }catch(e){ st.className="notice"; st.textContent=aiErr(e)||(e&&e.message)||"Couldn't reach Dr Quackers. Try again."; go.disabled=false; } });
+  const card=c=>{ const top=(c.causes||[])[0], isNew=(c.changedAt||0)>seen&&c.status!=="solved";
+    return h("button",{class:"cs-card"+(c.status==="solved"?" solved":""),type:"button",onclick:()=>openCase(c.id)},
+      h("span",{class:"cs-t"}, (c.status==="solved"?"✅ ":"🔍 ")+c.title, isNew? h("span",{class:"cs-new"},"Updated") : null),
+      c.status==="solved"? h("span",{class:"cs-s"}, c.diagnosis||"Solved") : h("span",{class:"cs-causes"}, ...(c.causes||[]).slice(0,3).map(x=>h("span",{class:"cs-c"}, caseBar(x.band), h("span",{}, x.name), h("small",{}, CASE_BAND[x.band][0])))),
+      c.log&&c.log[0]? h("span",{class:"cs-s"}, "Last change: "+c.log[0].text) : null); };
+  openSheet("Case files",[
+    duckSay(list.length? "Here's what I'm investigating. I update these whenever you log something new. These are possibilities to talk through with your doctor, not diagnoses." : "I'll read your whole logbook and open a case file for each health problem, with the possible causes and what to ask your doctor next. Not a diagnosis, just good detective work.","think"),
+    ...open.map(card), solved.length? h("p",{class:"flabel"},"Solved") : null, ...solved.map(card),
+    st, go,
+    S.cases&&S.cases.at? h("p",{class:"fineprint"},"Last checked "+new Date(S.cases.at).toLocaleString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})+". In an emergency call 999.") : null].filter(Boolean));
+  casesMarkSeen(); setTimeout(renderTiles,300);
+}
+function openCase(id){
+  const c=casesList().find(x=>x.id===id); if(!c) return;
+  const ul=a=>h("ul",{class:"cs-ul"}, ...a.map(t=>h("li",{},t)));
+  const causeEl=x=>h("div",{class:"cs-cause"},
+    h("div",{class:"cs-ch"}, caseBar(x.band), h("b",{},x.name), h("small",{},CASE_BAND[x.band][0])),
+    x.for.length? h("div",{class:"cs-ev"}, h("span",{class:"cs-lab yes"},"Fits"), ul(x.for)) : null,
+    x.against.length? h("div",{class:"cs-ev"}, h("span",{class:"cs-lab no"},"Doesn't fit"), ul(x.against)) : null,
+    x.confirm? h("p",{class:"cs-conf"},"🧪 "+x.confirm) : null);
+  const ask=h("button",{class:"btn ai",type:"button",onclick:()=>{ closeSheet(); show("ask"); const ci=$("#chatIn"); ci.value="Talk me through my case file on '"+c.title+"'. What's the most likely explanation, what should I ask my GP for, and what should I log to help?"; ci.focus(); }},"Talk it through");
+  openSheet((c.status==="solved"?"✅ ":"🔍 ")+c.title,[
+    c.redflags&&c.redflags.length&&c.status!=="solved"? h("div",{class:"cs-red"}, h("b",{},"⚠️ Get help straight away if:"), ul(c.redflags)) : null,
+    c.diagnosis? h("p",{class:"notice"},"Confirmed: "+c.diagnosis) : null,
+    h("p",{},c.summary),
+    h("p",{class:"flabel"},"Possible causes"), ...(c.causes||[]).map(causeEl),
+    c.next&&c.next.length? h("div",{class:"cs-next"}, h("p",{class:"flabel"},"Ask your GP or log next"), ul(c.next)) : null,
+    c.log&&c.log.length? h("details",{class:"cs-log"}, h("summary",{},"How this case has changed"), ul(c.log.map(l=>new Date(l.at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})+": "+l.text))) : null,
+    h("div",{class:"row"}, ask, h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); openCases(); }},"All case files")),
+    h("p",{class:"fineprint"},"Dr Quackers is an AI, not a doctor. These are possibilities to discuss with your GP, not a diagnosis.")].filter(Boolean));
+}
 async function scanBigEvents(){
   if(!S.sample||S.aiOff){ toast("Dr Quackers isn't available here."); return; }
   const src=S.entries.filter(e=>e.kind!=="event"&&e.kind!=="symptom"&&(e.title||e.details));
@@ -3970,7 +4083,8 @@ function openSheet(title, nodes){
   $("#sheetTitle").textContent=title;
   $("#sheetBody").replaceChildren(...nodes);
   $("#sheet").hidden=false;
-  const f=$("#sheetBody").querySelector("input,select,textarea,button"); if(f) f.focus();
+  const f=$("#sheetBody").querySelector("input,select,textarea,button"); if(f) f.focus({preventScroll:true});
+  $("#sheetBody").scrollTop=0; { const sc=$("#sheetBody").closest(".sheet-in, .panel-sheet, [role=dialog]"); if(sc) sc.scrollTop=0; }
 }
 function closeSheet(){ $("#sheet").hidden=true; $("#sheetBody").replaceChildren(); if(sheetReturn&&sheetReturn.focus) sheetReturn.focus(); }
 $("#sheetClose").addEventListener("click",closeSheet);
@@ -4144,6 +4258,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-05.4", items:[["🔍","New Case files: Dr Quackers keeps a file for each health problem, with the possible causes ranked Likely, Possible or Less likely, what fits and what doesn't, and what to ask your GP next."],["🔄","Case files update themselves as you log new things, and show what changed and why."],["⚠️","Each case starts with the warning signs that mean getting help straight away."]]},
  {v:"2026-11-05.3", items:[["💗","New Love life tracker for everyone: sex drive, sex with your partner or solo, protection, how it went, and anything that wasn't right."],["📊","A Love life card on the Track tab shows how often, your usual drive, how it's been, and flags anything worth a GP chat, like pain or bleeding."],["🦆","Dr Quackers reads your Love life log for his nudges, and the cheeky side is now always on."]]},
  {v:"2026-11-05.2", items:[["🦆","Dr Quackers says something new every time you open the app: check-ins, cheeky doctor jokes, body reminders and the odd saucy nudge about your love life."],["😏","Saucy nudges come with a waggle of his eyebrows. He keeps them to himself on rough days."],["🗓️","Each opening line is fresh, and he won't repeat himself for a while."]]},
  {v:"2026-11-05.1", items:[["📋","Records list is easier to read on a phone: long names no longer squash into one word per line."],["⏳","Coming up now shows things you are waiting on that don't have a date yet, like a referral."],["📄","Long letters open with a bigger notes box, so you can read the whole letter."],["🚩","The timeline's All view now reaches back to your earliest big event."]]},
@@ -5303,13 +5418,13 @@ async function startSession(user){
   const timer=setTimeout(()=>{ if(!S.loaded) status("Your records can't be reached yet. Check your connection; they'll appear when it's back."); },10000);
   if(S.unsub) S.unsub();
   S.unsub=S.col.onSnapshot(snap=>{
-    const es=[], days={}; let prof={};
-    for(const d of snap.docs){ const v=d.data(); if(!v) continue; if(d.id==="profile") prof=v; else if(v.kind==="day"&&v.date) days[v.date]=v; else if(KINDS[v.kind]) es.push({...v,id:d.id}); }
+    const es=[], days={}; let prof={}; S.cases=null;
+    for(const d of snap.docs){ const v=d.data(); if(!v) continue; if(d.id==="profile") prof=v; else if(v.kind==="cases") S.cases=v; else if(v.kind==="day"&&v.date) days[v.date]=v; else if(KINDS[v.kind]) es.push({...v,id:d.id}); }
     S.entries=es; S.profile=prof; S.days=days;
     if(!prof.name && S.memberName) S.profile={...prof,name:S.memberName};
     checkLock();
     S.loaded=true; clearTimeout(timer); status(""); setTimeout(maybeWhatsNew,800);
-    renderAll();
+    renderAll(); casesAutoCheck();
   }, e=>{
     clearTimeout(timer); S.loaded=true;
     status("Your records couldn't be loaded. Check your connection and reload the page.");
@@ -5318,7 +5433,7 @@ async function startSession(user){
 }
 function onSignedOut(){
   if(S.unsub) S.unsub(); S.unsub=null; S.store=null; S.col=null; S.uid=null;
-  S.entries=[]; S.days={}; S.profile={}; S.loaded=false; S.chat=[]; $("#chatlog").replaceChildren();
+  S.entries=[]; S.days={}; S.profile={}; S.cases=null; S.loaded=false; S.chat=[]; $("#chatlog").replaceChildren();
   LOCK.unlocked=false; hideLock(); renderAll(); showAuth("signin");
 }
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden && S.store) S.store.reload(); });
