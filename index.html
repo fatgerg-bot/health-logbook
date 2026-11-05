@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-05.6">
+<meta name="app-version" content="2026-11-05.7">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -456,6 +456,17 @@ main{padding-top:10px}
 .cs-log summary{cursor:pointer;font-weight:700;margin:6px 0}
 .love-form .ci-chips{display:flex;flex-wrap:wrap;gap:8px}
 .love-form .ci-chip{background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+.pk-block{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-top:1px solid var(--line)}.pk-block:first-child{border-top:0;padding-top:0}
+.pk-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pk-bars{display:flex;align-items:flex-end;gap:2px;height:56px}
+.pk-bars i{flex:1;border-radius:3px;background:var(--line);min-width:3px}
+.pk-bars i.ok{background:#7FB59F}.pk-bars i.mid{background:#E8A33D}.pk-bars i.bad{background:var(--alert,#A8261D)}
+.pk-qs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.pk-q{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.pk-q span{font-size:.82rem;opacity:.8}
+.q-item{padding:8px 0;border-top:1px solid var(--line)}.q-q{margin:0 0 6px;font-weight:700;font-size:.95rem}
+.q-score{font-size:1.1rem;margin:10px 0 4px}
+.th-card.pack.alert{border-color:var(--alert,#A8261D)}
 .love-form .ci-chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
 .love-form textarea{width:100%}
 .cs{background:var(--bg);border-radius:12px;padding:9px 10px;display:flex;flex-direction:column;gap:1px;min-width:0}
@@ -1236,6 +1247,7 @@ body.on-home .top{display:none}
         <div class="ci-row"><p class="ci-lab">Love life</p><button class="ci-edit" id="ciLoveMore" type="button">Details</button></div>
         <div class="ci-intim" id="ciIntim"></div>
       </div>
+      <div class="ci-block ci-packs" id="ciPacks" hidden></div>
       <button class="ci-expand" id="ciXBtn" type="button" aria-expanded="false" aria-controls="ciX"><span>More about today</span><span class="ci-xsum" id="ciXSum">Sleep, eating, medicines, stress</span><span class="ci-chev" aria-hidden="true">›</span></button>
       <div class="ci-x" id="ciX" hidden>
         <div class="ci-block" data-sec="sleep"><p class="ci-lab">How did you sleep?</p><div class="pflow" id="ciSleepQ" role="group" aria-label="Sleep quality"></div><div class="pflow four sm" id="ciSleepH" role="group" aria-label="Hours of sleep"></div></div>
@@ -1294,6 +1306,11 @@ body.on-home .top{display:none}
       <p class="fineprint" id="cycNote"></p>
     </article>
 
+    <article class="panel" id="packCard" hidden aria-labelledby="packH">
+      <div class="ph"><span class="ic" aria-hidden="true">🩺</span><h2 id="packH">My conditions</h2><button class="more" type="button" id="packSet">Change ›</button></div>
+      <div id="packBody"></div>
+    </article>
+
     <article class="panel love" id="loveCard" hidden aria-labelledby="loveH">
       <div class="ph"><span class="ic love-ic" aria-hidden="true">💗</span><h2 id="loveH">Love life</h2><button class="more" type="button" id="loveLog">Log ›</button></div>
       <div id="loveBody"></div>
@@ -1326,6 +1343,7 @@ body.on-home .top{display:none}
     <div class="row" style="justify-content:space-between"><button class="btn ghost" id="setBack" type="button">‹ Back</button></div>
     <div class="set-head" id="setHead"></div>
     <article class="panel set-card"><h3 class="set-h">Your details</h3><div id="setDetails" class="set-body"></div></article>
+    <article class="panel set-card"><h3 class="set-h">My conditions</h3><div id="setPacks" class="set-body"></div></article>
     <article class="panel set-card"><h3 class="set-h">Trackers</h3><div id="setTrk" class="set-body"></div></article>
     <article class="panel set-card"><h3 class="set-h">Phones and devices</h3><div id="setHealth" class="set-body"></div></article>
     <article class="panel set-card"><h3 class="set-h">Daily check-in</h3><div id="setCheckin" class="set-body"></div></article>
@@ -1933,6 +1951,7 @@ function buildContext(opts){
       if(Array.isArray(d.bp)&&d.bp.length) b.push("BP "+d.bp.map(r=>r.sys+"/"+r.dia+(r.pulse?" pulse "+r.pulse:"")+(r.time?" at "+r.time:"")).join(", "));
       if(d.period) b.push("period: "+d.period);
       { const lc=loveContext(d); if(lc) b.push(lc); }
+      { const pc=packContext(d); if(pc) b.push(pc); }
       if(typeof d.weight==="number") b.push("weight "+d.weight+" kg");
       if(d.notes) b.push(String(d.notes).slice(0,300));
       if(b.length>1) lines.push("- "+b.join(" | "));
@@ -1943,6 +1962,7 @@ function buildContext(opts){
     for(const x of cycleList().slice(-8)) lines.push("- period started "+fmtDate(x.start)+": bled "+x.plen+" days ("+x.heavy+" heavy)"+(x.len?", cycle "+x.len+" days":", current cycle")); }
   const pats=afterEatingPatterns(60); if(pats.length) lines.push("\nPATTERNS FOUND BY THE APP: "+pats.map(p=>p.title+" came within 3 hours of eating on "+p.after+" of "+p.n+" logged occasions (average "+p.avg+" min after)").join("; ")+".");
   if(!opts.noCases){ const ct=casesContext(); if(ct) lines.push(ct); }
+  { const pt=packsSummary(); if(pt) lines.push(pt); }
   if(lines.length<2) lines.push("(The logbook is empty so far.)");
   const txt=lines.join("\n");
   return txt.length>80000? txt.slice(0,80000)+"\n(…logbook cut short)" : txt;
@@ -2001,7 +2021,7 @@ function show(v){
   if(VTITLE[v]) $("#who").textContent=VTITLE[v];
   { const f=$("#fab"); if(f) f.hidden=!["overview","track","timeline","diary"].includes(v)||!S.canWrite; }
   if(["track","timeline","diary"].includes(v)) renderTrackSeg(v);
-  if(v==="track"){ renderTrack(); renderLove(); }
+  if(v==="track"){ renderTrack(); renderLove(); renderPackCard(); }
   if(location.hash.slice(1)!==v){ try{ history.replaceState(null,"","#"+v); }catch{} }
   window.scrollTo(0,0);
   if(v==="timeline" && typeof renderTimeline==="function") renderTimeline();
@@ -3183,6 +3203,8 @@ function dqQHist(){ try{ return JSON.parse(localStorage.getItem("hl-dq-q-"+(S.ui
 function dqRoughDay(){
   const t=todayISO(), d=(S.days||{})[t]||{};
   if(d.feel&&d.feel<=2) return true;
+  if(packWarnings().some(w=>w.level!=="due")) return true;
+  if(ofKind("result").some(e=>e.q9&&e.date&&daysBetween(e.date,t)<=14)) return true;
   return S.entries.some(e=>e.date===t&&e.kind==="symptom"&&((e.severity||0)>=7||e.ep));
 }
 function dqPickQuip(){
@@ -3221,11 +3243,19 @@ function dqFeeling(){
 }
 function dqThingsList(){
   const t=todayISO(), soon=addDays(t,3), fort=addDays(t,14), out=[];
+  for(const w of packWarnings()) out.push({kind:"pack "+w.level, pack:w.pack, q:w.q, e:{id:"pack-"+w.pack+"-"+w.level}, text:w.text});
+  for(const k of packSuggestions().slice(0,1)) out.push({kind:"pack suggest", pack:k, e:{id:"packsug-"+k}, text:"I've spotted "+PACKS[k].spot+" in your records. Want the care pack for it? It adds a few quick taps to your check-in, early warnings and a plan."});
   for(const d of ofKind("due").filter(e=>e.status!=="done"&&e.date&&e.date<=soon).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2))
     out.push({kind:"due", e:d, text: d.date<t? d.title+" is overdue." : d.title+" is due "+dqWhen(d.date)+"."});
   const appt=ofKind("appointment").filter(e=>e.date&&e.date>=t&&e.date<=fort).sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||"")))[0];
   if(appt) out.push({kind:"appt", e:appt, text: appt.title+" is "+dqWhen(appt.date)+(appt.time?" at "+appt.time:"")+"."});
   return out;
+}
+function thingsPackBtns(x){
+  const W=!S.canWrite||null;
+  if(x.kind==="pack suggest") return [h("button",{class:"btn small primary",type:"button",disabled:W,onclick:()=>packSet(x.pack,true).then(()=>toast(PACKS[x.pack].name+" pack is on"))},"Switch it on"), h("button",{class:"btn small ghost",type:"button",disabled:W,onclick:()=>saveProfilePatch({packsNo:[...((S.profile||{}).packsNo||[]),x.pack]}).then(renderAll)},"Not now")];
+  if(x.q) return [h("button",{class:"btn small primary",type:"button",disabled:W,onclick:()=>openQuestionnaire(x.q)},"Start (2 min)")];
+  return [h("button",{class:"btn small primary",type:"button",onclick:()=>openPackPlan(x.pack)},"My plan"), h("button",{class:"btn small ghost",type:"button",onclick:()=>show("track")},"See my scores")];
 }
 function dqReminder(){ const r=dqThingsList()[0]; return r? r.text : ""; }
 function renderThings(){
@@ -3238,13 +3268,14 @@ function renderThings(){
   if(box._key!==key){
     box._key=key;
     const cards=items.map(x=>{
-      const icon= x.kind==="due"? "M12 13m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0M12 9v4l2 2" : "M4 5h16v15H4zM8 3v4M16 3v4M4 10h16";
-      const txt=h("p",{class:"th-t"},x.text); quackify(txt);
+      const icon= x.pack? "M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z" : x.kind==="due"? "M12 13m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0M12 9v4l2 2" : "M4 5h16v15H4zM8 3v4M16 3v4M4 10h16";
+      const txt=h("p",{class:"th-t"},x.text); if(!x.pack) quackify(txt);
       return h("article",{class:"th-card "+x.kind},
         h("div",{class:"th-row"}, h("span",{class:"th-ic","aria-hidden":"true"}, svgIcon(icon)), txt),
         h("div",{class:"row"},
+          ...(x.pack? thingsPackBtns(x) : [
           x.kind==="due"? h("button",{class:"btn small primary",type:"button",disabled:!S.canWrite||null,onclick:()=>markDone(x.e)},"Done") : h("button",{class:"btn small ai",type:"button",onclick:()=>{ $("#prepAppt").value=x.e.id; show("prepare"); }}, x.e.prep?"See my brief":"Get ready"),
-          h("button",{class:"btn small ghost",type:"button",onclick:()=>openEntry(x.e)},"Details")));
+          h("button",{class:"btn small ghost",type:"button",onclick:()=>openEntry(x.e)},"Details")])));
     });
     box._tip=h("p",{class:"th-t"}); box._chat=h("button",{class:"btn small ai",type:"button",onclick:()=>{ const t=(dqGet()||{}).text; show("ask"); if(t&&!S.chat.some(m=>m.content===t)){ S.chat.push({role:"assistant",content:t}); addBubble("assistant",t); } const c=$("#chatIn"); c.placeholder="Ask Dr Quackers anything…"; c.focus(); }},"Chat about this");
     box._more=h("button",{class:"btn small ghost",type:"button",onclick:()=>{ dqSet(null); box._tipFor=null; renderThings(); }},"Another tip");
@@ -3578,6 +3609,167 @@ function openCase(id){
     h("div",{class:"row"}, illDone(c)||!(c.match||[]).length? null : logIt, ask, h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); openCases(); }},"All illnesses")),
     h("p",{class:"fineprint"},"Dr Quackers is an AI, not a doctor. Only a doctor can confirm a diagnosis.")].filter(Boolean));
 }
+/* ---------- care packs: one engine, a pack per condition (daily checks, score, plan, red flags, early warnings) ---------- */
+const QOPTS=[[0,"Not at all"],[1,"Several days"],[2,"More than half the days"],[3,"Nearly every day"]];
+const PHQ9=["Little interest or pleasure in doing things","Feeling down, depressed or hopeless","Trouble falling or staying asleep, or sleeping too much","Feeling tired or having little energy","Poor appetite or overeating","Feeling bad about yourself, or that you are a failure or have let yourself or your family down","Trouble concentrating on things, such as reading or watching TV","Moving or speaking so slowly that other people could have noticed, or being so fidgety or restless that you have been moving around a lot more than usual","Thoughts that you would be better off dead, or of hurting yourself in some way"];
+const GAD7=["Feeling nervous, anxious or on edge","Not being able to stop or control worrying","Worrying too much about different things","Trouble relaxing","Being so restless that it is hard to sit still","Becoming easily annoyed or irritable","Feeling afraid as if something awful might happen"];
+const QSETS={
+  phq9:{title:"PHQ-9 mood score", short:"Mood (PHQ-9)", phrase:"mood check (PHQ-9)", items:PHQ9, max:27, high:9, bands:[[4,"minimal"],[9,"mild"],[14,"moderate"],[19,"moderately severe"],[27,"severe"]]},
+  gad7:{title:"GAD-7 anxiety score", short:"Anxiety (GAD-7)", phrase:"anxiety check (GAD-7)", items:GAD7, max:21, high:9, bands:[[4,"minimal"],[9,"mild"],[14,"moderate"],[21,"severe"]]}
+};
+function qBand(set,score){ for(const [mx,l] of QSETS[set].bands) if(score<=mx) return l; return ""; }
+const CRISIS=["Talk to someone you trust, or call your GP","NHS 111, option 2: urgent mental health help, any time","Samaritans: 116 123, free, 24 hours (or text SHOUT to 85258)","In danger right now: call 999 or go to A&E"];
+const PACKS={
+  mental:{name:"Mental health", spot:"mood or anxiety", ic:"🧠",
+    desc:"Mood, anxiety, sleep and enjoyment in the daily check-in, a 2-minute monthly questionnaire (PHQ-9 and GAD-7, the ones GPs use), your early warning signs and a safety plan.",
+    checks:[{id:"enjoy", q:"Enjoyed anything today?", opts:[[2,"Yes"],[1,"A little"],[0,"Not really"]]}],
+    trackers:{}, suggest:/depress|anxi|low mood|panic|bipolar|ptsd|stress|sertraline|citalopram|fluoxetine|escitalopram|mirtazapine|venlafaxine|duloxetine|amitriptyline|propranolol/i,
+    plan:[["signs","My early warning signs","e.g. not sleeping, skipping meals, not wanting to go out"],["helps","Things that help me","e.g. a walk, a bath, ringing my sister"],["people","People I can talk to","Names and numbers"],["pros","My professionals","GP, therapist, crisis team numbers"]],
+    redflags:CRISIS},
+  crohns:{name:"Crohn's and colitis (IBD)", spot:"Crohn's or colitis", ic:"🩺",
+    desc:"A 20-second daily flare check (pain, loose poos, blood, how you feel), a home flare score based on the Harvey-Bradshaw Index IBD teams use, early flare warnings, your flare plan and monitoring blood test reminders.",
+    checks:[{id:"pain", q:"Tummy pain today?", opts:[[0,"None"],[1,"Mild"],[2,"Moderate"],[3,"Severe"]]},
+            {id:"stools", q:"Loose or watery poos today?", opts:[[0,"0"],[1,"1"],[2,"2"],[3,"3"],[4,"4"],[6,"5–6"],[8,"7+"]]},
+            {id:"blood", q:"Any blood in your poo?", opts:[[0,"No"],[1,"Yes"]]}],
+    trackers:{stool:true, food:true}, suggest:/crohn|colitis|\bibd\b|inflammatory bowel|mesalazine|azathioprine|infliximab|adalimumab|vedolizumab|ustekinumab|humira/i,
+    plan:[["nurse","IBD nurse helpline","Number and opening hours"],["flare","What my IBD team says to do in a flare","e.g. start budesonide, ring the nurse within 48 hours"],["meds","My Crohn's medicines","Name, dose, when (injections every 2 weeks?)"],["bloods","Monitoring blood tests","e.g. every 3 months for azathioprine"]],
+    redflags:["Severe tummy pain, or a swollen tummy and you can't pass wind or poo (possible blockage): A&E","A fever with tummy pain","Being sick and unable to keep fluids down, or signs of dehydration (very dry mouth, dizzy, hardly weeing)","A lot of blood, or blood clots, in your poo","A flare that isn't settling: call your IBD nurse or GP the same day"]}
+};
+function packsOn(){ const p=(S.profile||{}).packs; return Array.isArray(p)? p.filter(k=>PACKS[k]) : []; }
+function pk(d,id){ const v=d&&d.pk&&d.pk[id]; return typeof v==="number"? v : null; }
+function dayStoolsLoose(d){ const L=Array.isArray(d&&d.log)? d.log.filter(x=>x.type==="stool") : []; if(!L.length) return null; return L.filter(x=>(x.bristol||0)>=6).length; }
+function dayStoolBlood(d){ return Array.isArray(d&&d.log)&&d.log.some(x=>x.type==="stool"&&(x.flags||[]).includes("blood")); }
+/* home flare score: wellbeing (from the mood face) + pain + loose stools. Harvey-Bradshaw without the doctor's examination */
+function hbi(d){
+  if(!d) return null;
+  const wb= d.feel? 5-d.feel : null, pain=pk(d,"crohns.pain"), st= pk(d,"crohns.stools")!=null? pk(d,"crohns.stools") : dayStoolsLoose(d);
+  if(wb==null||pain==null||st==null) return null;
+  return wb+pain+st;
+}
+function hbiBand(v){ return v==null? "" : v<5? "quiet" : v<=7? "mild flare" : v<=16? "moderate flare" : "severe flare"; }
+function packScoreDays(id, n){
+  const out=[]; for(let i=n-1;i>=0;i--){ const iso=addDays(todayISO(),-i), d=(S.days||{})[iso]; let v=null;
+    if(id==="crohns") v=hbi(d);
+    else if(id==="mental") v= d&&d.feel? d.feel : null;
+    out.push({iso, v}); }
+  return out;
+}
+function qLatest(set){ const t=QSETS[set].title; return ofKind("result").filter(e=>e.title===t&&e.date).sort((a,b)=>b.date.localeCompare(a.date)); }
+function packWarnings(){
+  const on=packsOn(), out=[], t=todayISO();
+  if(on.includes("crohns")){
+    const L=packScoreDays("crohns",4).slice(-3), hi=L.filter(x=>x.v!=null&&x.v>=5).length;
+    const blood=[0,1,2].some(i=>{ const d=(S.days||{})[addDays(t,-i)]; return pk(d,"crohns.blood")===1||dayStoolBlood(d); });
+    const today=(S.days||{})[t]||{}, st=pk(today,"crohns.stools");
+    if(blood) out.push({pack:"crohns", level:"alert", text:"You've logged blood in your poo in the last 3 days. If it's more than a streak, or you feel unwell, call your IBD nurse or GP today."});
+    else if(hi>=2) out.push({pack:"crohns", level:"warn", text:"Your flare score has been up on "+hi+" of the last 3 days. A flare may be building: it's worth calling your IBD nurse now rather than waiting."});
+    else if(st!=null&&st>=6) out.push({pack:"crohns", level:"warn", text:"That's a lot of loose poos today. Keep drinking, and if it carries on tomorrow, call your IBD nurse."});
+  }
+  if(on.includes("mental")){
+    const days=[...Array(7)].map((_,i)=>(S.days||{})[addDays(t,-i)]).filter(d=>d&&d.feel);
+    const low=days.filter(d=>d.feel<=2).length, noJoy=[...Array(7)].map((_,i)=>pk((S.days||{})[addDays(t,-i)],"mental.enjoy")).filter(v=>v===0).length;
+    if(low>=4||noJoy>=4) out.push({pack:"mental", level:"warn", text:"It's been a low patch lately. That's worth a chat with your GP, and your plan has the things that usually help."});
+    for(const set of ["phq9","gad7"]){ const L=qLatest(set); if(!L.length||daysBetween(L[0].date,t)>=28) { out.push({pack:"mental", level:"due", q:set, text:(L.length?"Time for your monthly ":"Try the 2-minute ")+QSETS[set].phrase+". It gives your GP a real score to go on."}); break; } }
+  }
+  return out;
+}
+function packSuggestions(){
+  const on=packsOn(), txt=[...ofKind("condition"),...ofKind("medication")].map(e=>e.title+" "+(e.details||"")).join(" ");
+  return Object.entries(PACKS).filter(([k,P])=>!on.includes(k)&&P.suggest.test(txt)&&!((S.profile||{}).packsNo||[]).includes(k)).map(([k])=>k);
+}
+async function packSet(k,on){
+  const cur=packsOn(), next=on? [...new Set([...cur,k])] : cur.filter(x=>x!==k);
+  const patch={packs:next};
+  if(on&&PACKS[k].trackers) patch.trackers={...((S.profile||{}).trackers||{}), ...PACKS[k].trackers};
+  await saveProfilePatch(patch); renderAll();
+}
+function packContext(d){
+  const b=[]; const P=d&&d.pk||{};
+  for(const k of Object.keys(P)){ const [pid,cid]=k.split("."), pack=PACKS[pid]; if(!pack) continue; const c=pack.checks.find(x=>x.id===cid); if(!c) continue; const o=c.opts.find(x=>x[0]===P[k]); b.push(c.q.replace(/\?$/,"").toLowerCase()+": "+(o?o[1]:P[k])); }
+  const s=hbi(d); if(s!=null&&packsOn().includes("crohns")) b.push("home Crohn's flare score "+s+" ("+hbiBand(s)+")");
+  return b.join("; ");
+}
+function renderPackChecks(iso, day){
+  const box=$("#ciPacks"); if(!box) return;
+  const on=packsOn(); box.hidden=!on.length; if(!on.length) return;
+  const ro=!S.canWrite||null, rows=[];
+  for(const k of on) for(const c of PACKS[k].checks){
+    const id=k+"."+c.id, cur=pk(day,id);
+    rows.push(h("p",{class:"ci-lab"},c.q), h("div",{class:"ci-chips",role:"group","aria-label":c.q}, ...c.opts.map(([v,l])=>h("button",{type:"button",class:"ci-chip"+(cur===v?" on":""),"aria-pressed":String(cur===v),disabled:ro,onclick:()=>{ const p={...(day.pk||{})}; if(cur===v) delete p[id]; else p[id]=v; saveDay(iso,{pk:p}); }}, l))));
+  }
+  const s=on.includes("crohns")? hbi(day) : null;
+  if(s!=null) rows.push(h("p",{class:"ci-pstat keep"},"Home flare score today: "+s+" ("+hbiBand(s)+")"));
+  box.replaceChildren(...rows);
+}
+function openPackPlan(k){
+  const P=PACKS[k], plan=((S.profile||{}).plans||{})[k]||{}, ins={};
+  const fields=P.plan.map(([id,l,ph])=>{ const t=h("textarea",{rows:"2",placeholder:ph}); t.value=plan[id]||""; ins[id]=t; return h("label",{class:"field"}, h("span",{class:"flabel"},l), t); });
+  const save=h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null,onclick:async()=>{ const v={}; for(const [id] of P.plan) v[id]=ins[id].value.trim(); await saveProfilePatch({plans:{...((S.profile||{}).plans||{}),[k]:v}}); toast("Plan saved"); closeSheet(); }},"Save my plan");
+  openSheet(P.ic+" My plan: "+P.name,[
+    h("div",{class:"cs-red"}, h("b",{}, k==="mental"?"If things get worse":"⚠️ Get help straight away if:"), h("ul",{class:"cs-ul"}, ...P.redflags.map(t=>h("li",{},t)))),
+    ...fields, save,
+    k==="crohns"? h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>{ closeSheet(); openEntry(null,"due",{title:"Monitoring blood test (Crohn's)",details:"From my Crohn's plan"}); }},"⏰ Add a blood test reminder") : null,
+    h("p",{class:"fineprint"},"Fill this in with your care team's advice. Dr Quackers reads it when he helps you.")].filter(Boolean));
+}
+function openQuestionnaire(set){
+  const Q=QSETS[set], ans=Q.items.map(()=>null), list=h("div",{class:"love-form"});
+  const st=h("div",{});
+  const draw=()=>list.replaceChildren(...Q.items.map((q,i)=>h("div",{class:"q-item"}, h("p",{class:"q-q"},(i+1)+". "+q), h("div",{class:"ci-chips"}, ...QOPTS.map(([v,l])=>h("button",{type:"button",class:"ci-chip"+(ans[i]===v?" on":""),onclick:()=>{ ans[i]=v; draw(); }},l))))));
+  draw();
+  const go=h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null},"See my score");
+  go.addEventListener("click", async()=>{
+    if(ans.some(a=>a==null)){ toast("Answer every question first"); return; }
+    const score=ans.reduce((a,b)=>a+b,0), band=qBand(set,score), q9= set==="phq9"? ans[8] : 0;
+    go.disabled=true;
+    await saveEntry({kind:"result", title:Q.title, date:todayISO(), value:score, unit:"/"+Q.max, high:Q.high, details:"Self-completed questionnaire: "+band+". Answers: "+ans.join(","), q9:q9||undefined, source:"manual"});
+    const prev=qLatest(set).filter(e=>e.date<todayISO())[0];
+    st.replaceChildren(...[
+      q9>0? h("div",{class:"cs-red"}, h("b",{},"You said you've had thoughts of being better off dead or of hurting yourself. Please talk to someone today:"), h("ul",{class:"cs-ul"}, ...CRISIS.map(t=>h("li",{},t)))) : null,
+      h("p",{class:"q-score"}, h("b",{},score+" / "+Q.max), " · "+band, prev? " (last time "+prev.value+")" : ""),
+      h("p",{class:"none"}, score>Q.high? "That's worth talking to your GP about. Take this score with you: it's the same questionnaire they use." : "Thanks for doing it. It's saved, so you can see how it changes month to month.")].filter(Boolean));
+    go.hidden=true; list.hidden=true; const sh=go.closest(".sheet-body,.sheet,dialog"); if(sh) sh.scrollTop=0; st.scrollIntoView({block:"start"}); renderAll();
+  });
+  openSheet(Q.short,[h("p",{class:"none"},"Over the last 2 weeks, how often have you been bothered by any of the following?"), list, go, st,
+    h("p",{class:"fineprint"},"This is the standard questionnaire GPs use. It's a guide, not a diagnosis.")]);
+}
+function renderPackCard(){
+  const card=$("#packCard"); if(!card) return;
+  const on=packsOn(); card.hidden=!S.loaded||!on.length; if(card.hidden) return;
+  const blocks=[];
+  for(const k of on){
+    const P=PACKS[k], days=packScoreDays(k,30), vals=days.filter(x=>x.v!=null);
+    const mx=k==="crohns"? Math.max(8,...vals.map(x=>x.v)) : 5;
+    const bars=h("div",{class:"pk-bars",role:"img","aria-label":P.name+" over the last 30 days"}, ...days.map(x=>h("i",{class:x.v==null?"none":k==="crohns"? (x.v>=8?"bad":x.v>=5?"mid":"ok") : (x.v<=2?"bad":x.v===3?"mid":"ok"), style:"height:"+(x.v==null?6:Math.max(10,Math.round((k==="crohns"?x.v:x.v)/mx*100)))+"%"})));
+    const last=vals[vals.length-1];
+    const qs= k==="mental"? ["phq9","gad7"].map(set=>{ const L=qLatest(set); return h("button",{class:"pk-q",type:"button",onclick:()=>openQuestionnaire(set)}, h("b",{},QSETS[set].short), h("span",{}, L.length? L[0].value+"/"+QSETS[set].max+" "+qBand(set,L[0].value)+" · "+fmtDate(L[0].date) : "Not done yet")); }) : [];
+    blocks.push(h("div",{class:"pk-block"},
+      h("div",{class:"pk-h"}, h("b",{},P.ic+" "+P.name), h("button",{class:"btn small ghost",type:"button",onclick:()=>openPackPlan(k)},"My plan ›")),
+      h("p",{class:"fineprint"}, k==="crohns"? (last? "Home flare score: "+last.v+" ("+hbiBand(last.v)+"). Under 5 is quiet." : "Do the daily flare check in Today's check-in to see your score.") : (vals.length? "Mood over 30 days (taller is better)." : "Tap a face each day to see your mood here.")),
+      bars, qs.length? h("div",{class:"pk-qs"}, ...qs) : null));
+  }
+  for(const w of packWarnings().filter(w=>w.level!=="due")) blocks.push(h("p",{class:"love-flag"}, h("b",{},"⚠️ "+w.text)));
+  $("#packBody").replaceChildren(...blocks);
+  $("#packSet").onclick=()=>show("settings");
+}
+function packsSummary(){
+  const on=packsOn(); if(!on.length) return "";
+  const L=["\nCARE PACKS SWITCHED ON: "+on.map(k=>PACKS[k].name).join(", ")+"."];
+  for(const k of on){
+    const plan=((S.profile||{}).plans||{})[k]||{}, pl=PACKS[k].plan.filter(([id])=>plan[id]).map(([id,l])=>l+": "+String(plan[id]).slice(0,200));
+    if(pl.length) L.push("- their "+PACKS[k].name+" plan: "+pl.join("; "));
+    if(k==="crohns"){ const v=packScoreDays("crohns",14).filter(x=>x.v!=null); if(v.length) L.push("- home Crohn's flare score (Harvey-Bradshaw style, no doctor's exam; under 5 quiet, 5-7 mild, 8-16 moderate, over 16 severe), last 14 days: "+v.map(x=>fmtDate(x.iso)+" "+x.v).join(", ")); }
+    if(k==="mental") for(const set of ["phq9","gad7"]){ const q=qLatest(set).slice(0,4); if(q.length) L.push("- "+QSETS[set].title+": "+q.map(e=>fmtDate(e.date)+" "+e.value+"/"+QSETS[set].max+" ("+qBand(set,e.value)+")").join(", ")); }
+  }
+  const w=packWarnings().filter(x=>x.level!=="due"); if(w.length) L.push("- early warnings showing now: "+w.map(x=>x.text).join(" "));
+  return L.join("\n");
+}
+function packsSettingsBox(){
+  const on=packsOn();
+  const sw=(k)=>{ const P=PACKS[k], cb=h("input",{type:"checkbox",class:"sw-in",id:"pack-"+k,disabled:!S.canWrite||null}); cb.checked=on.includes(k);
+    cb.addEventListener("change",()=>packSet(k,cb.checked)); return h("label",{class:"trk",for:"pack-"+k}, h("span",{class:"trk-t"}, h("b",{},P.ic+" "+P.name), h("small",{},P.desc)), cb, h("span",{class:"sw-ui","aria-hidden":"true"})); };
+  return h("div",{class:"field"}, h("span",{class:"hint"},"Switch on a care pack for each condition you live with. It adds a few quick questions to your daily check-in, a score, early warnings and a plan."), ...Object.keys(PACKS).map(sw), h("p",{class:"fineprint"},"More packs are coming: asthma, diabetes, blood pressure, migraine, arthritis and more."));
+}
+
 async function scanBigEvents(){
   if(!S.sample||S.aiOff){ toast("Dr Quackers isn't available here."); return; }
   const src=S.entries.filter(e=>e.kind!=="event"&&e.kind!=="symptom"&&(e.title||e.details));
@@ -4048,6 +4240,7 @@ function renderCheckin(){
   const pon=periodOn(); $("#ciPeriod").hidden=!pon;
   if(pon){ flowButtons($("#ciFlow"), iso, "pf"); $("#ciPstat").textContent=cycleText(); }
   renderIntim(iso, day); $("#ciLoveMore").onclick=()=>openLove(iso);
+  renderPackChecks(iso, day);
   renderCheckinMore(iso, day);
   renderSleepDiary(iso, day);
   { const v=devOf(day), el=$("#ciDev"); const t=[v&&v.sleep? "Last night "+durTxt(v.sleep.asleep)+" asleep"+(v.sleep.start&&v.sleep.end?" ("+v.sleep.start+"–"+v.sleep.end+")":"") : "", v&&v.hr&&v.hr.rest!=null? "resting heart "+Math.round(v.hr.rest) : ""].filter(Boolean).join(" · "); el.hidden=!t; el.textContent= t? "⌚ "+t : ""; }
@@ -4091,7 +4284,7 @@ function renderOverview(){
   renderWelcome();
   renderThings();
   renderTiles();
-  if(!$("#v-track").hidden){ renderTrack(); renderLove(); }
+  if(!$("#v-track").hidden){ renderTrack(); renderLove(); renderPackCard(); }
   renderLogCard();
   renderWeek();
   renderCycle();
@@ -4378,6 +4571,7 @@ function renderSettings(full){
   }
   const tb=trackersBox(); tb.querySelectorAll(":scope > .flabel").forEach(e=>e.remove());
   $("#setTrk").replaceChildren(tb);
+  $("#setPacks").replaceChildren(packsSettingsBox());
   if(full) renderHealthCard();
   const nChips=symptomChips(40).length;
   $("#setCheckin").replaceChildren(
@@ -4402,6 +4596,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-05.7", items:[["🩺","New care packs in Settings, under My conditions. Switch one on for each condition you live with: Mental health and Crohn's and colitis to start, with more coming."],["✅","Each pack adds a few quick taps to Today's check-in, so it's still one check-in a day."],["📈","Crohn's gets a home flare score, like the one IBD teams use. Mental health gets the 2-minute monthly mood and anxiety questionnaires GPs use."],["⚠️","Dr Quackers warns you early when a flare or a low patch looks like it's building, and points you to your own plan and the right help."]]},
  {v:"2026-11-05.6", items:[["🔗","Connections: Dr Quackers now looks at all your illnesses together and shows which might be linked, how strongly, the evidence from your own records, and how to test the link."],["🧩","He also says which problems look unrelated, and merges files that turn out to be one illness."]]},
  {v:"2026-11-05.5", items:[["🔍","New My illnesses: Dr Quackers keeps a file for each health problem, from first symptoms to investigating, diagnosis, care plan and getting better."],["📊","Each file shows your numbers and a chart, possible causes ranked Likely, Possible or Less likely, every test (done, waiting, worth asking for), a timeline, and what to do next."],["➕","Feeling off? Tap Something's not right, say it in your own words, and he opens a file straight away. Short illnesses like a cold close themselves when you're better."],["⚠️","Every file starts with the warning signs that mean getting help straight away."]]},
  {v:"2026-11-05.3", items:[["💗","New Love life tracker for everyone: sex drive, sex with your partner or solo, protection, how it went, and anything that wasn't right."],["📊","A Love life card on the Track tab shows how often, your usual drive, how it's been, and flags anything worth a GP chat, like pain or bleeding."],["🦆","Dr Quackers reads your Love life log for his nudges, and the cheeky side is now always on."]]},
