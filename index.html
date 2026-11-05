@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-04.18">
+<meta name="app-version" content="2026-11-05.1">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -106,6 +106,7 @@ main{padding-block:18px 120px;display:flex;flex-direction:column;gap:18px}
 .item{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;align-items:baseline;padding:10px 0;border-top:1px solid var(--line);cursor:pointer;text-align:left;background:none;border-left:0;border-right:0;border-bottom:0;width:100%}
 .list > li:first-child .item{border-top:0}
 .item.two{grid-template-columns:1fr auto}.item.two .s{grid-column:1 / -1}
+@media (max-width:560px){ .item:not(.two) > .tag{grid-column:2 / -1;justify-self:start} }
 .item:hover .t{text-decoration:underline}
 .d{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;min-width:6.5em}
 .t{font-weight:700;min-width:0;overflow-wrap:anywhere}
@@ -3654,10 +3655,11 @@ function renderOverview(){
   } else {
     nb.replaceChildren(h("p",{class:"none"},"Nothing booked."), h("div",{}, h("button",{class:"btn ghost",type:"button",disabled:!S.canWrite||null,onclick:()=>openEntry(null,"appointment")},"Add an appointment")));
   }
-  const dues=ofKind("due").filter(d=>d.status!=="done"&&d.date).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
+  const openDues=ofKind("due").filter(d=>d.status!=="done");
+  const dues=[...openDues.filter(d=>d.date).sort((a,b)=>a.date.localeCompare(b.date)), ...openDues.filter(d=>!d.date)].slice(0,6);
   fill($("#ovDue"), dues.map(d=>{
-    const gap=daysBetween(today,d.date);
-    const when= gap<0? "Overdue by "+(-gap)+" day"+(gap===-1?"":"s") : gap===0? "Due today" : gap<=14? "Due in "+gap+" day"+(gap===1?"":"s")+" · "+fmtDate(d.date) : fmtDate(d.date);
+    const gap=d.date? daysBetween(today,d.date) : 99999;
+    const when= !d.date? "Waiting for a date" : gap<0? "Overdue by "+(-gap)+" day"+(gap===-1?"":"s") : gap===0? "Due today" : gap<=14? "Due in "+gap+" day"+(gap===1?"":"s")+" · "+fmtDate(d.date) : fmtDate(d.date);
     return h("li",{}, h("div",{class:"due-row"},
       h("span",{class:"due-dot"+(gap<0?" over":gap<=14?" soon":""),"aria-hidden":"true"}),
       h("button",{class:"item two",type:"button",style:"padding:0;border:0;flex:1",onclick:()=>openEntry(d)}, h("span",{class:"t"},d.title), h("span"), h("span",{class:"due-when"+(gap<0?" over":gap<=14?" soon":"")},when)),
@@ -3776,6 +3778,7 @@ function openEntry(entry, presetKind, preset){
   const date=h("input",{type:"date",id:"f-date",value:e.date||""});
   const dateLab=h("label",{for:"f-date"},KINDS[e.kind].date);
   const details=h("textarea",{id:"f-details",rows:"4"}); details.value=e.details||"";
+  { const lines=(details.value.match(/\n/g)||[]).length+Math.ceil(details.value.length/38); if(lines>4){ details.rows=Math.min(lines,40); details.style.maxHeight="65vh"; } }
   const titleHints={event:"e.g. Admitted to QEQM with chest pain, or Broke my wrist",symptom:"e.g. Tiredness, hair loss, dizzy when standing",medication:"e.g. Ferrous fumarate, B12 injections",condition:"e.g. Gastric sleeve, iron deficiency anaemia",allergy:"e.g. Penicillin",appointment:"e.g. GP review, haematology clinic",result:"Use the same name each time, e.g. Ferritin, Vitamin B12, Haemoglobin",note:"e.g. Phone call with the surgery",due:"e.g. B12 injection, Iron infusion, Annual bariatric bloods"};
   const detailHints={event:"What happened, where, and what they did or found",symptom:"How it felt, how long, what helped or made it worse",medication:"What it's for, side effects you've noticed",condition:"Anything the doctor said about it",allergy:"What happens when you have it",appointment:"What was said, what happens next",result:"What the letter or doctor said about it",note:"Anything worth remembering",due:"Where it's done, who to call to book it"};
   const detailLab=h("label",{for:"f-details"},"Notes");
@@ -3928,6 +3931,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-05.1", items:[["📋","Records list is easier to read on a phone: long names no longer squash into one word per line."],["⏳","Coming up now shows things you are waiting on that don't have a date yet, like a referral."],["📄","Long letters open with a bigger notes box, so you can read the whole letter."],["🚩","The timeline's All view now reaches back to your earliest big event."]]},
  {v:"2026-11-04.18", items:[["💨","Dr Quackers has learned some new tricks. Some of them are rude."],["😴","Leave the app alone for a bit and he nods off. Tap the screen to wake him."]]},
  {v:"2026-11-04.17", items:[["🚩","Big events on your timeline: hospital stays, A&E visits, operations, injuries and big diagnoses show as flags, with a line down the chart so you can see what changed before and after."],["🔎","Tap Find big events in my records under the timeline and Dr Quackers looks through your letters for them. You tick what's right before anything is added. New letters you import are checked for big events too."],["➕","Add one yourself with the + button: Big event."]]},
  {v:"2026-11-04.16", items:[["🦆","Fixed: Dr Quackers was stuck mid-wave, so he never got bored. Leave Home open for a minute and watch him."]]},
@@ -4504,6 +4508,7 @@ function tlSpan(){
   for(const d of Object.keys(S.days||{})) if(d<from) from=d;
   for(const l of TL.sel) if(l.startsWith("t:")){ const arr=testGroups().get(l.slice(2))||[]; if(arr[0]&&arr[0].date<from) from=arr[0].date; }
   for(const e of ofKind("symptom")) if(e.date&&e.date<from) from=e.date;
+  for(const e of ofKind("event")) if(e.date&&e.date<from) from=e.date;
   if(daysBetween(from,to)<30) from=addDays(to,-29);
   return {from,to};
 }
