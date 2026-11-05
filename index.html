@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-05.8">
+<meta name="app-version" content="2026-11-05.9">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -172,6 +172,29 @@ body.mind #v-ask .dq-bub{background:#ECE8F6;color:#1F1A33}
 @keyframes brBall{0%{transform:scale(.45)}40%{transform:scale(1)}100%{transform:scale(.45)}}
 .br-say{font-size:1.4rem;text-align:center;margin:6px 0;font-weight:700}
 .gr-step{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:18px 0}.gr-ic{font-size:3rem}
+.dq-specs{display:none}
+body.mind #v-ask .dq .dq-specs{display:inline}
+.dq-lens{fill:rgba(220,235,255,.18);stroke:#2F2A40;stroke-width:3.4}
+.dq-frame{fill:none;stroke:#2F2A40;stroke-width:3.4;stroke-linecap:round}
+.dq-lglint{fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;opacity:.8}
+.dq-specs{transform-box:view-box;transform-origin:125px 60px}
+.dq.specs .dq-specs{animation:dqSpecs 2.4s ease-in-out}
+@keyframes dqSpecs{0%,30%{transform:none}42%{transform:translateY(5px)}62%{transform:translateY(-3px)}75%,100%{transform:none}}
+.dq.specs .dq-wingR{animation:dqAdjust 2.4s ease-in-out}
+@keyframes dqAdjust{0%{transform:none}30%{transform:translate(-14px,-30px) rotate(150deg)}42%{transform:translate(-16px,-36px) rotate(154deg)}62%{transform:translate(-16px,-42px) rotate(150deg)}80%{transform:translate(-8px,-14px) rotate(80deg)}100%{transform:none}}
+.dq.specs .dq-browL{transform:translateY(-6px)}
+.dq.nose .dq-wingL{animation:dqNose 2.6s ease-in-out}
+@keyframes dqNose{0%{transform:none}25%{transform:translate(26px,-24px) rotate(-124deg)}35%{transform:translate(28px,-22px) rotate(-132deg)}45%{transform:translate(26px,-24px) rotate(-122deg)}55%{transform:translate(28px,-22px) rotate(-132deg)}65%{transform:translate(26px,-24px) rotate(-124deg)}85%{transform:translate(8px,-6px) rotate(-40deg)}100%{transform:none}}
+.dq.nose .dq-eyes{animation:dqHalf 2.6s ease-in-out}
+@media (prefers-reduced-motion:reduce){ .dq.specs *,.dq.nose *{animation:none!important} }
+.ci-mind{display:flex;align-items:center;gap:10px;width:100%;margin-top:10px;padding:10px 12px;border-radius:14px;border:0;background:#ECE8F6;color:#1F1A33;font:inherit;text-align:left;cursor:pointer}
+.ci-mind span:last-child{display:flex;flex-direction:column}.ci-mind small{font-size:.82rem;color:#4A4360}.ci-mind>span:first-child{font-size:1.5rem}
+.love-stats.mh-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.pk-bars.mh-bars i{min-width:0}
+.mh-bars{height:64px;gap:1px}.mh-bars.sm{height:36px}.mh-sub{display:block;margin:10px 0 4px;font-size:.9rem}
+.mh-q{margin:4px 0}.mh-chats{display:flex;flex-direction:column;gap:8px}
+.mh-chat{border-left:4px solid #B9AEDB;padding:4px 0 4px 10px}.mh-chat.risk{border-left-color:var(--alert,#A8261D)}
+.mh-chat p{margin:2px 0;font-size:.92rem}.mh-ct small{color:var(--muted)}.mh-ba{color:#5A4A8A;font-weight:700}.mh-help{color:var(--accent)}
+.mh-keep{display:flex;gap:10px;align-items:flex-start;margin:12px 0 4px;font-size:.9rem}.mh-keep input{margin-top:3px;width:20px;height:20px}
 .composer{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px}
 .composer textarea{min-height:64px;background:transparent;border:0;padding:4px}
 .composer textarea:focus-visible{outline:none}
@@ -1244,6 +1267,7 @@ body.on-home .top{display:none}
         <p class="ci-lab">Energy today?</p>
         <div class="pflow five" id="ciEnergy" role="group" aria-label="Energy today"></div>
       </div>
+      <div class="ci-block" id="ciMoodWhy" hidden></div>
       <div class="ci-block sd" data-sec="sleepd" id="ciSleepD" hidden></div>
       <p class="ci-dev" id="ciDev" hidden></p>
       <div class="ci-block">
@@ -1549,6 +1573,7 @@ body.on-home .top{display:none}
     <div class="mind-tools" id="mindTools" hidden>
       <button class="fchip" type="button" id="mtBreathe">🫁 Breathe with me</button>
       <button class="fchip" type="button" id="mtGround">🖐️ Grounding</button>
+      <button class="fchip" type="button" id="mtHist">📖 My history</button>
       <button class="fchip mt-help" type="button" id="mtHelp">🆘 Help now</button>
     </div>
     <p class="lede" id="askLede">Ask what could be behind a symptom, what a result or letter means, or how to push for a test. Dr Quackers can see your logbook. Chats aren't saved.</p>
@@ -1971,6 +1996,7 @@ function buildContext(opts){
       if(d.period) b.push("period: "+d.period);
       { const lc=loveContext(d); if(lc) b.push(lc); }
       { const pc=packContext(d); if(pc) b.push(pc); }
+      { const mc=mindContext(d); if(mc) b.push(mc); }
       if(typeof d.weight==="number") b.push("weight "+d.weight+" kg");
       if(d.notes) b.push(String(d.notes).slice(0,300));
       if(b.length>1) lines.push("- "+b.join(" | "));
@@ -2034,6 +2060,7 @@ const TABG={overview:"overview",track:"track",timeline:"track",diary:"track",rec
 const VTITLE={track:"Track",timeline:"Timeline",diary:"Diary",records:"Records",prepare:"Get ready",ask:"Dr Quackers",settings:"Settings"};
 function show(v){
   if(!VIEWS.includes(v)) v="overview";
+  if(v!=="ask"&&S.mind&&typeof mindSaveSession==="function") mindSaveSession();
   for(const x of VIEWS) $("#v-"+x).hidden = x!==v;
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-current", TABG[v]===t.dataset.view?"page":"false"));
   document.body.classList.toggle("on-home", v==="overview");
@@ -3052,6 +3079,12 @@ function duckSvg(size, cls, label){
   for(const cx of [106,144]){ A("circle",{cx,cy:61,r:8,fill:"#111"},pup); A("circle",{cx:cx-3,cy:57,r:2,fill:"#fff"},pup); }
   // brows
   A("line",{x1:88,y1:32,x2:120,y2:35,class:"dq-brow dq-browL"}); A("line",{x1:130,y1:37,x2:162,y2:31,class:"dq-brow"});
+  // reading glasses (Mind mode)
+  const specs=A("g",{class:"dq-specs"});
+  for(const cx of [106,144]) A("ellipse",{cx,cy:61,rx:18,ry:20,class:"dq-lens"},specs);
+  A("path",{d:"M123 56 Q125 50 127 56",class:"dq-frame"},specs);
+  A("path",{d:"M88 56 L72 49 M162 56 L178 49",class:"dq-frame"},specs);
+  A("path",{d:"M96 50 a 12 12 0 0 1 9 -6 M134 50 a 12 12 0 0 1 9 -6",class:"dq-lglint"},specs);
   // beak: mouth, lower, upper, nostrils
   A("ellipse",{cx:126,cy:107,rx:20,ry:11,fill:"#7A1E12",class:"dq-mouth"});
   A("ellipse",{cx:126,cy:104,rx:22,ry:8,fill:"#E2620B",...O,class:"dq-low"});
@@ -3099,8 +3132,8 @@ function dqIdleTick(){
     if(!d.isConnected){ if(d._seen) DQ_IDLE.delete(d); continue; } d._seen=true;
     if(!d.getClientRects().length) continue;
     if(d._asleep) continue;
-    if(S.mind&&d.closest("#v-ask")) continue;
-    if(["think","talk","wave","happy","look","scratch","smoke","fart","sleep","wake","flirt"].some(c=>d.classList.contains(c))) continue;
+    if(["think","talk","wave","happy","look","scratch","smoke","fart","sleep","wake","flirt","specs","nose"].some(c=>d.classList.contains(c))) continue;
+    if(S.mind&&d.closest("#v-ask")){ if(Math.random()>.55) continue; const a=[["specs",2400],["nose",2600],["look",2200],["specs",2400]][Math.floor(Math.random()*4)]; d.classList.add(a[0]); setTimeout(()=>d.classList.remove(a[0]),a[1]); continue; }
     if(Date.now()-dqLastInput>45000){ d._asleep=true; d.classList.add("sleep"); continue; }
     if(Math.random()>.6) continue;
     let r=Math.random(), act=DQ_ACTS[0];
@@ -3327,6 +3360,7 @@ const IC={
   gut:"M7 4c-3 0-3 5 0 5h10c3 0 3 5 0 5H7c-3 0-3 5 0 5h7",
   cycle:"M12 2.7s-6 7-6 11.3a6 6 0 0 0 12 0c0-4.3-6-11.3-6-11.3z",
   heart:"M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z",
+  mind:"M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z",
   case:"M10.5 17a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13zM15.2 15.2L20 20M8 10.5h5M10.5 8v5",
   love:"M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10zM9 10.5c.6-1 1.6-1.4 2.6-1",
   pain:"M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11zM12 7v4M12 14h.01",
@@ -3360,6 +3394,7 @@ function renderTiles(){
     periodOn()? ["Cycle","cycle","k",()=>{ show("track"); const c=$("#cycCard"); if(c) c.scrollIntoView({block:"start",behavior:"smooth"}); }] : null,
     hp.heart? ["Heart","heart","r",()=>tlWith(["heart","rhr"]),hearts] : null,
     hp.pain? ["Pain map","pain","r",()=>openPain(todayISO())] : null,
+    packsOn().includes("mental")||mindLogAll().length? ["My mind","mind","k",()=>openMindHistory()] : null,
     ["My illnesses","case","r",()=>openCases(),casesBadge()],
     ["Blood tests","tests","a",()=>recFilter("result"),lowTests],
     ["Medicines","meds","p",()=>recFilter("medication")],
@@ -3767,7 +3802,7 @@ function renderPackCard(){
       h("div",{class:"pk-h"}, h("b",{},P.ic+" "+P.name), h("button",{class:"btn small ghost",type:"button",onclick:()=>openPackPlan(k)},"My plan ›")),
       h("p",{class:"fineprint"}, k==="crohns"? (last? "Home flare score: "+last.v+" ("+hbiBand(last.v)+"). Under 5 is quiet." : "Do the daily flare check in Today's check-in to see your score.") : (vals.length? "Mood over 30 days (taller is better)." : "Tap a face each day to see your mood here.")),
       bars, qs.length? h("div",{class:"pk-qs"}, ...qs) : null,
-      k==="mental"? h("button",{class:"btn ai",type:"button",onclick:openMind},"🧠 Talk it through in Mind mode") : null));
+      k==="mental"? h("div",{class:"row"}, h("button",{class:"btn ai",type:"button",onclick:openMind},"🧠 Talk it through"), h("button",{class:"btn",type:"button",onclick:openMindHistory},"📖 My history")) : null));
   }
   for(const w of packWarnings().filter(w=>w.level!=="due")) blocks.push(h("p",{class:"love-flag"}, h("b",{},"⚠️ "+w.text)));
   $("#packBody").replaceChildren(...blocks);
@@ -4263,6 +4298,7 @@ function renderCheckin(){
   if(pon){ flowButtons($("#ciFlow"), iso, "pf"); $("#ciPstat").textContent=cycleText(); }
   renderIntim(iso, day); $("#ciLoveMore").onclick=()=>openLove(iso);
   renderPackChecks(iso, day);
+  renderMoodWhy(iso, day);
   renderCheckinMore(iso, day);
   renderSleepDiary(iso, day);
   { const v=devOf(day), el=$("#ciDev"); const t=[v&&v.sleep? "Last night "+durTxt(v.sleep.asleep)+" asleep"+(v.sleep.start&&v.sleep.end?" ("+v.sleep.start+"–"+v.sleep.end+")":"") : "", v&&v.hr&&v.hr.rest!=null? "resting heart "+Math.round(v.hr.rest) : ""].filter(Boolean).join(" · "); el.hidden=!t; el.textContent= t? "⌚ "+t : ""; }
@@ -4618,6 +4654,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-05.9", items:[["🤓","In Mind mode Dr Quackers puts his reading glasses on. He pushes them up and scratches his beak while he thinks."],["📖","New My mental health history: your mood and stress over 90 days, low patches, what lifts or drags your mood, questionnaire scores and notes of your Mind mode chats. There's a Summary for my GP button too."],["✅","The daily check-in now asks what's affecting your mood. On a low day it offers a calm chat in Mind mode."],["📝","After a Mind mode chat, a short note (never the whole chat) is kept in your history. You can switch this off."]]},
  {v:"2026-11-05.8", items:[["🧠","New Mind mode in the Quackers tab: a calm space to talk things through. No jokes, one question at a time."],["🧩","Dr Quackers can take you through self-help skills from CBT: untangling a thought, thinking traps, planning small steps when you're low, the worry tree, sleep tips and being kinder to yourself."],["🫁","Breathe with me and 5-4-3-2-1 grounding buttons for anxious moments."],["🆘","Help now is always one tap away, with crisis numbers and the people in your plan. If you mention not being safe, it shows straight away in any chat."]]},
  {v:"2026-11-05.7", items:[["🩺","New care packs in Settings, under My conditions. Switch one on for each condition you live with: Mental health and Crohn's and colitis to start, with more coming."],["✅","Each pack adds a few quick taps to Today's check-in, so it's still one check-in a day."],["📈","Crohn's gets a home flare score, like the one IBD teams use. Mental health gets the 2-minute monthly mood and anxiety questionnaires GPs use."],["⚠️","Dr Quackers warns you early when a flare or a low patch looks like it's building, and points you to your own plan and the right help."]]},
  {v:"2026-11-05.6", items:[["🔗","Connections: Dr Quackers now looks at all your illnesses together and shows which might be linked, how strongly, the evidence from your own records, and how to test the link."],["🧩","He also says which problems look unrelated, and merges files that turn out to be one illness."]]},
@@ -5596,17 +5633,108 @@ function renderMindBar(){
   $("#attachLbl").hidden= on || !S.sample;
   renderStarters();
 }
+function mindNewSession(){ if(S.mind) mindSaveSession(); S.mindSid=null; S.mindIso=null; S.mindSaved=0; }
 function setMind(on){
   if(!!S.mind===!!on) return;
-  S.chatCtl&&S.chatCtl.abort(); S.chat=[]; $("#chatlog").replaceChildren();
+  mindNewSession(); S.chatCtl&&S.chatCtl.abort(); S.chat=[]; $("#chatlog").replaceChildren();
   S.mind=!!on; renderMindBar();
 }
 function openMind(){ show("ask"); setMind(true); setTimeout(()=>$("#chatIn").focus(),100); }
 function mindRules(){
   return MIND_GUIDE+"\n\nTheir health logbook (for context):\n"+buildContext({noCases:true})+"\n\nUse '## ' headings and '- ' bullets only when they help, mainly for exercise summaries. Never use charts or diagrams in Mind mode.";
 }
+/* ---------- mental health history: what's behind the mood, Mind mode chat notes, the full picture over time ---------- */
+const MOOD_WHY=["Work","Money","Family","Relationship","Kids","Health","Pain","Poor sleep","Lonely","Overwhelmed","Hormones","Good company","Got outside","Exercise","Got things done","Rest"];
+const MOOD_GOOD=new Set(["Good company","Got outside","Exercise","Got things done","Rest"]);
+function moodWhyOpts(){ return MOOD_WHY.filter(x=>x!=="Hormones"||periodOn()); }
+function renderMoodWhy(iso, day){
+  const box=$("#ciMoodWhy"); if(!box) return;
+  const show_=!!day.feel||packsOn().includes("mental"); box.hidden=!show_; if(!show_) return;
+  const cur=Array.isArray(day.moodWhy)? day.moodWhy : [], ro=!S.canWrite||null;
+  const low=day.feel&&day.feel<=2;
+  box.replaceChildren(
+    h("p",{class:"ci-lab"}, day.feel>=4? "What's helped today?" : "What's affecting your mood?"),
+    h("div",{class:"ci-chips"}, ...moodWhyOpts().map(t=>h("button",{type:"button",class:"ci-chip"+(cur.includes(t)?" on":""),"aria-pressed":String(cur.includes(t)),disabled:ro,onclick:()=>{ const n=cur.includes(t)? cur.filter(x=>x!==t) : [...cur,t]; saveDay(iso,{moodWhy:n.length?n:null}); }},t))),
+    low? h("button",{class:"ci-mind",type:"button",onclick:openMind}, h("span",{"aria-hidden":"true"},"🧠"), h("span",{}, h("b",{},"Want to talk it through?"), h("small",{},"Mind mode: a calm chat with Dr Quackers"))) : null);
+}
+/* Mind mode chat notes: a short summary of each chat kept in the day's diary, so there's a history to look back on */
+function mindKeep(){ return (S.profile||{}).mindKeep!==false; }
+let mindSaveT=null;
+function mindQueueSave(){ clearTimeout(mindSaveT); mindSaveT=setTimeout(()=>mindSaveSession(),120000); }
+async function mindSaveSession(){
+  clearTimeout(mindSaveT);
+  if(!S.mind&&!S.mindSid) return;
+  const users=S.chat.filter(m=>m.role==="user").length;
+  if(!mindKeep()||!S.canWrite||!S.sample||users<2||S.mindSaved===S.chat.length) return;
+  const sid=S.mindSid||(S.mindSid="m"+Date.now()), iso=S.mindIso||(S.mindIso=todayISO()), n=S.chat.length;
+  S.mindSaved=n;
+  const conv=S.chat.map(m=>(m.role==="user"?"Them: ":"Dr Quackers: ")+String(m.content).slice(0,1500)).join("\n").slice(-12000);
+  const prompt="Below is a Mind mode chat between a person and Dr Quackers, a CBT-based self-help coach in their health logbook. Write a short private note for their own mental health history, in the second person (\"you\"), kind and factual, no jokes. Return JSON only: {\"topic\":\"3-6 words: what it was about\",\"tool\":\"the self-help skill used, e.g. thought record, worry tree, behavioural activation, grounding, just talking\",\"before\":\"how they felt at the start, a few words, or empty\",\"after\":\"how they felt at the end, a few words, or empty\",\"helped\":\"what helped or what they plan to do, one short sentence, or empty\",\"summary\":\"2-3 sentences: what was on their mind and where they got to\",\"risk\":true or false (true only if they mentioned suicide, self-harm, wanting to die or being in danger)}.\n\nCHAT:\n"+conv;
+  try{
+    const r=await S.sample.json(prompt,{modelTier:"quick"});
+    if(!r||!r.summary) throw new Error("empty");
+    const note={sid, time:new Date().toTimeString().slice(0,5), topic:String(r.topic||"").slice(0,80), tool:String(r.tool||"").slice(0,60), before:String(r.before||"").slice(0,60), after:String(r.after||"").slice(0,60), helped:String(r.helped||"").slice(0,240), summary:String(r.summary||"").slice(0,600), risk:!!r.risk||undefined, n:users};
+    const d=(S.days||{})[iso]||{}, L=(Array.isArray(d.mindLog)? d.mindLog : []).filter(x=>x.sid!==sid);
+    await saveDay(iso,{mindLog:[...L,note]});
+  }catch(e){ S.mindSaved=0; }
+}
+function mindLogAll(){ const out=[]; for(const [iso,d] of Object.entries(S.days||{})) for(const x of (Array.isArray(d.mindLog)?d.mindLog:[])) out.push({...x,iso}); return out.sort((a,b)=>(b.iso+b.time).localeCompare(a.iso+a.time)); }
+function mindContext(d){
+  const b=[];
+  if(Array.isArray(d.moodWhy)&&d.moodWhy.length) b.push("mood affected by: "+d.moodWhy.join(", ").toLowerCase());
+  for(const x of (Array.isArray(d.mindLog)?d.mindLog:[])) b.push("Mind mode chat"+(x.topic?" about "+x.topic:"")+(x.tool?" ("+x.tool+")":"")+": "+x.summary+(x.helped?" What helped: "+x.helped:"")+(x.before||x.after?" Feeling "+(x.before||"?")+" → "+(x.after||"?"):""));
+  return b.join("; ");
+}
+function lowPatches(n){
+  const out=[]; let run=null;
+  for(let i=n-1;i>=-1;i--){ const iso=addDays(todayISO(),-i), d=i>=0? (S.days||{})[iso] : null, low=d&&d.feel&&d.feel<=2;
+    if(low){ if(!run) run={from:iso,to:iso,n:0}; run.to=iso; run.n++; }
+    else if(d&&d.feel||i<0){ if(run&&run.n>=3) out.push(run); run=null; } }
+  return out.reverse();
+}
+function openMindHistory(){
+  const t=todayISO(), N=90, days=[...Array(N)].map((_,i)=>{ const iso=addDays(t,-(N-1-i)); return {iso,d:(S.days||{})[iso]||{}}; });
+  const avg=(arr)=>{ const v=arr.filter(x=>typeof x==="number"); return v.length? Math.round(v.reduce((a,b)=>a+b,0)/v.length*10)/10 : null; };
+  const last30=days.slice(-30), prev30=days.slice(-60,-30);
+  const a1=avg(last30.map(x=>x.d.feel)), a0=avg(prev30.map(x=>x.d.feel));
+  const good=last30.filter(x=>x.d.feel>=4).length, low=last30.filter(x=>x.d.feel&&x.d.feel<=2).length, logged=last30.filter(x=>x.d.feel).length;
+  const bars=h("div",{class:"pk-bars mh-bars",role:"img","aria-label":"Mood over the last 90 days"}, ...days.map(x=>h("i",{class:!x.d.feel?"none":x.d.feel<=2?"bad":x.d.feel===3?"mid":"ok",style:"height:"+(x.d.feel? x.d.feel*20 : 6)+"%",title:fmtDate(x.iso)+(x.d.feel?": "+FEEL[x.d.feel-1]:"")})));
+  const stress=h("div",{class:"pk-bars mh-bars sm",role:"img","aria-label":"Stress over the last 90 days"}, ...days.map(x=>h("i",{class:!x.d.stress?"none":x.d.stress>=3?"bad":x.d.stress===2?"mid":"ok",style:"height:"+(x.d.stress? Math.round(x.d.stress*33) : 6)+"%"})));
+  // what's behind the mood: how often, and the average mood on those days
+  const why={}; for(const x of days) for(const w of (Array.isArray(x.d.moodWhy)?x.d.moodWhy:[])){ (why[w]=why[w]||{n:0,f:[]}); why[w].n++; if(x.d.feel) why[w].f.push(x.d.feel); }
+  const whyL=Object.entries(why).sort((a,b)=>b[1].n-a[1].n).slice(0,8);
+  const pats=lowPatches(N), chats=mindLogAll().slice(0,20);
+  const qs=["phq9","gad7"].map(set=>({set,L:qLatest(set).slice(0,6)}));
+  const mhRx=PACKS.mental.suggest, conds=[...ofKind("condition"),...ofKind("medication")].filter(e=>mhRx.test(e.title+" "+(e.details||"")));
+  const plan=mindPlan();
+  const sec=(title,...kids)=>h("div",{class:"il-sec"}, h("b",{class:"il-h"},title), ...kids);
+  openSheet("🧠 My mental health",[
+    h("div",{class:"love-stats mh-stats"},
+      h("div",{class:"love-st"}, h("b",{},a1!=null? a1+"/5" : "–"), h("small",{},"average mood"+(a0!=null&&a1!=null? (a1>a0?" ↑ from "+a0 : a1<a0?" ↓ from "+a0 : "") : ""))),
+      h("div",{class:"love-st"}, h("b",{},String(good)), h("small",{},"good days")),
+      h("div",{class:"love-st"}, h("b",{class:low>=8?"hot":""},String(low)), h("small",{},"low days"))),
+    h("p",{class:"fineprint"},"Last 30 days ("+logged+" days logged)."),
+    sec("Mood, last 90 days", bars, h("p",{class:"fineprint"},"Taller is better. Grey means not logged."), h("b",{class:"mh-sub"},"Stress"), stress, h("p",{class:"fineprint"},"Taller means more stressed.")),
+    pats.length? sec("Low patches (3 or more low days in a row)", h("ul",{class:"cs-ul"}, ...pats.slice(0,5).map(r=>h("li",{}, fmtDate(r.from)+(r.from!==r.to?" to "+fmtDate(r.to):"")+": "+r.n+" days")))) : null,
+    whyL.length? sec("What's behind your mood", h("ul",{class:"cs-ul"}, ...whyL.map(([w,v])=>{ const am=avg(v.f); return h("li",{}, h("b",{},w), ": "+v.n+" day"+(v.n>1?"s":"")+(am!=null? ", average mood "+am+"/5" : "")+(MOOD_GOOD.has(w)?" 💚":"")); })), h("p",{class:"fineprint"},"From the check-in. Look for what lifts you and what drags you down.")) : null,
+    sec("Questionnaires", ...qs.map(({set,L})=>h("p",{class:"mh-q"}, h("b",{},QSETS[set].short+": "), L.length? L.map(e=>e.value+"/"+QSETS[set].max+" "+qBand(set,e.value)+" ("+fmtDate(e.date)+")").join(" · ") : "not done yet")),
+      h("div",{class:"row"}, h("button",{class:"btn small",type:"button",disabled:!S.canWrite||null,onclick:()=>openQuestionnaire("phq9")},"Do the mood check"), h("button",{class:"btn small",type:"button",disabled:!S.canWrite||null,onclick:()=>openQuestionnaire("gad7")},"Do the anxiety check"))),
+    sec("Mind mode chats", chats.length? h("div",{class:"mh-chats"}, ...chats.map(x=>h("div",{class:"mh-chat"+(x.risk?" risk":"")},
+        h("p",{class:"mh-ct"}, h("b",{}, x.topic||"Chat"), h("small",{}, " · "+fmtDate(x.iso)+(x.tool?" · "+x.tool:""))),
+        x.before||x.after? h("p",{class:"mh-ba"}, (x.before||"?")+" → "+(x.after||"?")) : null,
+        h("p",{}, x.summary), x.helped? h("p",{class:"mh-help"}, "💚 "+x.helped) : null))) : h("p",{class:"none"}, mindKeep()? "When you talk things through in Mind mode, a short note of each chat appears here." : "Notes of Mind mode chats are switched off.")),
+    conds.length? sec("Diagnoses and medicines", h("ul",{class:"cs-ul"}, ...conds.map(e=>h("li",{}, e.title+(e.date?" ("+fmtDate(e.date)+")":""))))) : null,
+    plan.signs||plan.helps? sec("My plan", plan.signs? h("p",{}, h("b",{},"Early warning signs: "), plan.signs) : null, plan.helps? h("p",{}, h("b",{},"What helps: "), plan.helps) : null) : null,
+    h("div",{class:"row"},
+      h("button",{class:"btn ai",type:"button",onclick:()=>{ closeSheet(); show("ask"); setMind(false); const c=$("#chatIn"); c.value="Write a clear summary of my mental health over the last 3 months for my GP, using my mood diary, what's been affecting my mood, my questionnaire scores, my Mind mode chat notes and my medicines. Include a mood chart."; c.focus(); }},"📄 Summary for my GP"),
+      h("button",{class:"btn ghost",type:"button",onclick:()=>{ closeSheet(); openPackPlan("mental"); }},"My plan")),
+    h("label",{class:"mh-keep"}, (()=>{ const cb=h("input",{type:"checkbox",disabled:!S.canWrite||null}); cb.checked=mindKeep(); cb.addEventListener("change",()=>saveProfilePatch({mindKeep:cb.checked})); return cb; })(), h("span",{},"Keep a short note of each Mind mode chat here (the full chat is never saved)")),
+    h("p",{class:"fineprint"},"Only you can see this. It's a record for you and your GP, not a diagnosis.")].filter(Boolean));
+}
 renderStarters();
 $("#mindTgl").addEventListener("click",()=>setMind(!S.mind));
+$("#mtHist").addEventListener("click",openMindHistory);
+document.addEventListener("visibilitychange",()=>{ if(document.hidden&&S.mind) mindSaveSession(); });
 $("#mtBreathe").addEventListener("click",openBreathe); $("#mtGround").addEventListener("click",openGround); $("#mtHelp").addEventListener("click",openMindHelp);
 function addBubble(role, content){
   const b=h("div",{class:"bubble "+(role==="user"?"me":"claude")});
@@ -5644,6 +5772,7 @@ async function sendChat(){
     const {text:reply}=await S.sample([{role:"user",content:rules}, ...turns], opts);
     bub.replaceChildren(md(reply), replyActions(reply));
     S.chat.push({role:"assistant",content:reply});
+    if(S.mind) mindQueueSave();
   }catch(e){
     const msg=aiErr(e);
     bub.replaceChildren(...(e&&e.text&&e.code!=="refused"?[md(e.text)]:[]), msg? h("span",{class:"err"},msg) : h("span",{class:"err"},"Stopped."));
@@ -5656,7 +5785,7 @@ renderMindBar();
 { const t=document.querySelector(".tab-dq"); if(t) t.replaceChildren(duckSvg(25,"still")); }
 $("#chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); sendChat(); }});
 $("#chatStop").addEventListener("click",()=>S.chatCtl&&S.chatCtl.abort());
-$("#chatClear").addEventListener("click",()=>{ S.chatCtl&&S.chatCtl.abort(); S.chat=[]; $("#chatlog").replaceChildren(); });
+$("#chatClear").addEventListener("click",()=>{ mindNewSession(); S.chatCtl&&S.chatCtl.abort(); S.chat=[]; $("#chatlog").replaceChildren(); });
 
 /* ---------- server connection (Supabase + Claude API) ---------- */
 const SB_URL="https://vfdgvbsspivwerowbzil.supabase.co";
