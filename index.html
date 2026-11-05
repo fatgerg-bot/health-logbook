@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-05.1">
+<meta name="app-version" content="2026-11-05.2">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -892,6 +892,11 @@ body.on-home .top{display:none}
 .dq.fart .dq-wingR{animation:dqFan 3.6s ease-in-out}
 @keyframes dqFan{0%,50%{transform:none}58%{transform:rotate(-70deg)}66%{transform:rotate(-40deg)}74%{transform:rotate(-70deg)}82%{transform:rotate(-40deg)}92%,100%{transform:none}}
 .dq-eyes{transition:transform .5s}
+.dq.flirt .dq-brow{transform-box:fill-box;transform-origin:center;animation:dqWaggle .55s ease-in-out 4}
+@keyframes dqWaggle{0%,100%{transform:none}35%{transform:translateY(-9px) rotate(-6deg)}65%{transform:translateY(-9px) rotate(4deg)}}
+.dq.flirt .dq-cheek{animation:dqBlush 2.4s ease-in-out}
+.dq.flirt .dq-pup{animation:dqSide 2.4s ease-in-out}
+@keyframes dqSide{0%,100%{transform:none}25%,70%{transform:translate(5px,-2px)}}
 .dq.sleep .dq-eyes{animation:none;transform:scaleY(.08)}
 .dq.sleep .dq-brow{transform:translateY(4px)}
 .dq.sleep .dq-body{animation:dqSnore 3.2s ease-in-out infinite}
@@ -2537,6 +2542,7 @@ function trackersBox(){
     sw("sleep","Sleep diary","Bedtime, time to fall asleep, night wakings and hours slept.",!!t.sleep,v=>setT("sleep",v)),
     sw("heart","Heart episodes","Palpitations logged in detail: how long, what it felt like, pulse, what was going on.",t.heart!==false,v=>setT("heart",v)),
     sw("pain","Pain map","Tap where it hurts on a body picture, with what kind of pain.",t.pain!==false,v=>setT("pain",v)),
+    sw("cheeky","Cheeky Dr Quackers","A new line every time you open the app, including saucy nudges about your love life. He keeps them to himself on bad days.",t.cheeky!==false,v=>setT("cheeky",v).then(()=>{ S._quip=null; })),
     sw("stool","Poo tracker","Bristol chart and colour, with an optional photo Dr Quackers looks at. Flags warning signs.",!!t.stool,v=>setT("stool",v)),
     p.sex==="male"? null : sw("period","Period tracker","Cycle ring, predictions, period days and a private intimacy log. Dr Quackers fits his tips to your cycle.",!p.periodOff,v=>saveProfilePatch({periodOff:v?undefined:true}).then(()=>renderAll())),
     tg);
@@ -2882,7 +2888,7 @@ function dqIdleTick(){
     if(!d.isConnected){ if(d._seen) DQ_IDLE.delete(d); continue; } d._seen=true;
     if(!d.getClientRects().length) continue;
     if(d._asleep) continue;
-    if(["think","talk","wave","happy","look","scratch","smoke","fart","sleep","wake"].some(c=>d.classList.contains(c))) continue;
+    if(["think","talk","wave","happy","look","scratch","smoke","fart","sleep","wake","flirt"].some(c=>d.classList.contains(c))) continue;
     if(Date.now()-dqLastInput>45000){ d._asleep=true; d.classList.add("sleep"); continue; }
     if(Math.random()>.6) continue;
     let r=Math.random(), act=DQ_ACTS[0];
@@ -2948,10 +2954,91 @@ function renderWelcome(){
     card._lines=h("div",{class:"dq-lines"});
     card.replaceChildren(card._duck, h("div",{class:"dq-bub hh-bub"}, card._lines));
   }
-  const lines=[dqHello(), dqFeeling()];
+  const q=S.loaded? dqQuip() : {text:dqFeeling(),kind:"feel"};
+  const lines=[dqHello(), q.text];
   const key=lines.join("|");
-  if(card._key!==key){ card._key=key; card._lines.replaceChildren(...lines.map((t,i)=>h("p",{class:i===0?"dq-hi":""},t))); card._lines._qk=null; quackify(card._lines); }
+  if(card._key!==key){ card._key=key; card._lines.replaceChildren(...lines.map((t,i)=>h("p",{class:i===0?"dq-hi":""},t))); card._lines._qk=null; quackify(card._lines);
+    const dk=card._duck, cls= q.kind==="love"? "flirt" : q.kind==="cheek"? "happy" : null;
+    if(dk&&cls&&S.loaded){ dk.classList.remove("flirt","happy","wave"); void dk.getBoundingClientRect(); dk.classList.add(cls); if(cls==="flirt") setTimeout(()=>dk.classList.remove("flirt"),2600); } }
 }
+/* Dr Quackers' opening line: a new one every time the app is opened, never the same as recently */
+const DQ_Q={
+  feel:[
+    "Don't forget to tell me how you feel today. I'm nosy, it's in my programming.",
+    "How are you feeling today? Tap a face. I promise not to diagnose you with being a duck.",
+    "Go on, tell me how today's going. I've cleared my diary, which was empty anyway.",
+    "Feelings check! Tap a face above. Grumpy counts, I won't judge.",
+    "How's the body behaving today? Tell me, I'm a professional. Allegedly.",
+    "Rate your day with a face. My day is a 5, I run on electricity and bread.",
+    "Quick check-in? It takes ten seconds and makes your doctor's appointments much easier."],
+  cheek:[
+    "Reminder: I'm an AI duck in a white coat. Clever, handsome, but check the big stuff with your GP.",
+    "I trained at the University of Bread. Top of my class, bottom of the pond.",
+    "My medical licence is a crisp packet with a sticker on it. Use my advice wisely.",
+    "I'd offer you a lollipop for being brave, but I ate them all.",
+    "Smile. It's free, it's good for you, and it confuses people.",
+    "I'm not a real doctor, but I do have a very real stethoscope. Don't ask where I got it.",
+    "Doctor's orders: be nice to yourself today. That's it, that's the prescription.",
+    "If anything hurts, tap the plus button and show me where. I'll try not to pass out.",
+    "Fun fact: I've never lost a patient. I've never had a patient. Shall we change that?",
+    "Your heart beats about 100,000 times a day. Give it a reason to skip one.",
+    "I'm an artificial intelligence. The intelligence part is debatable, the artificial part is the beak."],
+  body:[
+    "Had some water today? Tea sort of counts. Wine definitely doesn't.",
+    "Have you been for a poo today? Don't be shy, I've seen worse. I'm a duck.",
+    "Stretch your arms up high. Go on, nobody's watching except me.",
+    "Ten minutes of fresh air does wonders. Even ducks need a pond break.",
+    "Took your meds today? Log them and I'll stop nagging. For about an hour.",
+    "How did you sleep? Be honest, my feathers twitch when you fib.",
+    "Unclench your jaw and drop your shoulders. Better? You're welcome.",
+    "Eaten a vegetable today? Chips are a potato, but nice try."],
+  love:[
+    "When did you last have some fun with your other half? Asking for strictly medical reasons.",
+    "Doctor's orders tonight: phones down, lights low, bedroom door shut. Repeat as needed.",
+    "Sex counts as cardio. I'm not saying skip the walk, I'm saying there are options.",
+    "A cuddle that turns into something more is great for stress, sleep and your heart. Just saying.",
+    "Send your other half a cheeky text today. Flirting is free and good for you.",
+    "Feeling frisky? Your heart, your mood and your sleep all say go for it.",
+    "Fancy an early night for two? I'll look the other way. Mostly.",
+    "Intimacy releases oxytocin and endorphins, nature's own feel-good medicine. No prescription needed.",
+    "Prescription: one long kiss, taken daily. Side effects may include smiling.",
+    "Life's busy, so book in some sexy time like an appointment. I'll even remind you.",
+    "Low drive lately? Tiredness, stress and some medicines can do that. Worth a chat with your GP if it bothers you."],
+  loveF:[
+    "Your love life is part of your health too. Log it privately in your period tracker and I'll fit my tips to your cycle."]
+};
+function dqQHist(){ try{ return JSON.parse(localStorage.getItem("hl-dq-q-"+(S.uid||"me"))||"[]"); }catch{ return []; } }
+function dqRoughDay(){
+  const t=todayISO(), d=(S.days||{})[t]||{};
+  if(d.feel&&d.feel<=2) return true;
+  return S.entries.some(e=>e.date===t&&e.kind==="symptom"&&((e.severity||0)>=7||e.ep));
+}
+function dqPickQuip(){
+  const p=S.profile||{}, tr=p.trackers||{}, d=(S.days||{})[todayISO()]||{};
+  const cheeky=tr.cheeky!==false, rough=dqRoughDay();
+  const love=[...DQ_Q.love, ...(p.sex!=="male"&&!p.periodOff? DQ_Q.loveF : [])];
+  const pools=[];
+  if(!d.feel) pools.push(["feel",.32]);
+  if(cheeky&&!rough) pools.push(["love",.34]);
+  pools.push(["cheek",.2],["body",.18]);
+  const tot=pools.reduce((a,x)=>a+x[1],0); let r=Math.random()*tot, pick=pools[0][0];
+  for(const [k,w] of pools){ if(r<w){ pick=k; break; } r-=w; }
+  const list=pick==="love"? love : DQ_Q[pick], seen=new Set(dqQHist());
+  const fresh=list.filter(x=>!seen.has(x)), text=(fresh.length?fresh:list)[Math.floor(Math.random()*(fresh.length||list.length))];
+  try{ localStorage.setItem("hl-dq-q-"+(S.uid||"me"),JSON.stringify([text,...dqQHist()].slice(0,30))); }catch{}
+  return {text, kind:pick};
+}
+function dqQuip(){
+  const d=(S.days||{})[todayISO()]||{};
+  if(d.feel&&d.feel<=2) return {text:dqFeeling(), kind:"care"};
+  if(!S._quip||S._quipUid!==S.uid){ S._quip=dqPickQuip(); S._quipUid=S.uid; }
+  return S._quip;
+}
+let dqHiddenAt=0;
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){ dqHiddenAt=Date.now(); return; }
+  if(dqHiddenAt&&Date.now()-dqHiddenAt>3*60*1000){ S._quip=null; try{ renderWelcome(); }catch{} }
+});
 function dqFeeling(){
   const d=(S.days||{})[todayISO()]||{};
   if(!d.feel) return "How are you feeling today?";
@@ -3931,6 +4018,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-05.2", items:[["🦆","Dr Quackers says something new every time you open the app: check-ins, cheeky doctor jokes, body reminders and the odd saucy nudge about your love life."],["😏","Saucy nudges come with a waggle of his eyebrows. He keeps them to himself on rough days."],["⚙️","Turn the cheeky side off in Settings → Trackers → Cheeky Dr Quackers."]]},
  {v:"2026-11-05.1", items:[["📋","Records list is easier to read on a phone: long names no longer squash into one word per line."],["⏳","Coming up now shows things you are waiting on that don't have a date yet, like a referral."],["📄","Long letters open with a bigger notes box, so you can read the whole letter."],["🚩","The timeline's All view now reaches back to your earliest big event."]]},
  {v:"2026-11-04.18", items:[["💨","Dr Quackers has learned some new tricks. Some of them are rude."],["😴","Leave the app alone for a bit and he nods off. Tap the screen to wake him."]]},
  {v:"2026-11-04.17", items:[["🚩","Big events on your timeline: hospital stays, A&E visits, operations, injuries and big diagnoses show as flags, with a line down the chart so you can see what changed before and after."],["🔎","Tap Find big events in my records under the timeline and Dr Quackers looks through your letters for them. You tick what's right before anything is added. New letters you import are checked for big events too."],["➕","Add one yourself with the + button: Big event."]]},
