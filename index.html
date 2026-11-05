@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-05.4">
+<meta name="app-version" content="2026-11-05.5">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -404,6 +404,27 @@ main{padding-top:10px}
 .love-flag{display:flex;flex-direction:column;gap:2px;margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--alert-soft,#FBE8E5);color:var(--ink);font-size:14px}
 .love-flag b{color:var(--alert,#A8261D)}
 .love-form .flabel{margin:12px 0 6px}
+.il-card{display:flex;flex-direction:column;gap:7px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 14px;color:var(--ink);font:inherit;cursor:pointer;margin-bottom:8px}
+.il-card.done{padding:10px 14px}
+.il-ct{display:flex;justify-content:space-between;align-items:center;gap:8px}.il-ct b{font-size:1.06rem}
+.il-ok{font-size:.8rem;font-weight:700;color:var(--accent)}
+.il-cs{font-size:.85rem;color:var(--muted)}.il-cl{font-size:.9rem}
+.il-new{width:100%;min-height:48px;border:2px dashed var(--accent);background:transparent;color:var(--accent);border-radius:14px;font:inherit;font-weight:700;font-size:1rem;margin:4px 0 6px;cursor:pointer}
+.il-stage{display:flex;flex-direction:column;gap:6px;margin:4px 0}
+.il-segs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.il-segs span{height:7px;border-radius:4px;background:var(--line)}.il-segs span.on{background:var(--accent)}
+.il-labs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;font-size:.7rem;color:var(--muted);text-align:center}.il-labs .now{color:var(--accent);font-weight:700}
+.il-sub{margin:0 0 6px;color:var(--muted);font-size:.9rem}
+.il-tiles{margin:10px 0}.love-st b.hot{color:var(--alert,#A8261D)}
+.il-sec{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:10px 0}
+.il-h{display:block;margin:0 0 6px}
+.il-chart{display:flex;align-items:flex-end;gap:6px;height:90px;margin:4px 0}
+.il-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px}
+.il-col i{display:block;width:100%;border-radius:4px;background:var(--accent);opacity:.75}.il-col i.hot{background:var(--alert,#A8261D);opacity:1}
+.il-col small{font-size:.68rem;color:var(--muted)}
+.il-tests{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:.9rem}
+.il-tests li{display:grid;grid-template-columns:22px 1fr;gap:6px}.il-tests li.t-ask{color:var(--ai,#5A4A8A)}.il-tests small{color:var(--muted)}
+.il-tl{display:flex;flex-direction:column}
+.il-tr{display:grid;grid-template-columns:92px 1fr;gap:10px;padding:6px 0;border-top:1px solid var(--soft);font-size:.88rem}.il-tr span:first-child{color:var(--muted)}.il-tr.big span:first-child{color:var(--alert,#A8261D);font-weight:700}
 .cs-card{display:flex;flex-direction:column;gap:6px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;color:var(--ink);font:inherit;cursor:pointer}
 .cs-card.solved{opacity:.8}
 .cs-t{font-weight:700;font-size:1.02rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -3279,7 +3300,7 @@ function renderTiles(){
     periodOn()? ["Cycle","cycle","k",()=>{ show("track"); const c=$("#cycCard"); if(c) c.scrollIntoView({block:"start",behavior:"smooth"}); }] : null,
     hp.heart? ["Heart","heart","r",()=>tlWith(["heart","rhr"]),hearts] : null,
     hp.pain? ["Pain map","pain","r",()=>openPain(todayISO())] : null,
-    ["Case files","case","r",()=>openCases(),casesBadge()],
+    ["My illnesses","case","r",()=>openCases(),casesBadge()],
     ["Blood tests","tests","a",()=>recFilter("result"),lowTests],
     ["Medicines","meds","p",()=>recFilter("medication")],
     ["Get ready","prep","p",()=>show("prepare")],
@@ -3345,45 +3366,76 @@ const EVT_EMO=Object.fromEntries(EVT.map(([k,e])=>[k,e])), EVT_NAME=Object.fromE
 function evLabel(e){ return (EVT_EMO[e.etype]||"🚩")+" "+e.title; }
 function evWhen(e){ return fmtDate(e.date)+(e.endDate&&e.endDate>e.date? " to "+fmtDate(e.endDate) : ""); }
 function bigEventsOn(iso){ return ofKind("event").filter(e=>e.date&&(e.date===iso||(e.endDate&&e.date<=iso&&e.endDate>=iso))); }
-/* ---------- case files: Dr Quackers' working list of possible explanations, updated as new data arrives ---------- */
+/* ---------- illness tracker: one file per illness, from first symptoms to diagnosis, care plan and getting better ---------- */
 const CASE_BAND={likely:["Likely",3],possible:["Possible",2],"less likely":["Less likely",1]};
+const ILL_STAGES=["symptoms","investigating","diagnosed","care","better"];
+const ILL_STAGE_L={symptoms:"Symptoms",investigating:"Investigating",diagnosed:"Diagnosed",care:"Care plan",better:"Better",managed:"Managed"};
 function casesList(){ return (S.cases&&Array.isArray(S.cases.list))? S.cases.list : []; }
+function illDone(c){ return c.stage==="better"||c.stage==="managed"&&c.kind==="short"; }
+function illStageIdx(c){ return c.stage==="managed"? 4 : Math.max(0,ILL_STAGES.indexOf(c.stage)); }
 function casesSig(){ let m=0; for(const e of S.entries) m=Math.max(m,e.updatedAt||0); for(const d of Object.values(S.days||{})) m=Math.max(m,d.updatedAt||0); return S.entries.length+"|"+Object.keys(S.days||{}).length+"|"+m; }
 function casesSeen(){ try{ return +localStorage.getItem("hl-cases-seen-"+(S.uid||"me"))||0; }catch{ return 0; } }
 function casesMarkSeen(){ try{ localStorage.setItem("hl-cases-seen-"+(S.uid||"me"),String(Date.now())); }catch{} }
-function casesBadge(){ const seen=casesSeen(); const n=casesList().filter(c=>c.status!=="solved"&&(c.changedAt||0)>seen).length; return n||undefined; }
+function casesBadge(){ const seen=casesSeen(); const n=casesList().filter(c=>!illDone(c)&&(c.changedAt||0)>seen).length; return n||undefined; }
 function casesContext(){
-  const open=casesList(); if(!open.length) return "";
-  return "\nDR QUACKERS' CASE FILES (his own working list of possible explanations to discuss with the doctor, NOT diagnoses):\n"+open.map(c=>"- "+c.title+(c.status==="solved"?" [solved: "+(c.diagnosis||"")+"]":"")+": "+(c.causes||[]).map(x=>x.name+" ("+x.band+")").join("; ")+(c.next&&c.next.length?". Next steps: "+c.next.join("; "):"")).join("\n");
+  const L=casesList(); if(!L.length) return "";
+  return "\nDR QUACKERS' ILLNESS FILES (his own working notes to discuss with the doctor; only 'diagnosed' ones are confirmed):\n"+L.map(c=>"- "+c.title+" ["+(ILL_STAGE_L[c.stage]||c.stage)+(c.diagnosis?": "+c.diagnosis:"")+"]: "+(c.causes||[]).map(x=>x.name+" ("+x.band+")").join("; ")+(c.next&&c.next.length?". Next: "+c.next.join("; "):"")+(c.care&&c.care.length?". Care plan: "+c.care.join("; "):"")).join("\n");
+}
+/* the symptoms that belong to an illness, for its numbers and chart */
+function illEpisodes(c){
+  const m=new Set((c.match||[]).map(s=>String(s).toLowerCase().trim()));
+  return ofKind("symptom").filter(e=>e.date&&m.has(String(e.title||"").toLowerCase().trim())).sort((a,b)=>a.date.localeCompare(b.date));
+}
+function illStats(c){
+  const eps=illEpisodes(c), t=todayISO(), mon=t.slice(0,7);
+  const months=[]; for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-i); const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); months.push({k, l:d.toLocaleDateString("en-GB",{month:"short"}), n:0, worst:0}); }
+  for(const e of eps){ const mm=months.find(x=>x.k===e.date.slice(0,7)); if(mm){ mm.n++; mm.worst=Math.max(mm.worst,e.severity||0); } }
+  const last=eps.length? eps[eps.length-1].date : null;
+  return {eps, n:eps.length, month:eps.filter(e=>e.date.slice(0,7)===mon).length, worst:Math.max(0,...eps.map(e=>e.severity||0)), since:last? daysBetween(last,t) : null, months};
 }
 function casesSave(list){
-  const body={kind:"cases", list, sig:casesSig(), at:Date.now(), updatedAt:Date.now()};
+  const body={kind:"illnesses", list, sig:casesSig(), at:Date.now(), updatedAt:Date.now()};
   S.cases=body;
-  return write(()=>S.col.doc("cases").set(cleanBody(body)));
+  return write(()=>S.col.doc("illnesses").set(cleanBody(body)));
 }
-async function casesUpdate(){
+function illPrompt(focus){
+  const old=casesList();
+  const prevTxt= old.length? JSON.stringify(old.map(c=>({id:c.id,title:c.title,kind:c.kind,stage:c.stage,summary:c.summary,causes:(c.causes||[]).map(x=>({name:x.name,band:x.band})),tests:c.tests,diagnosis:c.diagnosis,care:c.care}))) : "none yet";
+  return guideTxt()+"\n\nTheir full health logbook:\n"+buildContext({noCases:true})+"\n\nYour previous illness files: "+prevTxt+(focus? "\n\nThey have just told you something new is wrong, in their own words: \""+String(focus).slice(0,600)+"\". Make sure this is filed: add it to an existing illness if it clearly belongs, otherwise open a new one for it." : "")+
+  "\n\nYou keep an ILLNESS FILE for each health problem this person is dealing with, from the first symptoms to diagnosis, a care plan and getting better. Think like a careful GP, using everything in the logbook: symptoms and when they happen, pain and heart logs, food and poo patterns, mood, sleep, results with their ranges, scans, letters, medicines, the cycle and big events. Update the previous files with any new information and keep their ids. Open a new file for a genuine new problem, including short illnesses such as a cold, flu, tummy bug or infection while they are happening. Group related symptoms into one illness rather than many. Skip things that are fully finished and long past, and one-off trivial things. At most 6 files."+
+  "\nStages: 'symptoms' (just started, not looked into yet), 'investigating' (tests or referrals under way, cause not confirmed), 'diagnosed' (a doctor's letter or result has confirmed it), 'care' (diagnosed and being treated or managed with a plan), 'better' (it has gone: for a short illness when they have felt well or logged no symptoms of it for about 3 days), 'managed' (long-term and stable on its plan). kind: 'short' for a short illness, 'mental' for mental health, otherwise 'long'."+
+  "\nFor each file: 2 to 5 possible causes ranked by how well the evidence fits, each with a band 'likely', 'possible' or 'less likely' (NEVER percentages; once diagnosed, the confirmed cause is 'likely' and the others drop away); evidence for and against from THEIR logbook (short, with dates); and the test or sign that would confirm or rule each out. 'tests': every relevant test with status 'done' (with a short result), 'waiting' (referred or booked) or 'ask' (worth asking the GP for), most important first. 'timeline': the key moments, oldest first, each with a date and a few words (big: true for A&E, hospital and big results). 'match': the exact symptom titles from the logbook that belong to this illness. 'next': 2 to 4 concrete next steps. 'redflags': the warning signs that mean calling 111, going to A&E or calling 999. 'care': only once there is a diagnosis or a short illness: the plan in short lines (treatment, daily habits, follow-up). 'selfcare': for short illnesses, NHS-style self-care. 'warnings': for mental health or long-term illness, their personal early warning signs seen in the logbook. 'news': one short sentence in Dr Quackers' cheeky but kind voice on what changed since your previous version (empty if nothing). Plain UK English, short sentences, explain any medical word in brackets. Never invent facts that are not in the logbook."+
+  "\nReply with only JSON: {\"illnesses\":[{\"id\":\"existing id or empty\",\"title\":\"short name, e.g. Digestion problem\",\"kind\":\"long\"|\"short\"|\"mental\",\"stage\":\"symptoms\"|\"investigating\"|\"diagnosed\"|\"care\"|\"better\"|\"managed\",\"started\":\"YYYY-MM-DD or YYYY-MM or YYYY\",\"summary\":\"2-3 sentences\",\"news\":\"\",\"match\":[\"\"],\"causes\":[{\"name\":\"\",\"band\":\"likely\",\"for\":[\"\"],\"against\":[\"\"],\"confirm\":\"\"}],\"tests\":[{\"name\":\"\",\"status\":\"done\",\"date\":\"\",\"result\":\"\"}],\"timeline\":[{\"date\":\"\",\"text\":\"\",\"big\":false}],\"next\":[\"\"],\"redflags\":[\"\"],\"diagnosis\":\"only if confirmed: what and by whom\",\"care\":[\"\"],\"selfcare\":[\"\"],\"warnings\":[\"\"],\"review\":\"YYYY-MM-DD of the next review or empty\"}]}";
+}
+function illClean(res, old){
+  const now=Date.now(), byId=Object.fromEntries(old.map(c=>[c.id,c])), S_=v=>String(v==null?"":v);
+  const arr=((res&&(res.illnesses||res.cases))||[]).filter(c=>c&&c.title).slice(0,6).map(c=>{
+    const prev=byId[c.id]||old.find(o=>o.title===c.title)||null;
+    const id=(prev&&prev.id)||("i"+now.toString(36)+Math.random().toString(36).slice(2,6));
+    const news=S_(c.news||c.changed).trim().slice(0,300);
+    const L=(a,n,m)=>(Array.isArray(a)?a:[]).map(S_).map(s=>s.slice(0,m||300)).filter(Boolean).slice(0,n);
+    const causes=(Array.isArray(c.causes)?c.causes:[]).slice(0,5).map(x=>({name:S_(x.name).slice(0,120), band:CASE_BAND[x.band]?x.band:"possible", for:L(x.for,5), against:L(x.against,5), confirm:S_(x.confirm).slice(0,300)})).filter(x=>x.name);
+    const tests=(Array.isArray(c.tests)?c.tests:[]).slice(0,12).map(x=>({name:S_(x.name).slice(0,120), status:["done","waiting","ask"].includes(x.status)?x.status:"ask", date:S_(x.date).slice(0,20), result:S_(x.result).slice(0,200)})).filter(x=>x.name);
+    const timeline=(Array.isArray(c.timeline)?c.timeline:[]).slice(0,25).map(x=>({date:S_(x.date).slice(0,20), text:S_(x.text).slice(0,160), big:!!x.big})).filter(x=>x.text);
+    const stage=[...ILL_STAGES,"managed"].includes(c.stage)? c.stage : "investigating";
+    const log=[...((prev&&prev.log)||[])];
+    if(!prev) log.unshift({at:now,text:"File opened."}); else if(news) log.unshift({at:now,text:news});
+    if(prev&&prev.stage!==stage) log.unshift({at:now,text:"Moved to "+ILL_STAGE_L[stage]+"."});
+    return {id, title:S_(c.title).slice(0,80), kind:["short","mental","long"].includes(c.kind)?c.kind:"long", stage, started:S_(c.started).slice(0,10), summary:S_(c.summary).slice(0,700), news,
+      match:L(c.match,30,80), causes, tests, timeline, next:L(c.next,4), redflags:L(c.redflags,6), diagnosis:S_(c.diagnosis).slice(0,300), care:L(c.care,8), selfcare:L(c.selfcare,6), warnings:L(c.warnings,6), review:S_(c.review).slice(0,10),
+      log:log.slice(0,20), changedAt:(!prev||news||(prev&&prev.stage!==stage))?now:(prev.changedAt||now), openedAt:(prev&&prev.openedAt)||now};
+  });
+  for(const o of old) if(!arr.some(c=>c.id===o.id)&&illDone(o)) arr.push(o);
+  return arr;
+}
+async function casesUpdate(focus){
   if(!S.sample||S.aiOff) throw new Error("Dr Quackers isn't available here.");
   if(S._casesRunning) return null; S._casesRunning=true;
   try{
     const old=casesList();
-    const prevTxt= old.length? JSON.stringify(old.map(c=>({id:c.id,title:c.title,status:c.status,summary:c.summary,causes:(c.causes||[]).map(x=>({name:x.name,band:x.band})),diagnosis:c.diagnosis}))) : "none yet";
-    const prompt=guideTxt()+"\n\nTheir full health logbook:\n"+buildContext({noCases:true})+"\n\nYour previous case files: "+prevTxt+
-      "\n\nYou are keeping CASE FILES for this person: one per real, ongoing health problem they are trying to get to the bottom of (for example 'Right-sided tummy pain' or 'Palpitations'). Think like a careful GP doing a differential diagnosis, using everything in the logbook: symptoms and when they happen, pain and heart logs, food and poo patterns, results with their ranges, scans, letters, medicines, the cycle, and big events. Update the previous case files with any new information, keep their ids, add a new case only for a genuine new problem, and mark a case 'solved' only when a doctor's letter or result has confirmed the cause. At most 5 cases; skip one-off minor things and problems already fully treated."+
-      "\nFor each case give 2 to 5 possible causes ranked by how well the evidence fits, each with a band: 'likely', 'possible' or 'less likely'. NEVER give percentages. Never say a cause is ruled out unless a test actually ruled it out. For each cause list the evidence for and against from THEIR logbook (short, with dates), and the test or sign that would confirm or rule it out. Then 'next': 2 to 4 concrete things to ask their GP for or to log, most useful first. Then 'redflags': the warning signs for this problem that mean calling 111, going to A&E or calling 999. Plain UK English, short sentences, no jargon without a plain explanation in brackets."+
-      "\nReply with only JSON: {\"cases\":[{\"id\":\"existing id or empty for new\",\"title\":\"short problem name\",\"status\":\"open\"|\"solved\",\"summary\":\"2-3 sentences: what's been happening and what's been done so far\",\"causes\":[{\"name\":\"\",\"band\":\"likely\"|\"possible\"|\"less likely\",\"for\":[\"\"],\"against\":[\"\"],\"confirm\":\"\"}],\"next\":[\"\"],\"redflags\":[\"\"],\"diagnosis\":\"only if solved: what was confirmed and by whom\",\"changed\":\"one sentence on what changed since your previous version and why, or empty if nothing changed\"}]}";
-    const res=await S.sample.json(prompt,{modelTier:"complex"});
-    const now=Date.now(), byId=Object.fromEntries(old.map(c=>[c.id,c]));
-    const arr=((res&&res.cases)||[]).filter(c=>c&&c.title).slice(0,5).map(c=>{
-      const prev=byId[c.id]||old.find(o=>o.title===c.title)||null;
-      const id=(prev&&prev.id)||("c"+now.toString(36)+Math.random().toString(36).slice(2,6));
-      const changed=String(c.changed||"").trim().slice(0,300);
-      const causes=(Array.isArray(c.causes)?c.causes:[]).slice(0,5).map(x=>({name:String(x.name||"").slice(0,120), band:CASE_BAND[x.band]?x.band:"possible", for:(Array.isArray(x.for)?x.for:[]).map(String).slice(0,5), against:(Array.isArray(x.against)?x.against:[]).map(String).slice(0,5), confirm:String(x.confirm||"").slice(0,300)})).filter(x=>x.name);
-      const log=[...((prev&&prev.log)||[])];
-      if(!prev) log.unshift({at:now,text:"Case opened."}); else if(changed) log.unshift({at:now,text:changed});
-      return {id, title:String(c.title).slice(0,80), status:c.status==="solved"?"solved":"open", summary:String(c.summary||"").slice(0,700), causes, next:(Array.isArray(c.next)?c.next:[]).map(String).slice(0,4), redflags:(Array.isArray(c.redflags)?c.redflags:[]).map(String).slice(0,5), diagnosis:String(c.diagnosis||"").slice(0,300), log:log.slice(0,15), changedAt:(!prev||changed)?now:(prev.changedAt||now), openedAt:(prev&&prev.openedAt)||now};
-    });
-    for(const o of old) if(!arr.some(c=>c.id===o.id)&&o.status==="solved") arr.push(o);
-    if(S.canWrite) await casesSave(arr); else S.cases={list:arr,at:now};
+    const res=await S.sample.json(illPrompt(focus),{modelTier:"complex"});
+    const arr=illClean(res, old);
+    if(S.canWrite) await casesSave(arr); else S.cases={list:arr,at:Date.now()};
     return arr;
   } finally { S._casesRunning=false; }
 }
@@ -3391,48 +3443,102 @@ function casesAutoCheck(){
   if(!S.loaded||!S.canWrite||!S.sample||S.aiOff||S._casesRunning) return;
   const c=S.cases, enough=S.entries.length+Object.keys(S.days||{}).length>=5;
   if(!enough) return;
-  const stale= !c || (c.sig!==casesSig() && Date.now()-(c.at||0)>2*3600*1000);
+  const fast=casesList().some(x=>!illDone(x)&&(x.kind==="short"||x.stage==="symptoms"));
+  const stale= !c || (c.sig!==casesSig() && Date.now()-(c.at||0)>(fast?30*60*1000:2*3600*1000));
   if(!stale) return;
   clearTimeout(S._casesT);
-  S._casesT=setTimeout(async()=>{ try{ const before=casesBadge()||0; const r=await casesUpdate(); if(r&&(casesBadge()||0)>before) toast("🔍 Dr Quackers updated your case files"); renderTiles(); }catch{} }, 4000);
+  S._casesT=setTimeout(async()=>{ try{ const before=casesBadge()||0; const r=await casesUpdate(); if(r&&(casesBadge()||0)>before) toast("🔍 Dr Quackers updated your illness files"); renderTiles(); }catch{} }, 4000);
 }
 function caseBar(band){ const n=(CASE_BAND[band]||CASE_BAND.possible)[1]; return h("span",{class:"cs-bar b"+n,"aria-hidden":"true"}, h("i",{})); }
+function illStageBar(c, labels){
+  const i=illStageIdx(c), last=c.kind==="short"?"Better":(c.stage==="managed"?"Managed":"Better");
+  const names=["Symptoms","Investigating","Diagnosed","Care plan",last];
+  return h("div",{class:"il-stage",role:"img","aria-label":"Stage "+(i+1)+" of 5: "+names[i]},
+    h("div",{class:"il-segs"}, ...names.map((_,k)=>h("span",{class:k<=i?"on":""}))),
+    labels? h("div",{class:"il-labs"}, ...names.map((n,k)=>h("span",{class:k===i?"now":""},n))) : null);
+}
+function illWhen(s){ if(!s) return ""; if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return fmtDate(s); if(/^\d{4}-\d{2}$/.test(s)) return new Date(s+"-15T12:00").toLocaleDateString("en-GB",{month:"short",year:"numeric"}); return s; }
 function openCases(){
-  const list=casesList(), open=list.filter(c=>c.status!=="solved"), solved=list.filter(c=>c.status==="solved");
+  const list=casesList(), active=list.filter(c=>!illDone(c)), done=list.filter(illDone);
   const st=h("p",{class:"none"}), seen=casesSeen();
-  const go=h("button",{class:"btn primary",type:"button",disabled:(!S.canWrite||!S.sample||S.aiOff)||null}, list.length?"🔄 Update now":"🔍 Open my case files");
+  const go=h("button",{class:"btn",type:"button",disabled:(!S.canWrite||!S.sample||S.aiOff)||null}, list.length?"🔄 Update now":"🔍 Open my illness files");
   go.addEventListener("click", async()=>{ go.disabled=true; st.className="thinking"; st.textContent="Dr Quackers is going through your whole logbook… This can take a minute.";
     try{ await casesUpdate(); closeSheet(); openCases(); renderTiles(); }catch(e){ st.className="notice"; st.textContent=aiErr(e)||(e&&e.message)||"Couldn't reach Dr Quackers. Try again."; go.disabled=false; } });
-  const card=c=>{ const top=(c.causes||[])[0], isNew=(c.changedAt||0)>seen&&c.status!=="solved";
-    return h("button",{class:"cs-card"+(c.status==="solved"?" solved":""),type:"button",onclick:()=>openCase(c.id)},
-      h("span",{class:"cs-t"}, (c.status==="solved"?"✅ ":"🔍 ")+c.title, isNew? h("span",{class:"cs-new"},"Updated") : null),
-      c.status==="solved"? h("span",{class:"cs-s"}, c.diagnosis||"Solved") : h("span",{class:"cs-causes"}, ...(c.causes||[]).slice(0,3).map(x=>h("span",{class:"cs-c"}, caseBar(x.band), h("span",{}, x.name), h("small",{}, CASE_BAND[x.band][0])))),
-      c.log&&c.log[0]? h("span",{class:"cs-s"}, "Last change: "+c.log[0].text) : null); };
-  openSheet("Case files",[
-    duckSay(list.length? "Here's what I'm investigating. I update these whenever you log something new. These are possibilities to talk through with your doctor, not diagnoses." : "I'll read your whole logbook and open a case file for each health problem, with the possible causes and what to ask your doctor next. Not a diagnosis, just good detective work.","think"),
-    ...open.map(card), solved.length? h("p",{class:"flabel"},"Solved") : null, ...solved.map(card),
+  const latest=active.filter(c=>c.news).sort((a,b)=>(b.changedAt||0)-(a.changedAt||0))[0];
+  const card=c=>{ const s=illStats(c), top=(c.causes||[])[0], isNew=(c.changedAt||0)>seen&&!illDone(c);
+    return h("button",{class:"il-card"+(illDone(c)?" done":""),type:"button",onclick:()=>openCase(c.id)},
+      h("span",{class:"il-ct"}, h("b",{},c.title), isNew? h("span",{class:"cs-new"},"Updated") : illDone(c)? h("span",{class:"il-ok"},"✓ Better") : null),
+      h("span",{class:"il-cs"}, [c.started?"Since "+illWhen(c.started):"", s.n? s.n+" episode"+(s.n>1?"s":"")+" logged" : ""].filter(Boolean).join(" · ")),
+      illDone(c)? null : illStageBar(c,false),
+      illDone(c)? null : h("span",{class:"il-cl"}, h("b",{},ILL_STAGE_L[c.stage]), c.diagnosis? " · "+c.diagnosis : top? " · most likely: "+top.name.toLowerCase() : "")); };
+  openSheet("My illnesses",[
+    duckSay(latest? latest.news : list.length? "Here's everything I'm keeping an eye on. I update these whenever you log something new." : "I'll read your whole logbook and open a file for each health problem: what's been happening, the possible causes, tests, and what to do next. Not a diagnosis, just good detective work.", latest?"happy":"think"),
+    h("button",{class:"il-new",type:"button",disabled:(!S.canWrite)||null,onclick:()=>openNotRight()},"+ Something's not right"),
+    active.length? h("p",{class:"flabel"},"Ongoing") : null, ...active.map(card),
+    done.length? h("p",{class:"flabel"},"Got better") : null, ...done.map(card),
     st, go,
-    S.cases&&S.cases.at? h("p",{class:"fineprint"},"Last checked "+new Date(S.cases.at).toLocaleString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})+". In an emergency call 999.") : null].filter(Boolean));
+    S.cases&&S.cases.at? h("p",{class:"fineprint"},"Last checked "+new Date(S.cases.at).toLocaleString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})+". These are Dr Quackers' notes to discuss with your doctor, not a diagnosis. In an emergency call 999.") : null].filter(Boolean));
   casesMarkSeen(); setTimeout(renderTiles,300);
+}
+function openNotRight(){
+  const ta=h("textarea",{rows:"4",placeholder:"e.g. Woke up feeling funny, sore throat and achy. Bit of a temperature."});
+  const sev=[["3","Mild"],["5","Moderate"],["8","Bad"]]; let pick="5";
+  const chips=h("div",{class:"ci-chips love-form"}); const drawC=()=>chips.replaceChildren(...sev.map(([v,l])=>h("button",{type:"button",class:"ci-chip"+(pick===v?" on":""),onclick:()=>{ pick=v; drawC(); }},l))); drawC();
+  const st=h("p",{class:"none"});
+  const go=h("button",{class:"btn primary",type:"button"},"Tell Dr Quackers");
+  go.addEventListener("click", async()=>{
+    const txt=ta.value.trim(); if(!txt){ ta.focus(); return; }
+    go.disabled=true; st.className="thinking"; st.textContent="Logging it and opening a file… about a minute.";
+    const title=txt.replace(/\s+/g," ").split(/[.,;!?\n]/)[0].slice(0,60)||"Feeling unwell";
+    await saveEntry({kind:"symptom", title, date:todayISO(), time:new Date().toTimeString().slice(0,5), severity:+pick, details:txt, source:"manual"});
+    try{ const before=new Set(casesList().map(c=>c.id)); const arr=await casesUpdate(txt); closeSheet();
+      const pickC=(arr||[]).find(c=>!before.has(c.id))||(arr||[]).find(c=>(c.match||[]).some(m=>m.toLowerCase()===title.toLowerCase()))||(arr||[])[0];
+      if(pickC) openCase(pickC.id); else openCases(); renderTiles(); }
+    catch(e){ st.className="notice"; st.textContent=(aiErr(e)||"Couldn't reach Dr Quackers.")+" Your symptom is saved."; go.disabled=false; }
+  });
+  openSheet("Something's not right",[duckSay("Tell me what's going on, in your own words. I'll log it and start a file.","think"),
+    h("label",{class:"field"}, h("span",{class:"flabel"},"What's happening?"), ta), h("p",{class:"flabel"},"How bad?"), chips, st, go,
+    h("p",{class:"fineprint"},"Feeling very unwell, chest pain, struggling to breathe or thinking of harming yourself: call 999 now. For urgent help that isn't an emergency, call NHS 111.")]);
+  setTimeout(()=>ta.focus(),50);
 }
 function openCase(id){
   const c=casesList().find(x=>x.id===id); if(!c) return;
-  const ul=a=>h("ul",{class:"cs-ul"}, ...a.map(t=>h("li",{},t)));
+  const s=illStats(c), ul=a=>h("ul",{class:"cs-ul"}, ...a.map(t=>h("li",{},t)));
+  const sect=(title,...kids)=>h("div",{class:"il-sec"}, h("b",{class:"il-h"},title), ...kids.filter(Boolean));
+  const tiles= s.n? h("div",{class:"love-stats il-tiles"},
+    h("div",{class:"love-st"}, h("b",{},String(s.month)), h("span",{},"this month")),
+    h("div",{class:"love-st"}, h("b",{class:s.worst>=7?"hot":""}, s.worst? s.worst+"/10" : "–"), h("span",{},"worst")),
+    h("div",{class:"love-st"}, h("b",{}, s.since==null?"–":s.since===0?"today":s.since+"d"), h("span",{},"since last")),
+    h("div",{class:"love-st"}, h("b",{},String(s.n)), h("span",{},"logged"))) : null;
+  const mx=Math.max(1,...s.months.map(m=>m.n));
+  const chart= s.n? sect("How it's been",
+    h("div",{class:"il-chart",role:"img","aria-label":"Episodes per month over the last 7 months"}, ...s.months.map(m=>h("span",{class:"il-col"}, h("i",{class:m.worst>=7?"hot":"",style:"height:"+Math.max(m.n?8:0,Math.round(m.n/mx*100))+"%"}), h("small",{},m.l)))),
+    h("p",{class:"fineprint"},"Episodes logged each month. Red: one was 7/10 or worse.")) : null;
+  const tIcon={done:"✅",waiting:"⏳",ask:"➕"};
   const causeEl=x=>h("div",{class:"cs-cause"},
     h("div",{class:"cs-ch"}, caseBar(x.band), h("b",{},x.name), h("small",{},CASE_BAND[x.band][0])),
     x.for.length? h("div",{class:"cs-ev"}, h("span",{class:"cs-lab yes"},"Fits"), ul(x.for)) : null,
     x.against.length? h("div",{class:"cs-ev"}, h("span",{class:"cs-lab no"},"Doesn't fit"), ul(x.against)) : null,
     x.confirm? h("p",{class:"cs-conf"},"🧪 "+x.confirm) : null);
-  const ask=h("button",{class:"btn ai",type:"button",onclick:()=>{ closeSheet(); show("ask"); const ci=$("#chatIn"); ci.value="Talk me through my case file on '"+c.title+"'. What's the most likely explanation, what should I ask my GP for, and what should I log to help?"; ci.focus(); }},"Talk it through");
-  openSheet((c.status==="solved"?"✅ ":"🔍 ")+c.title,[
-    c.redflags&&c.redflags.length&&c.status!=="solved"? h("div",{class:"cs-red"}, h("b",{},"⚠️ Get help straight away if:"), ul(c.redflags)) : null,
-    c.diagnosis? h("p",{class:"notice"},"Confirmed: "+c.diagnosis) : null,
-    h("p",{},c.summary),
-    h("p",{class:"flabel"},"Possible causes"), ...(c.causes||[]).map(causeEl),
-    c.next&&c.next.length? h("div",{class:"cs-next"}, h("p",{class:"flabel"},"Ask your GP or log next"), ul(c.next)) : null,
-    c.log&&c.log.length? h("details",{class:"cs-log"}, h("summary",{},"How this case has changed"), ul(c.log.map(l=>new Date(l.at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})+": "+l.text))) : null,
-    h("div",{class:"row"}, ask, h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); openCases(); }},"All case files")),
-    h("p",{class:"fineprint"},"Dr Quackers is an AI, not a doctor. These are possibilities to discuss with your GP, not a diagnosis.")].filter(Boolean));
+  const ask=h("button",{class:"btn ai",type:"button",onclick:()=>{ closeSheet(); show("ask"); const ci=$("#chatIn"); ci.value="Talk me through my illness file on '"+c.title+"'. Where are we, what's most likely, and what should I do or ask my GP next?"; ci.focus(); }},"Talk it through");
+  const logIt=h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null,onclick:()=>{ closeSheet(); const m=(c.match||[])[0]; if(m) quickSymptom(m,todayISO()); else openEntry(null,"symptom",{date:todayISO()}); }},"Log an episode");
+  openSheet(c.title,[
+    h("p",{class:"il-sub"}, [c.started?"Since "+illWhen(c.started):"", c.diagnosis? "Diagnosis: "+c.diagnosis : ""].filter(Boolean).join(" · ")),
+    illStageBar(c,true),
+    c.news&&!illDone(c)? duckSay(c.news,"happy") : null,
+    c.redflags&&c.redflags.length&&!illDone(c)? h("div",{class:"cs-red"}, h("b",{},"⚠️ Get help straight away if:"), ul(c.redflags)) : null,
+    c.kind==="mental"&&!illDone(c)? h("div",{class:"cs-red"}, h("b",{},"If things get worse"), ul(["Talk to someone you trust, or call your GP","NHS 111, option 2: urgent mental health help, any time","Samaritans: 116 123, free, 24 hours","In danger right now: call 999"])) : null,
+    tiles, h("p",{},c.summary), chart,
+    c.care&&c.care.length? sect(illDone(c)?"What helped":"My care plan", ul(c.care), c.review? h("p",{class:"cs-conf"},"📅 Next review "+illWhen(c.review)) : null) : null,
+    c.selfcare&&c.selfcare.length&&!illDone(c)? sect("🏠 What to do now", ul(c.selfcare)) : null,
+    c.warnings&&c.warnings.length? sect("Early warning signs", ul(c.warnings)) : null,
+    c.causes&&c.causes.length&&!(illDone(c)&&c.kind==="short")? h("div",{}, h("b",{class:"il-h"}, c.diagnosis?"Causes considered":"Possible causes"), ...c.causes.map(causeEl)) : null,
+    c.tests&&c.tests.length? sect("Tests", h("ul",{class:"il-tests"}, ...c.tests.map(t=>h("li",{class:"t-"+t.status}, h("span",{"aria-hidden":"true"},tIcon[t.status]), h("span",{}, h("b",{},t.name), t.status==="done"&&t.result? ": "+t.result : t.status==="waiting"? " (waiting"+(t.date?", "+illWhen(t.date):"")+")" : t.status==="ask"? " (worth asking for)" : "", t.status==="done"&&t.date? h("small",{}," · "+illWhen(t.date)) : null))))) : null,
+    c.next&&c.next.length&&!illDone(c)? h("div",{class:"cs-next"}, h("p",{class:"flabel"},"Do or ask next"), ul(c.next)) : null,
+    c.timeline&&c.timeline.length? sect("Timeline", h("div",{class:"il-tl"}, ...c.timeline.map(x=>h("div",{class:"il-tr"+(x.big?" big":"")}, h("span",{}, illWhen(x.date)), h("span",{}, (x.big?"🚩 ":"")+x.text))))) : null,
+    c.log&&c.log.length? h("details",{class:"cs-log"}, h("summary",{},"How this file has changed"), ul(c.log.map(l=>new Date(l.at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})+": "+l.text))) : null,
+    h("div",{class:"row"}, illDone(c)||!(c.match||[]).length? null : logIt, ask, h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); openCases(); }},"All illnesses")),
+    h("p",{class:"fineprint"},"Dr Quackers is an AI, not a doctor. Only a doctor can confirm a diagnosis.")].filter(Boolean));
 }
 async function scanBigEvents(){
   if(!S.sample||S.aiOff){ toast("Dr Quackers isn't available here."); return; }
@@ -4258,7 +4364,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
- {v:"2026-11-05.4", items:[["🔍","New Case files: Dr Quackers keeps a file for each health problem, with the possible causes ranked Likely, Possible or Less likely, what fits and what doesn't, and what to ask your GP next."],["🔄","Case files update themselves as you log new things, and show what changed and why."],["⚠️","Each case starts with the warning signs that mean getting help straight away."]]},
+ {v:"2026-11-05.5", items:[["🔍","New My illnesses: Dr Quackers keeps a file for each health problem, from first symptoms to investigating, diagnosis, care plan and getting better."],["📊","Each file shows your numbers and a chart, possible causes ranked Likely, Possible or Less likely, every test (done, waiting, worth asking for), a timeline, and what to do next."],["➕","Feeling off? Tap Something's not right, say it in your own words, and he opens a file straight away. Short illnesses like a cold close themselves when you're better."],["⚠️","Every file starts with the warning signs that mean getting help straight away."]]},
  {v:"2026-11-05.3", items:[["💗","New Love life tracker for everyone: sex drive, sex with your partner or solo, protection, how it went, and anything that wasn't right."],["📊","A Love life card on the Track tab shows how often, your usual drive, how it's been, and flags anything worth a GP chat, like pain or bleeding."],["🦆","Dr Quackers reads your Love life log for his nudges, and the cheeky side is now always on."]]},
  {v:"2026-11-05.2", items:[["🦆","Dr Quackers says something new every time you open the app: check-ins, cheeky doctor jokes, body reminders and the odd saucy nudge about your love life."],["😏","Saucy nudges come with a waggle of his eyebrows. He keeps them to himself on rough days."],["🗓️","Each opening line is fresh, and he won't repeat himself for a while."]]},
  {v:"2026-11-05.1", items:[["📋","Records list is easier to read on a phone: long names no longer squash into one word per line."],["⏳","Coming up now shows things you are waiting on that don't have a date yet, like a referral."],["📄","Long letters open with a bigger notes box, so you can read the whole letter."],["🚩","The timeline's All view now reaches back to your earliest big event."]]},
@@ -5419,7 +5525,7 @@ async function startSession(user){
   if(S.unsub) S.unsub();
   S.unsub=S.col.onSnapshot(snap=>{
     const es=[], days={}; let prof={}; S.cases=null;
-    for(const d of snap.docs){ const v=d.data(); if(!v) continue; if(d.id==="profile") prof=v; else if(v.kind==="cases") S.cases=v; else if(v.kind==="day"&&v.date) days[v.date]=v; else if(KINDS[v.kind]) es.push({...v,id:d.id}); }
+    for(const d of snap.docs){ const v=d.data(); if(!v) continue; if(d.id==="profile") prof=v; else if(v.kind==="illnesses") S.cases=v; else if(v.kind==="day"&&v.date) days[v.date]=v; else if(KINDS[v.kind]) es.push({...v,id:d.id}); }
     S.entries=es; S.profile=prof; S.days=days;
     if(!prof.name && S.memberName) S.profile={...prof,name:S.memberName};
     checkLock();
