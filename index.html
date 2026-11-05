@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-05.2">
+<meta name="app-version" content="2026-11-05.3">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -396,6 +396,18 @@ main{padding-top:10px}
 .cyc-key .k{display:inline-block;width:12px;height:6px;border-radius:3px;margin-right:5px;vertical-align:2px}
 .k.per{background:var(--period)}.k.exp{border:1.5px dashed var(--period);height:7px}.k.fert{background:var(--fert);opacity:.75}.k.now{width:9px;height:9px;border-radius:50%;border:2px solid var(--ink);vertical-align:0}
 .cyc-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.love-ic{font-size:18px;background:transparent}
+.love-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:6px}
+.love-st{background:var(--soft);border-radius:12px;padding:10px 6px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.love-st b{font-size:18px;color:var(--ink)}.love-st span{font-size:11.5px;color:var(--muted);line-height:1.2}
+.love-cyc{margin:8px 0 0;font-size:14px;color:var(--ink)}
+.love-flag{display:flex;flex-direction:column;gap:2px;margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--alert-soft,#FBE8E5);color:var(--ink);font-size:14px}
+.love-flag b{color:var(--alert,#A8261D)}
+.love-form .flabel{margin:12px 0 6px}
+.love-form .ci-chips{display:flex;flex-wrap:wrap;gap:8px}
+.love-form .ci-chip{background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+.love-form .ci-chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.love-form textarea{width:100%}
 .cs{background:var(--bg);border-radius:12px;padding:9px 10px;display:flex;flex-direction:column;gap:1px;min-width:0}
 .cs b{font-family:var(--f-display);font-weight:400;font-size:1.15rem;white-space:nowrap}
 .cs span{font-size:.74rem;color:var(--muted)}
@@ -1169,6 +1181,9 @@ body.on-home .top{display:none}
         <p class="ci-lab">Period today?</p>
         <div class="pflow" id="ciFlow" role="group" aria-label="Period flow today"></div>
         <p class="ci-pstat keep" id="ciPstat"></p>
+      </div>
+      <div class="ci-block" data-sec="love">
+        <div class="ci-row"><p class="ci-lab">Love life</p><button class="ci-edit" id="ciLoveMore" type="button">Details</button></div>
         <div class="ci-intim" id="ciIntim"></div>
       </div>
       <button class="ci-expand" id="ciXBtn" type="button" aria-expanded="false" aria-controls="ciX"><span>More about today</span><span class="ci-xsum" id="ciXSum">Sleep, eating, medicines, stress</span><span class="ci-chev" aria-hidden="true">›</span></button>
@@ -1227,6 +1242,11 @@ body.on-home .top{display:none}
       <p class="cyc-intim" id="cycIntim" hidden></p>
       <div class="cyc-hist" id="cycHist"></div>
       <p class="fineprint" id="cycNote"></p>
+    </article>
+
+    <article class="panel love" id="loveCard" hidden aria-labelledby="loveH">
+      <div class="ph"><span class="ic love-ic" aria-hidden="true">💗</span><h2 id="loveH">Love life</h2><button class="more" type="button" id="loveLog">Log ›</button></div>
+      <div id="loveBody"></div>
     </article>
 
     <article class="panel" id="ovTrends" hidden>
@@ -1862,7 +1882,7 @@ function buildContext(){
       if(Array.isArray(d.log)&&d.log.length) b.push("log: "+d.log.map(x=>(x.time||"?")+" "+(x.type==="meal"? (x.meal||"meal").toLowerCase()+": "+(x.desc||(x.items||[]).map(i=>i.name).join(", "))+(x.n&&x.n.kcal?" ("+Math.round(x.n.kcal)+" kcal)":"") : (LOGT[x.type]||LOGT.note).l.toLowerCase()+": "+x.title+(x.type==="stool"&&(x.flags||[]).length?" ["+x.flags.join(", ")+"]":"")+(x.details?" - "+x.details:""))).join("; ").slice(0,900));
       if(Array.isArray(d.bp)&&d.bp.length) b.push("BP "+d.bp.map(r=>r.sys+"/"+r.dia+(r.pulse?" pulse "+r.pulse:"")+(r.time?" at "+r.time:"")).join(", "));
       if(d.period) b.push("period: "+d.period);
-      if(d.intim) b.push("intimate"+(d.intimProt?" ("+({yes:"protected",no:"unprotected",ttc:"trying for a baby"}[d.intimProt]||d.intimProt)+")":""));
+      { const lc=loveContext(d); if(lc) b.push(lc); }
       if(typeof d.weight==="number") b.push("weight "+d.weight+" kg");
       if(d.notes) b.push(String(d.notes).slice(0,300));
       if(b.length>1) lines.push("- "+b.join(" | "));
@@ -1930,7 +1950,7 @@ function show(v){
   if(VTITLE[v]) $("#who").textContent=VTITLE[v];
   { const f=$("#fab"); if(f) f.hidden=!["overview","track","timeline","diary"].includes(v)||!S.canWrite; }
   if(["track","timeline","diary"].includes(v)) renderTrackSeg(v);
-  if(v==="track"){ renderTrack(); }
+  if(v==="track"){ renderTrack(); renderLove(); }
   if(location.hash.slice(1)!==v){ try{ history.replaceState(null,"","#"+v); }catch{} }
   window.scrollTo(0,0);
   if(v==="timeline" && typeof renderTimeline==="function") renderTimeline();
@@ -1970,7 +1990,7 @@ function cycleInfo(){
   return {starts,avg,last,next,inPeriod,dayN,len,cycles:recent.length};
 }
 const INTIM_GUIDE="\nSEX AND INTIMACY (she has asked for this): you can talk openly and tastefully about sex and intimacy as part of her health, and now and then suggest it when it fits, with real reasons: it can help sleep, ease stress and low mood (oxytocin and endorphins), may ease period cramps, helps the pelvic floor, and brings closeness with her partner. Fit it to her cycle: desire and energy often peak around ovulation; during a heavy period, pain or exhaustion, suggest gentler closeness instead, or simply rest. If they are not trying for a baby, the fertile window is when protection matters most. If she takes the contraceptive pill alongside Mounjaro (tirzepatide), the pill can be less reliable for 4 weeks after starting and after each dose increase, so suggest condoms or a non-pill method then. Pain during sex, bleeding after sex or unusual discharge are for the GP or a sexual health clinic. Never be explicit or pushy, and don't bring it up every day.";
-function guideTxt(){ return GUIDE0+(periodOn()? INTIM_GUIDE : ""); }
+function guideTxt(){ return GUIDE0+(periodOn()? INTIM_GUIDE : LOVE_GUIDE); }
 function cyclePhase(){
   const c=cycleInfo(); if(!c.last) return null;
   const L=c.avg||28, ov=L-14, d=c.dayN, fs=ov-5, fe=ov+1;
@@ -1979,14 +1999,116 @@ function cyclePhase(){
 }
 function cyclePhaseText(){ const p=cyclePhase(); if(!p) return ""; return "cycle day "+p.day+" of about "+p.len+", "+p.phase+"; fertile window is roughly days "+p.fertileFrom+" to "+p.fertileTo+(p.next?"; next period expected "+fmtDate(p.next):""); }
 const INTIM_PROT=[["yes","Protected"],["no","Not protected"],["ttc","Trying for a baby"]];
+/* ---------- love life tracker (everyone): sex, solo, desire, how it went, and health flags ---------- */
+const LOVE_TYPE=[["partner","💑 With my partner"],["solo","🙈 Solo"]];
+const LOVE_DESIRE=["😴 None","🙂 Low","😊 Some","😏 Keen","🔥 Very"];
+const LOVE_SAT=["Meh","OK","Good","Great","Amazing"];
+const LOVE_ISSUES=[["pain","Pain or discomfort",null],["bleed","Bleeding after","f"],["dry","Dryness","f"],["ed","Erection trouble","m"],["early","Finished too soon","m"],["noorg","Couldn't finish",null],["tired","Too tired or sore",null]];
+const LOVE_ISSUE_TXT=Object.fromEntries(LOVE_ISSUES.map(([k,l])=>[k,l.toLowerCase()]));
+function loveSexOk(sx){ const s=(S.profile||{}).sex; return !sx || !s || (sx==="f"? s!=="male" : s==="male"); }
+function loveContext(d){
+  const b=[];
+  if(d.intim){ const t=d.intimType==="solo"? "solo sex" : d.intimType==="both"? "sex with partner and solo" : "sex with partner";
+    b.push(t+(d.intimN>1?" x"+d.intimN:"")+(d.intimProt?" ("+({yes:"protected",no:"unprotected",ttc:"trying for a baby"}[d.intimProt]||d.intimProt)+")":"")+(d.intimSat?", rated "+LOVE_SAT[d.intimSat-1].toLowerCase():"")+(d.intimOrg?", orgasm "+d.intimOrg:"")); }
+  if(d.desire) b.push("sex drive "+LOVE_DESIRE[d.desire-1].replace(/^\S+\s/,"").toLowerCase());
+  if(Array.isArray(d.intimIssues)&&d.intimIssues.length) b.push("during sex: "+d.intimIssues.map(k=>LOVE_ISSUE_TXT[k]||k).join(", "));
+  return b.join("; ");
+}
+function loveDays(from){ return Object.values(S.days||{}).filter(d=>d&&d.date&&(!from||d.date>=from)); }
+function loveStats(days){
+  const t=todayISO(), last30=addDays(t,-29), all=loveDays(), d30=all.filter(d=>d.date>=last30), d60=all.filter(d=>d.date>=addDays(t,-59));
+  const sexDays=d30.filter(d=>d.intim), times=sexDays.reduce((a,d)=>a+(d.intimN||1),0);
+  const partner=sexDays.filter(d=>d.intimType!=="solo").length, solo=sexDays.filter(d=>d.intimType==="solo"||d.intimType==="both").length;
+  const des=d30.filter(d=>d.desire).map(d=>d.desire), sat=sexDays.filter(d=>d.intimSat).map(d=>d.intimSat);
+  const avg=a=>a.length? a.reduce((x,y)=>x+y,0)/a.length : null;
+  const lastSex=all.filter(d=>d.intim).map(d=>d.date).sort().pop()||null;
+  const unprot=sexDays.filter(d=>d.intimProt==="no").length;
+  const issues={}; for(const d of d60) for(const k of (Array.isArray(d.intimIssues)?d.intimIssues:[])) issues[k]=(issues[k]||0)+1;
+  return {times, days:sexDays.length, partner, solo, desire:avg(des), desireN:des.length, sat:avg(sat), lastSex, since: lastSex? daysBetween(lastSex,t) : null, unprot, issues, any: all.some(d=>d.intim||d.desire)};
+}
+function loveFlags(st){
+  const f=[], i=st.issues;
+  if(i.bleed) f.push(["Bleeding after sex ("+i.bleed+"x in 2 months)","Bleeding after sex should always be checked. Book a GP appointment, or see a sexual health clinic."]);
+  if(i.pain>=2) f.push(["Pain during sex ("+i.pain+"x in 2 months)","Pain that keeps happening is worth mentioning to your GP or a sexual health clinic. It's common and usually treatable."]);
+  if(i.ed>=2) f.push(["Erection trouble ("+i.ed+"x in 2 months)","Worth a chat with your GP. It's very common, often linked to stress, tiredness or medicines, and can be an early sign of heart or blood pressure problems, so it's worth checking."]);
+  if(i.dry>=3) f.push(["Dryness ("+i.dry+"x in 2 months)","Lube helps a lot. If it keeps happening, mention it to your GP: hormones and some medicines can cause it."]);
+  if(st.desireN>=6&&st.desire!=null&&st.desire<=1.6) f.push(["Low sex drive most days this month","Tiredness, stress, low mood, hormones and some medicines can all lower desire. Mention it to your GP if it bothers you."]);
+  return f;
+}
 function renderIntim(iso, day){
   const box=$("#ciIntim"); if(!box) return;
   const ro=!S.canWrite||null, on=!!day.intim;
   box.replaceChildren(...[
-    h("button",{type:"button",class:"ci-chip in-btn"+(on?" on":""),"aria-pressed":String(on),disabled:ro,onclick:()=>saveDay(iso,{intim:on?null:true,intimProt:on?null:(day.intimProt||null)})}, on?"💗 Intimate today ✓":"💗 Intimate today"),
-    on? h("div",{class:"ci-chips in-prot",role:"group","aria-label":"Protection"}, ...INTIM_PROT.map(([v,l])=>h("button",{type:"button",class:"ci-chip"+(day.intimProt===v?" on":""),"aria-pressed":String(day.intimProt===v),disabled:ro,onclick:()=>saveDay(iso,{intimProt:day.intimProt===v?null:v})}, l))) : null,
-    (()=>{ const p=cyclePhase(); return p&&p.fertile&&!on? h("p",{class:"ci-pstat keep"},"Fertile window (estimate) about now.") : null; })()].filter(Boolean));
+    h("div",{class:"ci-chips"},
+      h("button",{type:"button",class:"ci-chip in-btn"+(on?" on":""),"aria-pressed":String(on),disabled:ro,onclick:()=>{ if(on) saveDay(iso,{intim:null,intimProt:null,intimType:null,intimN:null,intimSat:null,intimOrg:null}); else { saveDay(iso,{intim:true,intimType:"partner"}).then(()=>openLove(iso)); } }}, on?"💗 Had sex ✓":"💗 Had sex today"),
+      h("button",{type:"button",class:"ci-chip"+(day.desire?" on":""),disabled:ro,onclick:()=>openLove(iso)}, day.desire? LOVE_DESIRE[day.desire-1]+" drive" : "🔥 Sex drive")),
+    on? h("p",{class:"ci-pstat keep"}, loveContext(day)) : null,
+    (()=>{ const p=periodOn()&&cyclePhase(); return p&&p.fertile&&!on? h("p",{class:"ci-pstat keep"},"Fertile window (estimate) about now.") : null; })()].filter(Boolean));
 }
+function openLove(iso){
+  iso=iso||todayISO();
+  const d0=(S.days||{})[iso]||{}, st={...d0}, ro=!S.canWrite;
+  const body=h("div",{class:"love-form"});
+  const chips=(opts,cur,on,multi)=>h("div",{class:"ci-chips"}, ...opts.map(([v,l])=>{ const sel=multi? (cur||[]).includes(v) : cur===v; return h("button",{type:"button",class:"ci-chip"+(sel?" on":""),"aria-pressed":String(sel),disabled:ro||null,onclick:()=>{ on(v); draw(); }}, l); }));
+  function draw(){
+    const had=!!st.intim, solo=st.intimType==="solo";
+    const p=periodOn()&&cyclePhase();
+    body.replaceChildren(...[
+      h("p",{class:"flabel"},"Sex drive today"),
+      chips(LOVE_DESIRE.map((l,i)=>[i+1,l]), st.desire, v=>{ st.desire= st.desire===v? null : v; }),
+      h("p",{class:"flabel"},"Did you have sex?"),
+      chips([["no","Not today"],...LOVE_TYPE,["both","Both"]], had? (st.intimType||"partner") : (st._no?"no":null), v=>{ if(v==="no"){ st.intim=null; st._no=true; } else { st.intim=true; st._no=false; st.intimType=v; } }),
+      had? h("div",{},
+        h("p",{class:"flabel"},"How many times?"), chips([[1,"Once"],[2,"Twice"],[3,"3 or more"]], st.intimN||1, v=>{ st.intimN=v; }),
+        !solo? h("p",{class:"flabel"},"Protection") : null,
+        !solo? chips(INTIM_PROT, st.intimProt, v=>{ st.intimProt= st.intimProt===v? null : v; }) : null,
+        h("p",{class:"flabel"},"Did you orgasm?"), chips([["yes","Yes"],["no","No"],["skip","Rather not say"]], st.intimOrg, v=>{ st.intimOrg= st.intimOrg===v? null : v; }),
+        h("p",{class:"flabel"},"How was it?"), chips(LOVE_SAT.map((l,i)=>[i+1,"💗".repeat(i+1)+" "+l]), st.intimSat, v=>{ st.intimSat= st.intimSat===v? null : v; }),
+        h("p",{class:"flabel"},"Anything not right? (private, helps spot health problems)"),
+        chips(LOVE_ISSUES.filter(([,,sx])=>loveSexOk(sx)).map(([k,l])=>[k,l]), st.intimIssues||[], v=>{ const a=new Set(st.intimIssues||[]); a.has(v)?a.delete(v):a.add(v); st.intimIssues=[...a]; }, true),
+        (st.intimIssues||[]).includes("bleed")? h("p",{class:"notice"},"Bleeding after sex should always be checked by your GP or a sexual health clinic, even if it stops.") : null,
+        p&&p.fertile&&st.intimProt==="no"? h("p",{class:"notice"},"This is around your fertile window (estimate). If you're not trying for a baby and didn't use protection, emergency contraception from a pharmacy works best the sooner it's taken.") : null
+      ) : null,
+      h("label",{class:"field"}, h("span",{class:"flabel"},"Private note (optional)"), (()=>{ const t=h("textarea",{rows:"2",placeholder:"Anything you want to remember"}); t.value=st.intimNote||""; t.addEventListener("input",()=>{ st.intimNote=t.value; }); return t; })()),
+      h("button",{class:"btn primary",type:"button",disabled:ro||null,onclick:async()=>{
+        const patch={desire:st.desire||null, intim:st.intim||null, intimType:st.intim?(st.intimType||"partner"):null, intimN:st.intim&&st.intimN>1?st.intimN:null, intimProt:st.intim&&st.intimType!=="solo"?(st.intimProt||null):null, intimOrg:st.intim?(st.intimOrg||null):null, intimSat:st.intim?(st.intimSat||null):null, intimIssues:st.intim&&(st.intimIssues||[]).length?st.intimIssues:null, intimNote:(st.intimNote||"").trim()||null};
+        await saveDay(iso,patch); closeSheet(); S._quip=null;
+        toast(st.intim? "Logged. Dr Quackers approves 😏" : "Saved"); renderAll(); }},"Save")].filter(Boolean));
+  }
+  draw();
+  openSheet("Love life · "+(iso===todayISO()?"today":fmtDate(iso)),[duckSay(iso===todayISO()?"Strictly confidential, between you and me. Log as much or as little as you like.":"Filling in "+fmtDate(iso)+". Strictly between us.","flirt"), body,
+    h("p",{class:"fineprint"},"Only you (and Dr Quackers) can see this.")]);
+}
+function renderLove(){
+  const card=$("#loveCard"); if(!card) return;
+  card.hidden=!S.loaded; if(card.hidden) return;
+  $("#loveLog").onclick=()=>openLove(todayISO());
+  const st=loveStats(), box=$("#loveBody"), flags=loveFlags(st), p=periodOn()&&cyclePhase();
+  if(!st.any){ box.replaceChildren(h("p",{class:"none"},"Nothing logged yet. Tap Log after a good night in (or a good night out). Dr Quackers will learn your rhythm and nudge you at the right times."), h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>openLove(todayISO())},"💗 Log today")); return; }
+  const stat=(n,l)=>h("div",{class:"love-st"}, h("b",{},String(n)), h("span",{},l));
+  const rows=[h("div",{class:"love-stats"},
+    stat(st.times,"times in 30 days"),
+    stat(st.since==null?"–":st.since===0?"today":st.since+"d","since last"),
+    stat(st.desire!=null? LOVE_DESIRE[Math.round(st.desire)-1].split(" ")[0] : "–","usual drive"),
+    stat(st.sat!=null? "💗".repeat(Math.round(st.sat)) : "–","how it's been"))];
+  if(st.solo) rows.push(h("p",{class:"fineprint"},"Includes "+st.solo+" solo."));
+  if(p) rows.push(h("p",{class:"love-cyc"}, p.fertile? "🌸 Fertile window (estimate) now: desire is often higher, and protection matters most if you're not trying for a baby." : p.phase==="period"? "🩸 Period: some people want closeness more, some less. Do what feels right." : "Cycle day "+p.day+" · "+p.phase.replace(" (estimate)","")+"."));
+  if(st.unprot) rows.push(h("p",{class:"fineprint"},st.unprot+" unprotected in 30 days."+(periodOn()?"":" A sexual health check now and then is a good habit.")));
+  for(const [t,why] of flags) rows.push(h("div",{class:"love-flag"}, h("b",{},"⚠️ "+t), h("span",{},why)));
+  box.replaceChildren(...rows);
+}
+/* Dr Quackers' data-aware love lines */
+function loveQuips(){
+  const st=loveStats(), out=[], p=periodOn()&&cyclePhase(), t=todayISO(), today=(S.days||{})[t]||{};
+  if(!st.any) out.push("Psst. There's a new Love life tracker. Log your sex drive or a good night in and I'll learn your rhythm.");
+  if(today.intim) out.push("I see you had a good time today. I'm not saying anything. I'm just saying I see it.");
+  else if(st.since!=null&&st.since>=10&&st.since<60) out.push("It's been "+st.since+" days since your last love log. No pressure. Well, a little pressure.");
+  if(p&&p.fertile&&!today.intim) out.push("You're around your fertile window (estimate), when desire often peaks. If you're not trying for a baby, protection matters most right now.");
+  if(st.desire!=null&&st.desire>=3.5) out.push("Your sex drive's been high lately. Your other half is a lucky so-and-so.");
+  if(st.sat!=null&&st.sat>=4) out.push("Your love life ratings are glowing. Whatever you're doing, keep doing it. Doctor's orders.");
+  return out;
+}
+const LOVE_GUIDE="\nSEX AND INTIMACY (they have asked for this): you can talk openly and tastefully about sex and intimacy as part of their health, and now and then suggest it when it fits, with real reasons: better sleep, less stress, mood (oxytocin and endorphins), closeness with their partner, and it counts as light exercise. Use their Love life log (sex drive, how often, how it went) to tailor it. Erection problems are common and often linked to stress, tiredness, alcohol or medicines such as some antidepressants, and can be an early sign of heart or circulation problems, so suggest a GP chat rather than brushing it off. Pain during sex or bleeding after sex are for the GP or a sexual health clinic. Never be explicit or pushy, and don't bring it up every day.";
 function renderCycleIntim(){
   const el=$("#cycIntim"); if(!el) return;
   const c=cycleInfo(); if(!periodOn()||!c.last){ el.hidden=true; return; }
@@ -2542,7 +2664,6 @@ function trackersBox(){
     sw("sleep","Sleep diary","Bedtime, time to fall asleep, night wakings and hours slept.",!!t.sleep,v=>setT("sleep",v)),
     sw("heart","Heart episodes","Palpitations logged in detail: how long, what it felt like, pulse, what was going on.",t.heart!==false,v=>setT("heart",v)),
     sw("pain","Pain map","Tap where it hurts on a body picture, with what kind of pain.",t.pain!==false,v=>setT("pain",v)),
-    sw("cheeky","Cheeky Dr Quackers","A new line every time you open the app, including saucy nudges about your love life. He keeps them to himself on bad days.",t.cheeky!==false,v=>setT("cheeky",v).then(()=>{ S._quip=null; })),
     sw("stool","Poo tracker","Bristol chart and colour, with an optional photo Dr Quackers looks at. Flags warning signs.",!!t.stool,v=>setT("stool",v)),
     p.sex==="male"? null : sw("period","Period tracker","Cycle ring, predictions, period days and a private intimacy log. Dr Quackers fits his tips to your cycle.",!p.periodOff,v=>saveProfilePatch({periodOff:v?undefined:true}).then(()=>renderAll())),
     tg);
@@ -3015,8 +3136,10 @@ function dqRoughDay(){
 }
 function dqPickQuip(){
   const p=S.profile||{}, tr=p.trackers||{}, d=(S.days||{})[todayISO()]||{};
-  const cheeky=tr.cheeky!==false, rough=dqRoughDay();
+  const cheeky=true, rough=dqRoughDay();
+  const smart=loveQuips();
   const love=[...DQ_Q.love, ...(p.sex!=="male"&&!p.periodOff? DQ_Q.loveF : [])];
+  if(cheeky&&!rough&&smart.length&&Math.random()<.45){ const text=smart[Math.floor(Math.random()*smart.length)]; return {text, kind:"love"}; }
   const pools=[];
   if(!d.feel) pools.push(["feel",.32]);
   if(cheeky&&!rough) pools.push(["love",.34]);
@@ -3101,6 +3224,7 @@ const IC={
   gut:"M7 4c-3 0-3 5 0 5h10c3 0 3 5 0 5H7c-3 0-3 5 0 5h7",
   cycle:"M12 2.7s-6 7-6 11.3a6 6 0 0 0 12 0c0-4.3-6-11.3-6-11.3z",
   heart:"M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z",
+  love:"M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10zM9 10.5c.6-1 1.6-1.4 2.6-1",
   pain:"M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11zM12 7v4M12 14h.01",
   tests:"M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3",
   meds:"M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7zM8.5 8.5l7 7",
@@ -3158,6 +3282,7 @@ function openAddSheet(){
     t.stool? ["Poo","poo","b",()=>{ closeSheet(); openStool(iso); }] : null,
     ["Sleep","sleep","p",()=>openCiSection(t.sleep?"#ciSleepD":'.ci-block[data-sec="sleep"]')],
     periodOn()? ["Period","cycle","k",()=>openCiSection("#ciPeriod")] : null,
+    ["Love life","love","k",()=>{ closeSheet(); openLove(iso); }],
     ["Medicine","meds","p",()=>{ if(t.log){ closeSheet(); openSimpleLog(iso,"med"); } else openCiSection("#ciMedsB"); }],
     ["Blood pressure or weight","bp","a",()=>{ closeSheet(); openDay(iso); }],
     ["Note","note","a",()=>{ closeSheet(); if(t.log) openSimpleLog(iso,"note"); else openDay(iso); }],
@@ -3664,7 +3789,8 @@ function renderCheckin(){
       h("span",{class:"wf"+(dd.feel?"":" blank"),"aria-hidden":"true"}, dd.feel?FACE[dd.feel-1]:""), h("span",{class:"wl","aria-hidden":"true"}, d.toLocaleDateString("en-GB",{weekday:"narrow"})))); }
   $("#ciWeek").replaceChildren(...cells);
   const pon=periodOn(); $("#ciPeriod").hidden=!pon;
-  if(pon){ flowButtons($("#ciFlow"), iso, "pf"); $("#ciPstat").textContent=cycleText(); renderIntim(iso, day); }
+  if(pon){ flowButtons($("#ciFlow"), iso, "pf"); $("#ciPstat").textContent=cycleText(); }
+  renderIntim(iso, day); $("#ciLoveMore").onclick=()=>openLove(iso);
   renderCheckinMore(iso, day);
   renderSleepDiary(iso, day);
   { const v=devOf(day), el=$("#ciDev"); const t=[v&&v.sleep? "Last night "+durTxt(v.sleep.asleep)+" asleep"+(v.sleep.start&&v.sleep.end?" ("+v.sleep.start+"–"+v.sleep.end+")":"") : "", v&&v.hr&&v.hr.rest!=null? "resting heart "+Math.round(v.hr.rest) : ""].filter(Boolean).join(" · "); el.hidden=!t; el.textContent= t? "⌚ "+t : ""; }
@@ -3708,7 +3834,7 @@ function renderOverview(){
   renderWelcome();
   renderThings();
   renderTiles();
-  if(!$("#v-track").hidden) renderTrack();
+  if(!$("#v-track").hidden){ renderTrack(); renderLove(); }
   renderLogCard();
   renderWeek();
   renderCycle();
@@ -4018,7 +4144,8 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
- {v:"2026-11-05.2", items:[["🦆","Dr Quackers says something new every time you open the app: check-ins, cheeky doctor jokes, body reminders and the odd saucy nudge about your love life."],["😏","Saucy nudges come with a waggle of his eyebrows. He keeps them to himself on rough days."],["⚙️","Turn the cheeky side off in Settings → Trackers → Cheeky Dr Quackers."]]},
+ {v:"2026-11-05.3", items:[["💗","New Love life tracker for everyone: sex drive, sex with your partner or solo, protection, how it went, and anything that wasn't right."],["📊","A Love life card on the Track tab shows how often, your usual drive, how it's been, and flags anything worth a GP chat, like pain or bleeding."],["🦆","Dr Quackers reads your Love life log for his nudges, and the cheeky side is now always on."]]},
+ {v:"2026-11-05.2", items:[["🦆","Dr Quackers says something new every time you open the app: check-ins, cheeky doctor jokes, body reminders and the odd saucy nudge about your love life."],["😏","Saucy nudges come with a waggle of his eyebrows. He keeps them to himself on rough days."],["🗓️","Each opening line is fresh, and he won't repeat himself for a while."]]},
  {v:"2026-11-05.1", items:[["📋","Records list is easier to read on a phone: long names no longer squash into one word per line."],["⏳","Coming up now shows things you are waiting on that don't have a date yet, like a referral."],["📄","Long letters open with a bigger notes box, so you can read the whole letter."],["🚩","The timeline's All view now reaches back to your earliest big event."]]},
  {v:"2026-11-04.18", items:[["💨","Dr Quackers has learned some new tricks. Some of them are rude."],["😴","Leave the app alone for a bit and he nods off. Tap the screen to wake him."]]},
  {v:"2026-11-04.17", items:[["🚩","Big events on your timeline: hospital stays, A&E visits, operations, injuries and big diagnoses show as flags, with a line down the chart so you can see what changed before and after."],["🔎","Tap Find big events in my records under the timeline and Dr Quackers looks through your letters for them. You tick what's right before anything is added. New letters you import are checked for big events too."],["➕","Add one yourself with the + button: Big event."]]},
@@ -4556,7 +4683,7 @@ function tlLanes(){
   if(periodOn()) L.push({id:"period",name:"Period",type:"period"});
   L.push({id:"stool",name:"Poo (Bristol type)",type:"stool"});
   L.push({id:"heart",name:"Heart episodes",type:"heart"});
-  if(periodOn()) L.push({id:"intim",name:"Intimacy",type:"intim"});
+  L.push({id:"intim",name:"Love life",type:"intim"});
   L.push({id:"sym",name:"Symptoms",type:"sym"},{id:"weight",name:"Weight",type:"line",unit:"kg"},{id:"bp",name:"Blood pressure",type:"bp",unit:"mmHg"});
   L.push({id:"sleeph",name:"Hours slept",type:"line",unit:"h",fn:d=>typeof d.sleepMin==="number"? Math.round(d.sleepMin/6)/10 : (d.dev&&d.dev.sleep&&d.dev.sleep.asleep? Math.round(d.dev.sleep.asleep/6)/10 : (typeof d.sleepH==="number"? d.sleepH : null))},
          {id:"rhr",name:"Resting heart rate",type:"line",unit:"bpm",fn:d=>d.dev&&d.dev.hr&&d.dev.hr.rest!=null? Math.round(d.dev.hr.rest) : null},
