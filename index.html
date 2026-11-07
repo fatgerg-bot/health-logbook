@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-07.3">
+<meta name="app-version" content="2026-11-07.4">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -741,6 +741,12 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 :root{--wk-mood:#1E8C6B;--wk-energy:#2F7FD1;--wk-sleep:#6F5FC9;--wk-bad:#E0453A}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--wk-mood:#4CC39C;--wk-energy:#5FA8F0;--wk-sleep:#A497F0;--wk-bad:#FF6B5E}}
 :root[data-theme="dark"]{--wk-mood:#4CC39C;--wk-energy:#5FA8F0;--wk-sleep:#A497F0;--wk-bad:#FF6B5E}
+.wk-pain{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.wk-pain-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.wk-bm{display:flex;flex-direction:column;align-items:center;gap:2px}.wk-bm small{color:var(--muted);font-size:.78rem}
+.wk-bm svg.bmap.wk-bmap{width:86px!important;max-width:86px!important;height:auto!important;max-height:none;pointer-events:none;margin:0}.wk-bmap .bz-lab{display:none}
+.wk-pl{list-style:none;margin:0;padding:0;flex:1;min-width:150px;display:flex;flex-direction:column;gap:6px;font-size:.9rem}
+.wk-pl li{display:flex;flex-wrap:wrap;align-items:center;gap:4px}.wk-pl i{width:12px;height:12px;border-radius:50%;flex:none}.wk-pl span{color:var(--muted)}
 .wk-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
 .wk-nav span{font-weight:700;font-size:.95rem}
 .wk-arr{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:1.5rem;line-height:1;cursor:pointer;display:grid;place-items:center}
@@ -2926,7 +2932,7 @@ function bodyMap(view, sel, hist, onTap){
     const X= view==="back"? (shape==="c"? 120-x : 120-x-a) : x;
     const on=sel.includes(id), n=hist[id]||0;
     const el= shape==="c"? sv("circle",{cx:X,cy:y,r:a}) : sv("rect",{x:X,y,width:a,height:b,rx:Math.min(6,a/2.4)});
-    el.setAttribute("class","bz"+(on?" on":""));
+    el.setAttribute("class","bz"+(on?" on":"")); el.setAttribute("data-z",id);
     if(!on&&n) el.setAttribute("style","fill:var(--warn-ic);fill-opacity:"+Math.min(.45,.1+n*.07));
     el.setAttribute("tabindex","0"); el.setAttribute("role","button"); el.setAttribute("aria-pressed",String(on)); el.setAttribute("aria-label",name+(n?", logged "+n+" times recently":""));
     const t=sv("title",{}); t.textContent=name; el.append(t);
@@ -2936,6 +2942,18 @@ function bodyMap(view, sel, hist, onTap){
   const lab=(x,txt,anchor)=>{ const t=sv("text",{x,y:247,"text-anchor":anchor,class:"bz-lab"}); t.textContent=txt; s.append(t); };
   if(view==="back"){ lab(4,"Your left","start"); lab(116,"Your right","end"); } else { lab(4,"Your right","start"); lab(116,"Your left","end"); }
   return s;
+}
+/* the week view's little pain map: where it hurt on the chosen day, coloured by how bad */
+function wkPainMap(iso){
+  const worst={}, notes={};
+  for(const e of ofKind("symptom").filter(e=>e.date===iso&&Array.isArray(e.areas)&&e.areas.length)) for(const a of e.areas){ const sv_=+e.severity||0; worst[a]=Math.max(worst[a]||0,sv_||1); (notes[a]=notes[a]||[]).push(((e.time||"")+(sv_?" "+sv_+"/10":"")).trim()); }
+  const ids=Object.keys(worst);
+  const col=v=> v>=7? "var(--alert)" : v>=4? "var(--warn-ic)" : "#E8B04A";
+  const map=view=>{ const m=bodyMap(view,[],{},()=>{}); m.classList.add("wk-bmap"); m.setAttribute("role","img"); m.setAttribute("aria-label",(view==="back"?"Back":"Front")+" of body");
+    for(const el of m.querySelectorAll("[data-z]")){ el.removeAttribute("tabindex"); el.removeAttribute("role"); el.removeAttribute("aria-pressed"); const z=el.getAttribute("data-z"); if(worst[z]) el.setAttribute("style","fill:"+col(worst[z])+";fill-opacity:"+(worst[z]>=7?.95:.8)); }
+    return h("div",{class:"wk-bm"}, m, h("small",{}, view==="back"?"Back":"Front")); };
+  const list= ids.length? h("ul",{class:"wk-pl"}, ...ids.sort((a,b)=>worst[b]-worst[a]).map(a=>h("li",{}, h("i",{style:"background:"+col(worst[a])}), h("b",{},BZ_NAME[a]||a), " ", h("span",{}, notes[a].filter(Boolean).join(", "))))) : h("p",{class:"none"},"No pain marked on the body this day.");
+  return h("div",{class:"wk-pain"}, h("p",{class:"flabel"},"Where it hurt"), h("div",{class:"wk-pain-row"}, map("front"), map("back"), list));
 }
 function openPain(iso, entry){
   iso=(entry&&entry.date)||iso||todayISO();
@@ -4680,7 +4698,8 @@ function renderWeek(){
   if(d.feel) rows.push(["Mood", FACE[d.feel-1]+" "+FEEL[d.feel-1]]);
   if(d.energy) rows.push(["Energy", ENERGY[d.energy-1]]);
   if(d.sleepQ||d.sleepH) rows.push(["Sleep", [d.sleepQ?SLEEPQ[d.sleepQ-1]:"", d.sleepH?(SLEEPH.find(x=>x[1]===d.sleepH)||[""])[0]:""].filter(Boolean).join(", ")]);
-  if(sy.n) rows.push(["Symptoms", sy.names.join(", ")]);
+  if(sy.n){ const g={}; for(const e of ofKind("symptom").filter(e=>e.date===iso)){ const t=e.title||"Symptom"; g[t]=g[t]||{n:0,w:0}; g[t].n++; g[t].w=Math.max(g[t].w,+e.severity||0); }
+    const L_=Object.entries(g); rows.push(["Symptoms", L_.length? L_.sort((a,b)=>b[1].w-a[1].w||b[1].n-a[1].n).map(([t,v])=>t+(v.n>1?" ×"+v.n:"")+(v.w?" (worst "+v.w+"/10)":"")).join(", ") : sy.names.join(", ")]); }
   { const sv_=ofKind("symptom").filter(e=>e.date===iso&&e.severity).map(e=>+e.severity); if(sv_.length) rows.push(["Worst score", Math.max(...sv_)+"/10"]); }
   { const L=dayLog(iso); if(L.length){ const c=t=>L.filter(x=>x.type===t).length, m=c("meal"), dr=c("drink"), md=c("med"); rows.push(["Diary", [m?m+" meal"+(m>1?"s":""):"", dr?dr+" drink"+(dr>1?"s":""):"", md?md+" medicine"+(md>1?"s":"")+" or supplement"+(md>1?"s":""):"", L.length-m-dr-md>0? (L.length-m-dr-md)+" other":""].filter(Boolean).join(", ")]); } }
   if(d.period&&periodOn()) rows.push(["Period", d.period]);
@@ -4691,7 +4710,8 @@ function renderWeek(){
   $("#wkDetail").replaceChildren(...[
     h("div",{class:"tl-dh"}, h("strong",{}, longDate(iso)+(iso===today?" (today)":"")), h("button",{class:"btn ghost small",type:"button",onclick:()=>openDay(iso)},"Open day ›")),
     why.length? h("p",{class:"wk-why"}, h("span",{class:"wk-dot","aria-hidden":"true"}), "Worse than usual: "+why.join("; ")+".") : null,
-    rows.length? h("ul",{class:"tl-dl"}, ...rows.map(([k,v])=>h("li",{}, h("span",{class:"k"},k), h("span",{},v)))) : h("p",{class:"none"},"Nothing logged on this day.")].filter(Boolean));
+    rows.length? h("ul",{class:"tl-dl"}, ...rows.map(([k,v])=>h("li",{}, h("span",{class:"k"},k), h("span",{},v)))) : h("p",{class:"none"},"Nothing logged on this day."),
+    (hpOn().pain||ofKind("symptom").some(e=>Array.isArray(e.areas)&&e.areas.length))? wkPainMap(iso) : null].filter(Boolean));
   const b=wkBaseline(today);
   $("#wkNote").textContent= b.n>=7? "The red glow compares each day with your own last 4 weeks." : "Learning what's normal for you. Until you've checked in on 7 days ("+b.n+" so far), the red glow marks a symptom at 7/10 or worse, 3 or more symptoms, or an awful day.";
 }
@@ -5082,6 +5102,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-07.4", items:[["🧍","Your week now shows a body map under each day, marking where it hurt and how bad: amber for mild, orange for moderate, red for 7/10 or worse. Flick through the days and weeks to watch it change."]]},
  {v:"2026-11-07.3", items:[["⭕","Your week now has arrows so you can go back through past weeks. On a phone you can also swipe. Each day shows its worst symptom score and what's in the diary."],["📈","New Worst symptom score line on the timeline, showing your highest score each day. The timeline also starts with the lanes you actually have data for, and empty lanes take up less space."]]},
  {v:"2026-11-07.2", items:[["🍽️","New Food and symptoms screen. It checks which kinds of food and drink are followed by pain, heartburn, bloating or any other symptom within a few hours, and sharpens the picture as you log more."],["🧪","Food tests: Dr Quackers suggests what to try next, one change at a time, such as cutting down fatty food for 10 days. Then he keeps score and tells you what it showed."],["📈","Fat, saturated fat and alcohol can now go on the timeline next to your symptoms."]]},
  {v:"2026-11-07.1", items:[["📋","Paste my list: keep notes through the day in any app, paste them in, and Dr Quackers logs it all. That's food with calories worked out, drinks and alcohol units, medicines, supplements, symptoms with scores, and weight. You check it over before anything is added."],["📅","Logging for another day is easier. The + button has Today, Yesterday and a date picker, and the diary has Add to this day and Paste a list buttons."],["🧈","Saturated fat is now tracked, with the NHS daily maximum shown."]]},
