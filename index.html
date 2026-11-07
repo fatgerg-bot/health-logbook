@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-07.4">
+<meta name="app-version" content="2026-11-07.5">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -221,6 +221,14 @@ body.mind #v-ask .dq .dq-specs{display:inline}
 .ft-card{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:6px 0;background:var(--surface)}.ft-card.done{border-color:#7FB59F}
 .ft-h{display:flex;justify-content:space-between;gap:8px;margin:0 0 4px}.ft-h small{color:var(--muted)}.ft-card p{margin:0 0 6px}
 .rx-ai{background:var(--ai-soft,#ECE8F6);border-radius:14px;padding:10px 14px}
+.fl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.fl-card{display:flex;flex-direction:column;gap:4px;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:8px;color:var(--ink);font:inherit;cursor:pointer;min-width:0}
+.fl-card small{color:var(--muted);font-size:.78rem}.fl-t{font-weight:700;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.fl-th{aspect-ratio:4/3;border-radius:10px;background:var(--surface);display:grid;place-items:center;font-size:2rem;overflow:hidden}
+.fl-th img{width:100%;height:100%;object-fit:cover}
+.fl-view{display:flex;justify-content:center}.fl-img{max-width:100%;max-height:70vh;border-radius:12px;background:#000}
+.fl-pdf{display:flex;gap:12px;align-items:center;background:var(--bg);border-radius:12px;padding:14px;width:100%}.fl-pdf span{font-size:2.4rem}.fl-pdf p{margin:0}
+.row a.btn{text-decoration:none;color:var(--ink)}.fl-edit{margin-top:8px}.fl-edit summary{cursor:pointer;font-weight:700;padding:6px 0}
 .composer{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px}
 .composer textarea{min-height:64px;background:transparent;border:0;padding:4px}
 .composer textarea:focus-visible{outline:none}
@@ -1534,6 +1542,10 @@ body.on-home .top{display:none}
       <input type="file" id="recFiles" accept="image/*,application/pdf,.pdf" multiple hidden>
       <p class="fineprint">Dr Quackers reads it and lists what it found. You tick what to keep before anything is added.</p>
     </div>
+    <article class="panel" id="filesCard" hidden aria-labelledby="filesH">
+      <div class="ph"><span class="ic" aria-hidden="true">🗂️</span><h2 id="filesH">My files</h2><button class="more" type="button" id="filesAdd">+ Store a file</button></div>
+      <div id="filesBody"></div>
+    </article>
     <div class="grid2" id="ovGrid">
       <article class="panel"><div class="ph"><span class="ic ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></span><h2>Next appointment</h2></div><div id="ovNext"></div></article>
       <article class="panel" id="ovDuePanel"><div class="ph"><span class="ic due"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span><h2>Coming up</h2></div><ul class="list" id="ovDue"></ul></article>
@@ -2047,6 +2059,7 @@ function buildContext(opts){
   if(!opts.noCases){ const ct=casesContext(); if(ct) lines.push(ct); }
   { const pt=packsSummary(); if(pt) lines.push(pt); }
   { const rt=reactContext(); if(rt) lines.push(rt); }
+  { const ft=filesContext(); if(ft) lines.push(ft); }
   if(lines.length<2) lines.push("(The logbook is empty so far.)");
   const txt=lines.join("\n");
   return txt.length>80000? txt.slice(0,80000)+"\n(…logbook cut short)" : txt;
@@ -4261,6 +4274,120 @@ function thingsReactBtns(x){
   return [h("button",{class:"btn small primary",type:"button",onclick:()=>{ seen(); openReactions(x.sym); renderAll(); }}, x.react==="test"? "See the result" : "Have a look"), h("button",{class:"btn small ghost",type:"button",onclick:()=>{ seen(); renderAll(); }},"Not now")];
 }
 
+/* ---------- My files: full photos, scans, reports and videos kept privately in the user's own storage folder ---------- */
+const FTYPES=[["camera","📷","Camera test (endoscopy, colonoscopy)"],["scan","🩻","Scan or X-ray"],["report","📄","Test or procedure report"],["letter","✉️","Letter"],["photo","🤳","Photo of a symptom"],["other","📁","Other"]];
+const FTYPE=Object.fromEntries(FTYPES.map(t=>[t[0],t]));
+const FILE_MAX=50*1024*1024;
+function filesList(){ return (S.files||[]).slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.createdAt||0)-(a.createdAt||0)); }
+function fileKindOf(m){ m=String(m||""); return m.startsWith("image/")? "image" : m==="application/pdf"? "pdf" : m.startsWith("video/")? "video" : "other"; }
+function fileSize(n){ return n>=1048576? (Math.round(n/104857.6)/10)+" MB" : Math.max(1,Math.round(n/1024))+" KB"; }
+const FURL={};
+async function fileUrl(path){
+  const c=FURL[path]; if(c&&c.exp>Date.now()) return c.url;
+  const {data,error}=await sb.storage.from("files").createSignedUrl(path,3600); if(error||!data) throw error||new Error("no url");
+  FURL[path]={url:data.signedUrl,exp:Date.now()+50*60000}; return data.signedUrl;
+}
+async function fileBlob(path){ const {data,error}=await sb.storage.from("files").download(path); if(error) throw error; return data; }
+async function fileUpload(f, meta){
+  if(!S.uid||!S.canWrite) throw new Error("Not signed in");
+  if(f.size>FILE_MAX) throw new Error((f.name||"That file")+" is over 50 MB");
+  const ext=(String(f.name||"").match(/\.([a-z0-9]{2,5})$/i)||[,""])[1].toLowerCase()||({"image/jpeg":"jpg","image/png":"png","application/pdf":"pdf","video/mp4":"mp4","video/quicktime":"mov"}[f.type]||"bin");
+  const path=S.uid+"/"+Date.now().toString(36)+Math.random().toString(36).slice(2,7)+"."+ext;
+  const {error}=await sb.storage.from("files").upload(path,f,{contentType:f.type||undefined,upsert:false});
+  if(error) throw error;
+  const body={kind:"file", title:(meta.title||String(f.name||"File").replace(/\.[^.]+$/,"")).slice(0,200), date:meta.date||todayISO(), ftype:meta.ftype||"other", notes:meta.notes||undefined, path, mime:f.type||"", size:f.size, fname:String(f.name||"").slice(0,200)};
+  const id="f"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  await S.col.doc(id).set({...body,createdAt:Date.now(),updatedAt:Date.now()});
+  return {id,...body};
+}
+async function fileDelete(fe){
+  try{ await sb.storage.from("files").remove([fe.path]); }catch(e){}
+  return write(()=>S.col.doc(fe.id).delete());
+}
+function fileThumb(fe){
+  const k=fileKindOf(fe.mime), box=h("div",{class:"fl-th"+(k==="image"?" img":"")}, h("span",{"aria-hidden":"true"}, k==="pdf"?"📄":k==="video"?"🎬":(FTYPE[fe.ftype]||FTYPE.other)[1]));
+  if(k==="image") fileUrl(fe.path).then(u=>{ const im=h("img",{src:u,alt:"",loading:"lazy"}); box.replaceChildren(im); }).catch(()=>{});
+  return box;
+}
+function renderFiles(){
+  const card=$("#filesCard"); if(!card) return;
+  card.hidden=!S.loaded;
+  const L=filesList();
+  $("#filesBody").replaceChildren(...(L.length? [h("div",{class:"fl-grid"}, ...L.slice(0,S.filesAll?999:8).map(fe=>h("button",{class:"fl-card",type:"button",onclick:()=>openFile(fe.id)},
+      fileThumb(fe), h("span",{class:"fl-t"}, fe.title), h("small",{}, (FTYPE[fe.ftype]||FTYPE.other)[2].split(" (")[0]+" · "+(fe.date?fmtDate(fe.date):""))))),
+      L.length>8&&!S.filesAll? h("button",{class:"btn ghost small",type:"button",onclick:()=>{ S.filesAll=true; renderFiles(); }},"Show all "+L.length) : null].filter(Boolean)
+    : [h("p",{class:"none"},"Keep the full photos, scans and reports from tests here, like the pictures from a camera test or a scan report. Only you can open them.")]));
+}
+function openFileStore(initial, preset){
+  const files=[...(initial||[])], P=preset||{};
+  let ftype=P.ftype||"report";
+  const camIn=h("input",{type:"file",accept:"image/*",capture:"environment",hidden:true,id:"fs-cam"});
+  const pickIn=h("input",{type:"file",multiple:true,accept:"image/*,application/pdf,.pdf,video/mp4,video/quicktime,video/webm",hidden:true,id:"fs-pick"});
+  const chosen=h("ul",{class:"list"}), ti=h("input",{type:"text",placeholder:"e.g. Gastroscopy report and photos",maxlength:"200"}), di=h("input",{type:"date",max:todayISO(),value:P.date||todayISO()}), no=h("textarea",{rows:"2",placeholder:"Anything to remember about it (optional)"});
+  ti.value=P.title||"";
+  const read=h("input",{type:"checkbox",id:"fs-read"}); read.checked=!!S.sample;
+  const typeRow=h("div",{class:"chips wrapchips"});
+  const drawTypes=()=>typeRow.replaceChildren(...FTYPES.map(([k,ic,l])=>h("button",{type:"button",class:"fchip"+(k===ftype?" on":""),"aria-pressed":String(k===ftype),onclick:()=>{ ftype=k; drawTypes(); }}, ic+" "+l)));
+  const st=h("div",{"aria-live":"polite"}), save=h("button",{class:"btn primary",type:"button"},"Save");
+  const draw=()=>{ chosen.replaceChildren(...files.map((f,i)=>h("li",{}, h("div",{class:"bp-row"}, h("span",{style:"min-width:0;overflow-wrap:anywhere"}, h("strong",{}, fileKindOf(f.type)==="pdf"?"PDF ":fileKindOf(f.type)==="video"?"Video ":"Photo "), (f.name||"photo")+" · "+fileSize(f.size)+(f.size>FILE_MAX?" (too big, over 50 MB)":"")), h("button",{class:"btn ghost",type:"button",onclick:()=>{ files.splice(i,1); draw(); }},"Remove"))))); save.disabled=!files.filter(f=>f.size<=FILE_MAX).length||null; save.textContent= files.length>1? "Save "+files.length+" files" : "Save"; if(!ti.value&&files.length===1) ti.placeholder=String(files[0].name||"").replace(/\.[^.]+$/,"")||ti.placeholder; };
+  const add=list=>{ for(const f of list) if(/^(image|video)\//.test(f.type||"")||/pdf$/i.test(f.type||f.name||"")) files.push(f); draw(); };
+  camIn.addEventListener("change",()=>{ add(camIn.files); camIn.value=""; });
+  pickIn.addEventListener("change",()=>{ add(pickIn.files); pickIn.value=""; });
+  save.addEventListener("click",async()=>{
+    const ok=files.filter(f=>f.size<=FILE_MAX); if(!ok.length) return;
+    save.disabled=true; const done=[];
+    try{
+      for(const [i,f] of ok.entries()){
+        st.replaceChildren(h("p",{class:"thinking"},"Saving "+(i+1)+" of "+ok.length+" ("+fileSize(f.size)+")…"));
+        done.push(await fileUpload(f,{title:(ti.value.trim()||"")+(ok.length>1&&ti.value.trim()?" ("+(i+1)+")":""),date:di.value||todayISO(),ftype,notes:no.value.trim()}));
+      }
+      toast(done.length===1?"File saved":done.length+" files saved");
+      const readable=ok.filter(f=>fileKindOf(f.type)!=="video");
+      closeSheet();
+      if(read.checked&&readable.length&&S.sample) openImport(readable,{stored:true});
+    }catch(e){ st.replaceChildren(h("p",{class:"notice warn"},"Couldn't save "+(done.length? "all of them ("+done.length+" saved)" : "that")+": "+(e&&e.message||"check your connection and try again")+".")); save.disabled=false; }
+  });
+  drawTypes(); draw();
+  openSheet("Store a file",[
+    h("p",{class:"none"},"Keep the full photos, PDFs or videos from a test or appointment. They're stored privately in your own folder, and only you can open them."),
+    camIn, pickIn,
+    h("div",{class:"row"}, h("label",{class:"btn",for:"fs-cam"},"Take a photo"), h("label",{class:"btn",for:"fs-pick"},"Choose files")),
+    chosen,
+    h("p",{class:"flabel"},"What is it?"), typeRow,
+    h("div",{class:"fields2"}, h("label",{class:"field"}, h("span",{class:"flabel"},"Name"), ti), h("label",{class:"field"}, h("span",{class:"flabel"},"Date of the test"), di)),
+    h("label",{class:"field"}, h("span",{class:"flabel"},"Notes"), no),
+    h("label",{class:"mh-keep",for:"fs-read"}, read, h("span",{},"Also let Dr Quackers read any report in it and add the findings to your logbook")),
+    save, st,
+    h("p",{class:"fineprint"},"Up to 50 MB a file. Photos, PDFs and short videos.")]);
+}
+async function openFile(id){
+  const fe=(S.files||[]).find(x=>x.id===id); if(!fe) return;
+  const k=fileKindOf(fe.mime), view=h("div",{class:"fl-view"}, h("p",{class:"thinking"},"Opening…"));
+  const editT=h("input",{type:"text",maxlength:"200"}); editT.value=fe.title||"";
+  const editD=h("input",{type:"date",max:todayISO()}); editD.value=fe.date||"";
+  const editN=h("textarea",{rows:"2"}); editN.value=fe.notes||"";
+  const del=h("button",{class:"btn danger",type:"button",disabled:!S.canWrite||null},"Delete");
+  del.addEventListener("click",async ev=>{ if(!confirmTwice(ev.currentTarget)) return; const ok=await fileDelete(fe); if(ok!==false){ closeSheet(); toast("File deleted"); } });
+  const saveB=h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:async()=>{ const b={...fe}; delete b.id; b.title=editT.value.trim()||fe.title; b.date=editD.value||fe.date; b.notes=editN.value.trim()||undefined; b.updatedAt=Date.now(); const ok=await write(()=>S.col.doc(fe.id).set(b)); if(ok!==false) toast("Saved"); }},"Save changes");
+  const readB=h("button",{class:"btn ai",type:"button",disabled:(!S.sample||k==="video")||null},"✦ Read it with Dr Quackers");
+  readB.addEventListener("click",async()=>{ readB.disabled=true; try{ const bl=await fileBlob(fe.path); const f=new File([bl],fe.fname||(fe.title+(k==="pdf"?".pdf":".jpg")),{type:fe.mime||bl.type}); closeSheet(); openImport([f],{stored:true}); }catch(e){ toast("Couldn't open the file. Check your connection."); readB.disabled=false; } });
+  const openB=h("a",{class:"btn",target:"_blank",rel:"noopener",href:"#"},k==="pdf"?"Open the PDF":"Open full size");
+  openSheet((FTYPE[fe.ftype]||FTYPE.other)[1]+" "+fe.title,[
+    h("p",{class:"none"}, (FTYPE[fe.ftype]||FTYPE.other)[2]+(fe.date?" · "+longDate(fe.date):"")+(fe.size?" · "+fileSize(fe.size):"")),
+    view, h("div",{class:"row"}, openB, readB),
+    fe.notes? h("p",{}, fe.notes) : null,
+    h("details",{class:"fl-edit"}, h("summary",{},"Edit details"), h("label",{class:"field"}, h("span",{class:"flabel"},"Name"), editT), h("label",{class:"field"}, h("span",{class:"flabel"},"Date"), editD), h("label",{class:"field"}, h("span",{class:"flabel"},"Notes"), editN), h("div",{class:"row"}, saveB, del)),
+    h("p",{class:"fineprint"},"Only you can open this. Links to it stop working after an hour.")].filter(Boolean));
+  try{
+    const u=await fileUrl(fe.path); openB.href=u;
+    view.replaceChildren(k==="image"? h("img",{src:u,alt:fe.title,class:"fl-img"}) : k==="video"? h("video",{src:u,controls:true,playsinline:true,class:"fl-img"}) : k==="pdf"? h("div",{class:"fl-pdf"}, h("span",{"aria-hidden":"true"},"📄"), h("p",{}, "Tap Open the PDF to read it. Dr Quackers can also read it and pull out the findings.")) : h("p",{class:"none"},"Tap Open to see it."));
+  }catch(e){ view.replaceChildren(h("p",{class:"notice warn"},"Couldn't open the file. Check your connection and try again.")); }
+}
+function filesContext(){
+  const L=filesList(); if(!L.length) return "";
+  return "\nSTORED FILES (photos, scans and reports the person keeps in the app; you can't see inside them unless they share them): "+L.slice(0,30).map(f=>(FTYPE[f.ftype]||FTYPE.other)[2].split(" (")[0]+": "+f.title+(f.date?" ("+f.date+")":"")+(f.notes?" ["+String(f.notes).slice(0,120)+"]":"")).join("; ");
+}
+
 async function scanBigEvents(){
   if(!S.sample||S.aiOff){ toast("Dr Quackers isn't available here."); return; }
   const src=S.entries.filter(e=>e.kind!=="event"&&e.kind!=="symptom"&&(e.title||e.details));
@@ -4917,7 +5044,7 @@ function renderPrepSelect(){
   if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
   updatePrepTools();
 }
-function renderAll(){ renderOverview(); renderTrends(); renderRecords(); renderPrepSelect(); renderDiary(); if(!$("#v-timeline").hidden) renderTimeline(); if(!$("#v-settings").hidden) renderSettings(false); }
+function renderAll(){ renderOverview(); renderTrends(); renderRecords(); renderFiles(); renderPrepSelect(); renderDiary(); if(!$("#v-timeline").hidden) renderTimeline(); if(!$("#v-settings").hidden) renderSettings(false); }
 
 /* ---------- sheet ---------- */
 let sheetReturn=null;
@@ -5102,6 +5229,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-07.5", items:[["🗂️","New My files in Records: keep the full photos, PDFs and short videos from tests, like a camera test, a scan or a procedure report. They're private to you, up to 50 MB each."],["✦","Dr Quackers can read a stored report and add the findings to your logbook. When you import letters, you can now keep the original files too."]]},
  {v:"2026-11-07.4", items:[["🧍","Your week now shows a body map under each day, marking where it hurt and how bad: amber for mild, orange for moderate, red for 7/10 or worse. Flick through the days and weeks to watch it change."]]},
  {v:"2026-11-07.3", items:[["⭕","Your week now has arrows so you can go back through past weeks. On a phone you can also swipe. Each day shows its worst symptom score and what's in the diary."],["📈","New Worst symptom score line on the timeline, showing your highest score each day. The timeline also starts with the lanes you actually have data for, and empty lanes take up less space."]]},
  {v:"2026-11-07.2", items:[["🍽️","New Food and symptoms screen. It checks which kinds of food and drink are followed by pain, heartburn, bloating or any other symptom within a few hours, and sharpens the picture as you log more."],["🧪","Food tests: Dr Quackers suggests what to try next, one change at a time, such as cutting down fatty food for 10 days. Then he keeps score and tells you what it showed."],["📈","Fat, saturated fat and alcohol can now go on the timeline next to your symptoms."]]},
@@ -5307,7 +5435,7 @@ async function imageToJpeg(file, maxSide){
 const isPdf=f=> f.type==="application/pdf" || /\.pdf$/i.test(f.name||"");
 const MAX_PAGES=30;
 
-function openImport(initial){
+function openImport(initial, iopt){
   if(!S.sample || S.aiOff){ openSheet("Import documents",[h("p",{},"Importing needs Dr Quackers, which isn't available on this page right now. You can still add entries by hand.")]); return; }
   const canImg=!!S.img;
   let files=[], ctl=null;
@@ -5315,6 +5443,7 @@ function openImport(initial){
   const pickIn=h("input",{type:"file",id:"imp-files",multiple:true,accept:canImg?"image/*,application/pdf,.pdf":"application/pdf,.pdf",hidden:true});
   const chosen=h("ul",{class:"list"});
   const go=h("button",{class:"btn ai",type:"button",disabled:true},"Read with Dr Quackers");
+  const keep=h("input",{type:"checkbox",id:"imp-keep"}); keep.checked=!!S.canWrite&&!(iopt&&iopt.stored); let kept=[];
   const stop=h("button",{class:"btn",type:"button",hidden:true},"Stop");
   const out=h("div",{style:"display:flex;flex-direction:column;gap:10px"});
   function drawChosen(){
@@ -5331,6 +5460,7 @@ function openImport(initial){
   go.addEventListener("click", async ()=>{
     go.disabled=true; stop.hidden=false; ctl=new AbortController();
     const say=t=>out.replaceChildren(h("p",{class:"thinking"},t));
+    if(keep.checked&&!kept.length){ for(const [i,f] of files.entries()){ if(f.size>FILE_MAX) continue; say("Keeping a copy of "+(f.name||"photo "+(i+1))+"…"); try{ kept.push(await fileUpload(f,{ftype:isPdf(f)?"report":"letter"})); }catch(e){} } }
     const texts=[], images=[], skipped=[];
     let pages=0;
     try{
@@ -5402,6 +5532,7 @@ function openImport(initial){
         return it;
       });
       showImportResults(out, cleanDocs, cleanItems, skipped);
+      if(kept.length&&cleanDocs.length){ const d0=cleanDocs[0]; for(const [i,k] of kept.entries()){ const b={...k}; delete b.id; b.title=(d0.title+(kept.length>1?" ("+(i+1)+")":"")).slice(0,200); if(d0.date) b.date=d0.date; b.notes=d0.from? "From "+d0.from : b.notes; if(/endoscop|gastroscop|colonoscop|sigmoidoscop|capsule/i.test(d0.title+" "+d0.summary)) b.ftype="camera"; else if(/scan|x-?ray|ultrasound|mri|ct\b/i.test(d0.title)) b.ftype="scan"; b.updatedAt=Date.now(); try{ await S.col.doc(k.id).set(b); }catch(e){} } }
     }catch(e){
       const msg=(e&&e.code)? aiErr(e) : "Something went wrong reading those files. Try fewer at a time."; out.replaceChildren(msg? h("p",{class:"notice warn"},msg) : h("p",{class:"none"},"Stopped."));
     }finally{ stop.hidden=true; go.disabled=!files.length; }
@@ -5416,11 +5547,13 @@ function openImport(initial){
     camIn, pickIn, btns, chosen,
     h("div",{class:"row"},go,stop),
     out,
-    h("p",{class:"fineprint"},"Only what Dr Quackers reads out is kept, in your private logbook. The pictures and files themselves aren't stored.")
+    S.canWrite&&!(iopt&&iopt.stored)? h("label",{class:"mh-keep",for:"imp-keep"}, keep, h("span",{},"Keep the original files in My files too")) : null,
+    h("p",{class:"fineprint"},"What Dr Quackers reads out is added to your private logbook. If you keep the originals, only you can open them.")
   ]);
   if(initial&&initial.length){ addFiles(initial); if(files.length) go.classList.add("pulse"); }
   drawChosen();
 }
+$("#filesAdd").addEventListener("click",()=>openFileStore());
 for(const id of ["#recCam","#recFiles"]) $(id).addEventListener("change",e=>{ const fs=[...e.target.files]; e.target.value=""; if(fs.length) openImport(fs); });
 function showImportResults(out, docs, items, skipped){
   if(!docs.length && !items.length){ out.replaceChildren(h("p",{class:"notice"},"Dr Quackers couldn't find anything new in those pages. Try clearer photos in good light, or different pages.")); return; }
@@ -6470,9 +6603,9 @@ async function startSession(user){
   const timer=setTimeout(()=>{ if(!S.loaded) status("Your records can't be reached yet. Check your connection; they'll appear when it's back."); },10000);
   if(S.unsub) S.unsub();
   S.unsub=S.col.onSnapshot(snap=>{
-    const es=[], days={}; let prof={}; S.cases=null;
-    for(const d of snap.docs){ const v=d.data(); if(!v) continue; if(d.id==="profile") prof=v; else if(v.kind==="illnesses") S.cases=v; else if(v.kind==="day"&&v.date) days[v.date]=v; else if(KINDS[v.kind]) es.push({...v,id:d.id}); }
-    S.entries=es; S.profile=prof; S.days=days;
+    const es=[], days={}, fl=[]; let prof={}; S.cases=null;
+    for(const d of snap.docs){ const v=d.data(); if(!v) continue; if(d.id==="profile") prof=v; else if(v.kind==="illnesses") S.cases=v; else if(v.kind==="file"&&v.path) fl.push({...v,id:d.id}); else if(v.kind==="day"&&v.date) days[v.date]=v; else if(KINDS[v.kind]) es.push({...v,id:d.id}); }
+    S.entries=es; S.profile=prof; S.days=days; S.files=fl;
     if(!prof.name && S.memberName) S.profile={...prof,name:S.memberName};
     checkLock();
     S.loaded=true; clearTimeout(timer); status(""); setTimeout(maybeWhatsNew,800);
