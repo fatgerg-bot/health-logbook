@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-07.2">
+<meta name="app-version" content="2026-11-07.3">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -741,6 +741,10 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 :root{--wk-mood:#1E8C6B;--wk-energy:#2F7FD1;--wk-sleep:#6F5FC9;--wk-bad:#E0453A}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--wk-mood:#4CC39C;--wk-energy:#5FA8F0;--wk-sleep:#A497F0;--wk-bad:#FF6B5E}}
 :root[data-theme="dark"]{--wk-mood:#4CC39C;--wk-energy:#5FA8F0;--wk-sleep:#A497F0;--wk-bad:#FF6B5E}
+.wk-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
+.wk-nav span{font-weight:700;font-size:.95rem}
+.wk-arr{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:1.5rem;line-height:1;cursor:pointer;display:grid;place-items:center}
+.wk-arr:disabled{opacity:.3;cursor:default}
 .wk-rings{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
 .wk-day{display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--bg);border:1.5px solid transparent;border-radius:14px;padding:7px 2px 6px;cursor:pointer;color:var(--ink);min-width:0;transition:border-color .15s ease}
 .wk-day.sel{border-color:var(--ink)}
@@ -1351,6 +1355,7 @@ body.on-home .top{display:none}
     <div class="trk-seg" role="group" aria-label="Track views"></div>
     <article class="panel wkcard" id="wkCard" aria-labelledby="wkH">
       <div class="ph"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6"/></svg></span><h2 id="wkH">Your week</h2><button class="more" type="button" id="wkTl">Timeline ›</button></div>
+      <div class="wk-nav"><button class="wk-arr" type="button" id="wkPrev" aria-label="Previous week">‹</button><span id="wkRange" aria-live="polite">This week</span><button class="wk-arr" type="button" id="wkNext" aria-label="Next week">›</button></div>
       <div class="wk-rings" id="wkRings" role="group" aria-label="Last 7 days"></div>
       <div class="wk-key" aria-hidden="true"><span><i class="k1"></i>Mood</span><span><i class="k2"></i>Energy</span><span><i class="k3"></i>Sleep</span><span><i class="k4"></i>Worse than usual</span></div>
       <div class="wk-detail" id="wkDetail" aria-live="polite"></div>
@@ -4618,7 +4623,7 @@ function openHealthSetup(){
 }
 
 /* ---------- your week: day rings with "worse than usual" glow ---------- */
-const WK={sel:null};
+const WK={sel:null,off:0};
 function symLoadOn(iso){ const arr=ofKind("symptom").filter(e=>e.date===iso); return {n:arr.length, load:arr.reduce((a,e)=>a+(e.severity||5),0), worst:Math.max(0,...arr.map(e=>e.severity||0)), names:arr.map(e=>e.title+(e.severity?" "+e.severity+"/10":""))}; }
 function dayLogged(iso){ const d=(S.days||{})[iso]||{}; return !!(d.feel||d.energy||d.sleepQ||symLoadOn(iso).n); }
 function wkBaseline(beforeIso){
@@ -4654,10 +4659,15 @@ function ringSvg(d, sy, flagged){
 }
 function renderWeek(){
   const box=$("#wkRings"); if(!box) return;
-  const today=todayISO(); if(!WK.sel) WK.sel=today;
+  const today=todayISO(), end=addDays(today,-7*(WK.off||0)), start=addDays(end,-6);
+  if(!WK.sel||WK.sel>end||WK.sel<start) WK.sel=end;
+  const sd=(iso)=>{ const [y,m,dd]=iso.split("-").map(Number); return new Date(y,m-1,dd).toLocaleDateString("en-GB",{day:"numeric",month:"short"}); };
+  $("#wkRange").textContent= WK.off? sd(start)+" – "+sd(end)+(WK.off===1?" (last week)":"") : "This week";
+  $("#wkNext").disabled=!WK.off; $("#wkH").textContent= WK.off? "Your weeks" : "Your week";
+  { const first=Object.keys(S.days||{}).concat(ofKind("symptom").map(e=>e.date).filter(Boolean)).sort()[0]; $("#wkPrev").disabled=!!first&&first>=start; }
   const cells=[];
   for(let o=6;o>=0;o--){
-    const iso=addDays(today,-o), d=(S.days||{})[iso]||{}, sy=symLoadOn(iso), {why}=wkFlags(iso), bad=why.length>0, logged=dayLogged(iso);
+    const iso=addDays(end,-o), d=(S.days||{})[iso]||{}, sy=symLoadOn(iso), {why}=wkFlags(iso), bad=why.length>0, logged=dayLogged(iso);
     const [y,m,dd]=iso.split("-").map(Number), dt=new Date(y,m-1,dd);
     const lab=longDate(iso)+": "+(logged? [d.feel?"mood "+FEEL[d.feel-1]:"", d.energy?"energy "+ENERGY[d.energy-1]:"", d.sleepQ?"slept "+SLEEPQ[d.sleepQ-1]:"", sy.n?sy.n+" symptoms":""].filter(Boolean).join(", ") : "nothing logged")+(bad?". Worse than usual.":"");
     cells.push(h("button",{type:"button",class:"wk-day"+(bad?" bad":"")+(iso===today?" now":"")+(iso===WK.sel?" sel":"")+(logged?"":" empty"),"aria-label":lab,"aria-pressed":String(iso===WK.sel),onclick:()=>{ WK.sel=iso; renderWeek(); }},
@@ -4671,6 +4681,8 @@ function renderWeek(){
   if(d.energy) rows.push(["Energy", ENERGY[d.energy-1]]);
   if(d.sleepQ||d.sleepH) rows.push(["Sleep", [d.sleepQ?SLEEPQ[d.sleepQ-1]:"", d.sleepH?(SLEEPH.find(x=>x[1]===d.sleepH)||[""])[0]:""].filter(Boolean).join(", ")]);
   if(sy.n) rows.push(["Symptoms", sy.names.join(", ")]);
+  { const sv_=ofKind("symptom").filter(e=>e.date===iso&&e.severity).map(e=>+e.severity); if(sv_.length) rows.push(["Worst score", Math.max(...sv_)+"/10"]); }
+  { const L=dayLog(iso); if(L.length){ const c=t=>L.filter(x=>x.type===t).length, m=c("meal"), dr=c("drink"), md=c("med"); rows.push(["Diary", [m?m+" meal"+(m>1?"s":""):"", dr?dr+" drink"+(dr>1?"s":""):"", md?md+" medicine"+(md>1?"s":"")+" or supplement"+(md>1?"s":""):"", L.length-m-dr-md>0? (L.length-m-dr-md)+" other":""].filter(Boolean).join(", ")]); } }
   if(d.period&&periodOn()) rows.push(["Period", d.period]);
   { const nt=dayNut(iso); if(nt) rows.push(["Food", nutLine(nt)]); }
   rows.push(...devRows(d).slice(0,3));
@@ -4683,6 +4695,10 @@ function renderWeek(){
   const b=wkBaseline(today);
   $("#wkNote").textContent= b.n>=7? "The red glow compares each day with your own last 4 weeks." : "Learning what's normal for you. Until you've checked in on 7 days ("+b.n+" so far), the red glow marks a symptom at 7/10 or worse, 3 or more symptoms, or an awful day.";
 }
+function wkGo(d){ const nx=Math.max(0,(WK.off||0)+d); if(nx===WK.off) return; if(d<0&&WK.off===0) return; WK.off=nx; WK.sel=null; renderWeek(); }
+$("#wkPrev").addEventListener("click",()=>{ if(!$("#wkPrev").disabled) wkGo(1); });
+$("#wkNext").addEventListener("click",()=>wkGo(-1));
+{ let x0=null; const el=$("#wkRings"); el.addEventListener("touchstart",e=>{ x0=e.touches[0].clientX; },{passive:true}); el.addEventListener("touchend",e=>{ if(x0==null) return; const dx=e.changedTouches[0].clientX-x0; x0=null; if(Math.abs(dx)>50){ if(dx>0&&!$("#wkPrev").disabled) wkGo(1); else if(dx<0) wkGo(-1); } },{passive:true}); }
 function greeting(){ const hr=new Date().getHours(); return hr<12?"Good morning":hr<18?"Good afternoon":"Good evening"; }
 function renderCheckin(){
   const p=S.profile||{}, iso=todayISO(), day=(S.days||{})[iso]||{}, ro=!S.canWrite||null;
@@ -5066,6 +5082,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-07.3", items:[["⭕","Your week now has arrows so you can go back through past weeks. On a phone you can also swipe. Each day shows its worst symptom score and what's in the diary."],["📈","New Worst symptom score line on the timeline, showing your highest score each day. The timeline also starts with the lanes you actually have data for, and empty lanes take up less space."]]},
  {v:"2026-11-07.2", items:[["🍽️","New Food and symptoms screen. It checks which kinds of food and drink are followed by pain, heartburn, bloating or any other symptom within a few hours, and sharpens the picture as you log more."],["🧪","Food tests: Dr Quackers suggests what to try next, one change at a time, such as cutting down fatty food for 10 days. Then he keeps score and tells you what it showed."],["📈","Fat, saturated fat and alcohol can now go on the timeline next to your symptoms."]]},
  {v:"2026-11-07.1", items:[["📋","Paste my list: keep notes through the day in any app, paste them in, and Dr Quackers logs it all. That's food with calories worked out, drinks and alcohol units, medicines, supplements, symptoms with scores, and weight. You check it over before anything is added."],["📅","Logging for another day is easier. The + button has Today, Yesterday and a date picker, and the diary has Add to this day and Paste a list buttons."],["🧈","Saturated fat is now tracked, with the NHS daily maximum shown."]]},
  {v:"2026-11-05.9", items:[["🤓","In Mind mode Dr Quackers puts his reading glasses on. He pushes them up and scratches his beak while he thinks."],["📖","New My mental health history: your mood and stress over 90 days, low patches, what lifts or drags your mood, questionnaire scores and notes of your Mind mode chats. There's a Summary for my GP button too."],["✅","The daily check-in now asks what's affecting your mood. On a low day it offers a calm chat in Mind mode."],["📝","After a Mind mode chat, a short note (never the whole chat) is kept in your history. You can switch this off."]]},
@@ -5615,7 +5632,8 @@ function tlLanes(){
   L.push({id:"stool",name:"Poo (Bristol type)",type:"stool"});
   L.push({id:"heart",name:"Heart episodes",type:"heart"});
   L.push({id:"intim",name:"Love life",type:"intim"});
-  L.push({id:"sym",name:"Symptoms",type:"sym"},{id:"weight",name:"Weight",type:"line",unit:"kg"},{id:"bp",name:"Blood pressure",type:"bp",unit:"mmHg"});
+  const worst={}; for(const e of ofKind("symptom")) if(e.date&&e.severity) worst[e.date]=Math.max(worst[e.date]||0,+e.severity);
+  L.push({id:"sym",name:"Symptoms",type:"sym"},{id:"worst",name:"Worst symptom score",type:"line",unit:"out of 10",fn:d=>worst[d.date]||null,all:worst},{id:"weight",name:"Weight",type:"line",unit:"kg"},{id:"bp",name:"Blood pressure",type:"bp",unit:"mmHg"});
   L.push({id:"sleeph",name:"Hours slept",type:"line",unit:"h",fn:d=>typeof d.sleepMin==="number"? Math.round(d.sleepMin/6)/10 : (d.dev&&d.dev.sleep&&d.dev.sleep.asleep? Math.round(d.dev.sleep.asleep/6)/10 : (typeof d.sleepH==="number"? d.sleepH : null))},
          {id:"rhr",name:"Resting heart rate",type:"line",unit:"bpm",fn:d=>d.dev&&d.dev.hr&&d.dev.hr.rest!=null? Math.round(d.dev.hr.rest) : null},
          {id:"maxhr",name:"Highest heart rate",type:"line",unit:"bpm",fn:d=>d.dev&&d.dev.hr&&d.dev.hr.max!=null? Math.round(d.dev.hr.max) : null},
@@ -5634,9 +5652,24 @@ function tlLanes(){
   for(const k of keys){ const arr=g.get(k), last=arr[arr.length-1]; L.push({id:"t:"+k,name:last.title,type:"line",unit:last.unit||"",test:k,count:arr.length}); }
   return L;
 }
+function tlHasData(id, since){
+  const D=Object.values(S.days||{}).filter(d=>d.date&&d.date>=since);
+  if(id==="mood") return D.some(d=>d.feel);
+  if(id==="worst") return ofKind("symptom").some(e=>e.date>=since&&e.severity);
+  if(id==="weight") return D.some(d=>typeof d.weight==="number");
+  if(id==="kcal") return D.some(d=>{ const n=dayNut(d.date); return n&&n.kcal; });
+  if(id==="alcohol") return D.some(d=>dayLog(d.date).some(x=>x.type==="drink"&&+x.units>0));
+  return true;
+}
 function tlDefaultSel(lanes){
-  const ids=["mood"]; if(periodOn()) ids.push("period"); ids.push("sym","weight");
-  const tests=lanes.filter(l=>l.test&&l.count>=2).slice(0,2).map(l=>l.id); return ids.concat(tests);
+  const since=addDays(todayISO(),-90), ids=[];
+  if(tlHasData("mood",since)) ids.push("mood");
+  if(periodOn()) ids.push("period");
+  ids.push("sym");
+  for(const k of ["worst","weight","kcal","alcohol"]) if(tlHasData(k,since)) ids.push(k);
+  if(!ids.includes("weight")&&!ids.includes("mood")) ids.push("mood");
+  const yr=addDays(todayISO(),-365), g=testGroups();
+  const tests=lanes.filter(l=>l.test&&l.count>=2&&(g.get(l.test)||[]).some(e=>e.date>=yr)).slice(0,2).map(l=>l.id); return ids.concat(tests);
 }
 function tlEvents(from,to){
   const ev=[];
@@ -5689,7 +5722,9 @@ function tlDayData0(iso){
 }
 function renderTimeline(){
   const lanes=tlLanes(), byId=Object.fromEntries(lanes.map(l=>[l.id,l]));
-  if(!TL.sel) TL.sel=(tlLoadSel()||tlDefaultSel(lanes));
+  if(!TL.sel){ TL.sel=(tlLoadSel()||tlDefaultSel(lanes));
+    /* once: add the new worst-score lane to saved layouts when there's data for it */
+    try{ if(!localStorage.getItem("hl-tl-v2")){ localStorage.setItem("hl-tl-v2","1"); if(!TL.sel.includes("worst")&&tlHasData("worst",addDays(todayISO(),-90))){ const i=TL.sel.indexOf("sym"); TL.sel.splice(i>=0?i+1:TL.sel.length,0,"worst"); tlSaveSel(); } } }catch(e){} }
   TL.sel=TL.sel.filter(id=>byId[id]);
   if(!TL.sel.length) TL.sel=tlDefaultSel(lanes);
   $("#tlRange").replaceChildren(...TL_RANGES.map(([k])=>h("button",{type:"button","aria-pressed":String(TL.range===k),onclick:()=>{ TL.range=k; renderTimeline(); }},k)));
@@ -5786,7 +5821,7 @@ function drawTimeline(lanes, from, to){
       const rv=last? (L.type==="bp"? last.value+"/"+series[1][series[1].length-1].value : last.value)+(L.unit?" "+L.unit:"") : "";
       const f=last&&L.type!=="bp"? flag(last) : "";
       label(L.name, rv+(f?" "+f:""), f?"flag":"");
-      const h0=H.line;
+      const h0= all.length? H.line : 26;
       if(!all.length){ svg.append(sv("rect",{x:PL,y,width:W-PL-PR,height:h0,rx:4,fill:"var(--bg)"})); tlEmpty(svg,W,y,h0, L.id==="weight"?"No weights logged in this range.":"No results in this range. Try 1Y or All."); y+=h0; summary.push(L.name+": none in range"); continue; }
       const lows=all.map(p=>p.low).filter(v=>typeof v==="number"), highs=all.map(p=>p.high).filter(v=>typeof v==="number");
       let lo=Math.min(...all.map(p=>p.value), ...(lows.length?[Math.min(...lows)]:[])), hi=Math.max(...all.map(p=>p.value), ...(highs.length?[Math.max(...highs)]:[]));
