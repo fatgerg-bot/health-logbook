@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-05.9">
+<meta name="app-version" content="2026-11-07.1">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -195,6 +195,19 @@ body.mind #v-ask .dq .dq-specs{display:inline}
 .mh-chat{border-left:4px solid #B9AEDB;padding:4px 0 4px 10px}.mh-chat.risk{border-left-color:var(--alert,#A8261D)}
 .mh-chat p{margin:2px 0;font-size:.92rem}.mh-ct small{color:var(--muted)}.mh-ba{color:#5A4A8A;font-weight:700}.mh-help{color:var(--accent)}
 .mh-keep{display:flex;gap:10px;align-items:flex-start;margin:12px 0 4px;font-size:.9rem}.mh-keep input{margin-top:3px;width:20px;height:20px}
+.ml-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.nb-over{color:var(--alert);font-weight:700}
+.add-day{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.pd-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.pd-row .fchip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pd-row .pd-date{width:auto;flex:0 0 auto;min-height:0}.pd-date{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:99px;background:var(--surface);color:var(--ink)}
+.add-paste{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin-bottom:12px;padding:12px 14px;border-radius:18px;border:0;background:var(--ai-soft,#ECE8F6);color:var(--ink);font:inherit;cursor:pointer}
+.add-paste .ap-ic{font-size:1.7rem}.add-paste span:last-child{display:flex;flex-direction:column;gap:2px}.add-paste small{color:var(--muted);font-size:.85rem}
+.day-add{gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+.pl-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.pl-row{display:grid;grid-template-columns:22px 44px 24px 1fr;gap:6px;align-items:start;padding:9px 10px;border-top:1px solid var(--line);cursor:pointer}
+.pl-row:first-child{border-top:0}.pl-row input{width:18px;height:18px;margin-top:2px}.pl-row.dup{opacity:.55}
+.pl-t{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.9rem}.pl-x{display:flex;flex-direction:column;gap:1px}.pl-x b{font-size:.93rem;font-weight:700}.pl-x small{color:var(--muted);font-size:.82rem}
+.pl-tot{font-weight:700;margin:10px 0}
 .composer{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px}
 .composer textarea{min-height:64px;background:transparent;border:0;padding:4px}
 .composer textarea:focus-visible{outline:none}
@@ -1444,6 +1457,7 @@ body.on-home .top{display:none}
         <h2 id="dayTitle"></h2>
         <button class="btn ghost" id="dayToday" type="button">Today</button>
       </div>
+      <div class="row day-add"><button class="btn" id="dayAddBtn" type="button">+ Add to this day</button><button class="btn ai" id="dayPasteBtn" type="button">📋 Paste a list</button></div>
       <div class="field"><span class="flabel" id="feelLab">How do you feel overall?</span><div class="scale feel" id="feelScale" role="group" aria-labelledby="feelLab"></div></div>
       <div class="field"><span class="flabel" id="energyLab">Energy</span><div class="scale energy" id="energyScale" role="group" aria-labelledby="energyLab"></div></div>
       <div class="field" id="perField"><span class="flabel" id="perLab">Period</span><span class="hint" id="perStat"></span><div class="scale four period" id="periodScale" role="group" aria-labelledby="perLab"></div></div>
@@ -1991,7 +2005,7 @@ function buildContext(opts){
       if(d.water) b.push(d.water+" glasses of water");
       { const dc=devContext(d); if(dc) b.push("from their watch/ring: "+dc); }
       const nt=dayNut(d.date); if(nt) b.push("nutrition total: "+NUTS.map(([k,l,u])=>Math.round(nt[k]||0)+(u||"")+" "+l).join(", "));
-      if(Array.isArray(d.log)&&d.log.length) b.push("log: "+d.log.map(x=>(x.time||"?")+" "+(x.type==="meal"? (x.meal||"meal").toLowerCase()+": "+(x.desc||(x.items||[]).map(i=>i.name).join(", "))+(x.n&&x.n.kcal?" ("+Math.round(x.n.kcal)+" kcal)":"") : (LOGT[x.type]||LOGT.note).l.toLowerCase()+": "+x.title+(x.type==="stool"&&(x.flags||[]).length?" ["+x.flags.join(", ")+"]":"")+(x.details?" - "+x.details:""))).join("; ").slice(0,900));
+      if(Array.isArray(d.log)&&d.log.length) b.push("log: "+d.log.map(x=>(x.time||"?")+" "+(x.type==="meal"? (x.meal||"meal").toLowerCase()+": "+(x.desc||(x.items||[]).map(i=>i.name).join(", "))+(x.n&&x.n.kcal?" ("+Math.round(x.n.kcal)+" kcal)":"") : (LOGT[x.type]||LOGT.note).l.toLowerCase()+": "+x.title+(x.type==="stool"&&(x.flags||[]).length?" ["+x.flags.join(", ")+"]":"")+(x.details?" - "+x.details:""))).join("; ").slice(0,1600));
       if(Array.isArray(d.bp)&&d.bp.length) b.push("BP "+d.bp.map(r=>r.sys+"/"+r.dia+(r.pulse?" pulse "+r.pulse:"")+(r.time?" at "+r.time:"")).join(", "));
       if(d.period) b.push("period: "+d.period);
       { const lc=loveContext(d); if(lc) b.push(lc); }
@@ -2427,7 +2441,8 @@ function tgt(){ const t=(S.profile||{}).targets||{}; return {kcal:+t.kcal||0, pr
 function nowHM(){ const n=new Date(); return String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0"); }
 function hm2m(t){ const m=/^(\d{1,2}):(\d{2})$/.exec(t||""); return m? (+m[1])*60+(+m[2]) : null; }
 function durTxt(min){ min=Math.max(0,Math.round(min)); const h=Math.floor(min/60), m=min%60; return h? h+"h"+(m?" "+m+"m":"") : m+"m"; }
-const NUTS=[["kcal","kcal",""],["protein","protein","g"],["carbs","carbs","g"],["fat","fat","g"],["fibre","fibre","g"],["sugar","sugar","g"]];
+const NUTS=[["kcal","kcal",""],["protein","protein","g"],["carbs","carbs","g"],["fat","fat","g"],["satfat","sat fat","g"],["fibre","fibre","g"],["sugar","sugar","g"]];
+function satMax(){ const sx=String((S.profile||{}).sex||"").toLowerCase(); return sx.startsWith("f")? 20 : 30; }
 const LOGT={stool:{l:"Poo",c:"#8A5A35"},meal:{l:"Ate",c:"var(--accent)"},drink:{l:"Drank",c:"#2F7FD1"},med:{l:"Medicine",c:"var(--ai)"},activity:{l:"Activity",c:"var(--due)"},note:{l:"Note",c:"var(--muted)"},symptom:{l:"Symptom",c:"var(--alert)"},wake:{l:"Woke up",c:"var(--wk-sleep)"}};
 const MEALS=["Breakfast","Lunch","Dinner","Snack"];
 const DRINKS=["Tea","Coffee","Alcohol","Fizzy drink","Energy drink","Juice","Other"];
@@ -2499,6 +2514,7 @@ function nutPanel(iso){
       h("span",{}, water+(T.water?" / "+T.water:"")+" glass"+(water===1?"":"es")),
       h("button",{type:"button",class:"wbtn","aria-label":"One more glass",disabled:!S.canWrite||null,onclick:()=>saveDay(iso,{water:water+1})},"+"))),
       h("div",{class:"nb-b"}, h("i",{style:"width:"+(T.water? Math.min(100,water/T.water*100) : Math.min(100,water*12.5))+"%;background:#7FB4EA"}))),
+    n.satfat? (()=>{ const mx=satMax(), v=n.satfat; return h("div",{class:"nb"}, h("div",{class:"nb-r"}, h("span",{},"Saturated fat"), h("span",{class:v>mx?"nb-over":""}, Math.round(v)+"g / "+mx+"g max"+(v>mx?" ⚠️":""))), h("div",{class:"nb-b"}, h("i",{style:"width:"+Math.min(100,v/mx*100)+"%;background:"+(v>mx?"var(--alert)":"#C98A2E")}))); })() : null,
     (n.carbs||n.fat||n.sugar)? h("p",{class:"nb-more"}, "Carbs "+Math.round(n.carbs||0)+"g · Fat "+Math.round(n.fat||0)+"g · Sugar "+Math.round(n.sugar||0)+"g") : null,
     h("div",{class:"nb-tot"}, n._total? h("span",{class:"hint"},"Entered as a total for the day") : h("span",{class:"hint"},"Track in another app?"), h("button",{class:"linkbtn",type:"button",onclick:()=>openDayTotal(iso)}, n._total?"Edit day total":"Enter the day's total")));
 }
@@ -2573,10 +2589,10 @@ const ZXING_SRC="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.mi
 function foodPrompt(desc, fromPhoto, recipe, short){
   return "Estimate the food and drink "+(fromPhoto?"in this photo of a meal":"described below")+" for a UK food diary. "
     +(desc? "The person says: \""+desc+"\". " : "")
-    +(recipe? "This is a recipe that makes "+recipe.portions+" portion"+(recipe.portions==1?"":"s")+" and they ate "+recipe.eaten+" portion"+(recipe.eaten==1?"":"s")+". Work out the whole recipe from its ingredients, then give the items and nutrition for the amount they ate only ("+recipe.eaten+"/"+recipe.portions+" of the recipe). Also include \"name\": a short name for the recipe, and \"per_portion\": {\"kcal\",\"protein\",\"carbs\",\"fat\",\"fibre\",\"sugar\"} for one portion. " : "")
+    +(recipe? "This is a recipe that makes "+recipe.portions+" portion"+(recipe.portions==1?"":"s")+" and they ate "+recipe.eaten+" portion"+(recipe.eaten==1?"":"s")+". Work out the whole recipe from its ingredients, then give the items and nutrition for the amount they ate only ("+recipe.eaten+"/"+recipe.portions+" of the recipe). Also include \"name\": a short name for the recipe, and \"per_portion\": {\"kcal\",\"protein\",\"carbs\",\"fat\",\"satfat\",\"fibre\",\"sugar\"} for one portion. " : "")
     +"Keep the reply compact: JSON on one line with no extra spaces, at most "+(short?6:10)+" items, each \"amount\" under 30 characters. Combine small ingredients (herbs, spices, seasoning, stock, a splash of oil) into one item called \"Other ingredients\". "
     +"Make a sensible rough guess at each item and its amount in everyday UK terms (grams, slices, tablespoons, a typical portion), including likely hidden extras such as cooking oil, butter, sauces or milk in drinks. Give nutrition for the amount eaten, using typical UK values.\n"
-    +'Reply with only JSON: {"description": short plain description of the whole meal, "items":[{"name": item name, "amount": amount as eaten e.g. "2 large eggs (about 120g)", "kcal": number, "protein": grams, "carbs": grams, "fat": grams, "fibre": grams, "sugar": grams}], "confidence": "low", "medium" or "high", "note": one short sentence on anything you could not see or had to guess}. '
+    +'Reply with only JSON: {"description": short plain description of the whole meal, "items":[{"name": item name, "amount": amount as eaten e.g. "2 large eggs (about 120g)", "kcal": number, "protein": grams, "carbs": grams, "fat": grams, "satfat": grams of saturated fat, "fibre": grams, "sugar": grams}], "confidence": "low", "medium" or "high", "note": one short sentence on anything you could not see or had to guess}. '
     +"If it isn't food or drink, reply {\"items\":[],\"note\":\"why\"}.";
 }
 async function decodeBarcode(file){
@@ -2603,7 +2619,7 @@ async function lookupBarcode(code){
   const r=await fetch("https://world.openfoodfacts.org/api/v2/product/"+encodeURIComponent(code)+".json?fields=product_name,product_name_en,brands,nutriments,serving_size,serving_quantity,quantity");
   if(!r.ok) return null; const j=await r.json(); if(!j||j.status!==1||!j.product) return null;
   const p=j.product, n=p.nutriments||{}, g=k=>{ const v=n[k]; return typeof v==="number"? v : parseFloat(v); };
-  const per={kcal:g("energy-kcal_100g")||(g("energy_100g")? g("energy_100g")/4.184 : NaN),protein:g("proteins_100g"),carbs:g("carbohydrates_100g"),fat:g("fat_100g"),fibre:g("fiber_100g"),sugar:g("sugars_100g")};
+  const per={kcal:g("energy-kcal_100g")||(g("energy_100g")? g("energy_100g")/4.184 : NaN),protein:g("proteins_100g"),carbs:g("carbohydrates_100g"),fat:g("fat_100g"),satfat:g("saturated-fat_100g"),fibre:g("fiber_100g"),sugar:g("sugars_100g")};
   return {name:[p.brands&&p.brands.split(",")[0],p.product_name_en||p.product_name].filter(Boolean).join(" ")||"Product "+code, per, serving:parseFloat(p.serving_quantity)||null, servingTxt:p.serving_size||"", size:p.quantity||""};
 }
 function recentMeals(){
@@ -2657,7 +2673,7 @@ function openMeal(iso, item){
       catch(e){ if(e&&e.code==="invalid_json"){ st.textContent="That was a long one. Trying a shorter summary…"; r=await S.sample.json(foodPrompt(desc.value.trim(), !!blob, rec, true), opts); } else throw e; }
       lastRecipe=null;
       if(rec&&r&&r.per_portion){ const pp={}; for(const [k] of NUTS) pp[k]=+r.per_portion[k]||0; lastRecipe={name:String(r.name||desc.value.split("\n")[0]||"My recipe").slice(0,60), text:desc.value.trim().slice(0,3000), portions:rec.portions, per:pp}; }
-      const got=(r&&Array.isArray(r.items)?r.items:[]).filter(x=>x&&x.name).map(x=>({name:String(x.name).slice(0,80),amount:String(x.amount||"").slice(0,80),kcal:+x.kcal||0,protein:+x.protein||0,carbs:+x.carbs||0,fat:+x.fat||0,fibre:+x.fibre||0,sugar:+x.sugar||0,src:"ai"}));
+      const got=(r&&Array.isArray(r.items)?r.items:[]).filter(x=>x&&x.name).map(x=>({name:String(x.name).slice(0,80),amount:String(x.amount||"").slice(0,80),kcal:+x.kcal||0,protein:+x.protein||0,carbs:+x.carbs||0,fat:+x.fat||0,satfat:+x.satfat||0,fibre:+x.fibre||0,sugar:+x.sugar||0,src:"ai"}));
       if(!got.length){ st.textContent=(r&&r.note)||"Dr Quackers couldn't make out any food. Try a clearer photo or describe it."; return; }
       items=[...items.filter(i=>i.src!=="ai"), ...got]; manual=false;
       if(!desc.value.trim()&&r.description) desc.value=String(r.description).slice(0,200);
@@ -2669,7 +2685,7 @@ function openMeal(iso, item){
   labelIn.addEventListener("change", async ()=>{ const f=labelIn.files[0]; labelIn.value=""; if(!f) return; const b=await imageToJpeg(f,1600);
     if(!S.sample||S.aiOff){ st.textContent="Dr Quackers isn't available here."; return; }
     st.textContent="Dr Quackers is reading the label…";
-    try{ const r=await S.sample.json('This is a photo of a food packet or nutrition label. Reply with only JSON: {"name": product name, "per100": {"kcal":n,"protein":g,"carbs":g,"fat":g,"fibre":g,"sugar":g}, "serving_g": grams per serving if shown or null}. Use null for anything you cannot read.',{modelTier:"quick",images:[b||f]});
+    try{ const r=await S.sample.json('This is a photo of a food packet or nutrition label. Reply with only JSON: {"name": product name, "per100": {"kcal":n,"protein":g,"carbs":g,"fat":g,"satfat":g,"fibre":g,"sugar":g}, "serving_g": grams per serving if shown or null}. Use null for anything you cannot read.',{modelTier:"quick",images:[b||f]});
       if(!r||!r.per100){ st.textContent="Couldn't read the label. Try a closer, flatter photo."; return; }
       askAmount({name:r.name||"Packaged food", per:r.per100, serving:+r.serving_g||null, servingTxt:r.serving_g?r.serving_g+"g":""});
     }catch(e){ st.textContent=aiErr(e)||"Couldn't read the label."; } });
@@ -3410,20 +3426,22 @@ function openCiSection(sel){
   if($("#ciX")&&$("#ciX").contains(el)&&$("#ciX").hidden) $("#ciXBtn").click();
   setTimeout(()=>el.scrollIntoView({block:"center",behavior:"smooth"}),60);
 }
-function openAddSheet(){
-  const iso=todayISO(), t=trk(), hp=hpOn();
+function openAddSheet(iso0){
+  if(iso0&&typeof iso0!=="string") iso0=null;
+  const iso=iso0||todayISO(), t=trk(), hp=hpOn(), past=iso!==todayISO();
+  const ciOr=(fn)=>()=>{ if(past){ closeSheet(); openDay(iso); } else fn(); };
   const tiles=[
-    ["How I feel","feel","g",()=>{ closeSheet(); show("overview"); const f=document.querySelector("#ciFaces .face"); if(f){ f.scrollIntoView({block:"center"}); f.focus(); } }],
+    ["How I feel","feel","g",ciOr(()=>{ closeSheet(); show("overview"); const f=document.querySelector("#ciFaces .face"); if(f){ f.scrollIntoView({block:"center"}); f.focus(); } })],
     ["Symptom","sym","r",()=>{ closeSheet(); openSymPick(iso); }],
     hp.heart? ["Heart","heart","r",()=>{ closeSheet(); openHeart(iso); }] : null,
     hp.pain? ["Pain","pain","r",()=>{ closeSheet(); openPain(iso); }] : null,
     (t.food||t.log)? ["Food","food","g",()=>{ closeSheet(); openMeal(iso); }] : null,
     (t.food||t.log)? ["Drink","drink","g",()=>{ closeSheet(); openDrink(iso); }] : null,
     t.stool? ["Poo","poo","b",()=>{ closeSheet(); openStool(iso); }] : null,
-    ["Sleep","sleep","p",()=>openCiSection(t.sleep?"#ciSleepD":'.ci-block[data-sec="sleep"]')],
-    periodOn()? ["Period","cycle","k",()=>openCiSection("#ciPeriod")] : null,
+    ["Sleep","sleep","p",ciOr(()=>openCiSection(t.sleep?"#ciSleepD":'.ci-block[data-sec="sleep"]'))],
+    periodOn()? ["Period","cycle","k",ciOr(()=>openCiSection("#ciPeriod"))] : null,
     ["Love life","love","k",()=>{ closeSheet(); openLove(iso); }],
-    ["Medicine","meds","p",()=>{ if(t.log){ closeSheet(); openSimpleLog(iso,"med"); } else openCiSection("#ciMedsB"); }],
+    ["Medicine","meds","p",()=>{ if(t.log){ closeSheet(); openSimpleLog(iso,"med"); } else ciOr(()=>openCiSection("#ciMedsB"))(); }],
     ["Blood pressure or weight","bp","a",()=>{ closeSheet(); openDay(iso); }],
     ["Note","note","a",()=>{ closeSheet(); if(t.log) openSimpleLog(iso,"note"); else openDay(iso); }],
     ["Photo of a letter","letter","a",()=>{ closeSheet(); openImport(); }],
@@ -3431,6 +3449,8 @@ function openAddSheet(){
     ["Something else","plus","a",()=>{ closeSheet(); openEntry(null,"symptom",{date:iso}); }]
   ].filter(Boolean);
   openSheet("What do you want to log?",[
+    h("div",{class:"add-day"}, h("span",{class:"flabel"},"Logging for "+(past? longDate(iso) : "today")), dayPickRow(iso,v=>openAddSheet(v))),
+    h("button",{class:"add-paste",type:"button",disabled:!S.canWrite||null,onclick:()=>{ closeSheet(); openPaste(iso); }}, h("span",{class:"ap-ic","aria-hidden":"true"},"📋"), h("span",{}, h("b",{},"Paste my list"), h("small",{},"Kept notes through the day? Paste them and Dr Quackers logs it all"))),
     h("div",{class:"add-grid"}, ...tiles.map(([label,ic,col,fn])=>h("button",{class:"add-t c-"+col,type:"button",onclick:fn,disabled:!S.canWrite||null}, h("span",{class:"tile-ic","aria-hidden":"true"}, svgIcon(IC[ic],22)), h("span",{},label)))),
     h("p",{class:"fineprint",style:"text-align:center"},"Switch more trackers on in Settings to see more here.")]);
 }
@@ -3825,6 +3845,142 @@ function packsSettingsBox(){
   const sw=(k)=>{ const P=PACKS[k], cb=h("input",{type:"checkbox",class:"sw-in",id:"pack-"+k,disabled:!S.canWrite||null}); cb.checked=on.includes(k);
     cb.addEventListener("change",()=>packSet(k,cb.checked)); return h("label",{class:"trk",for:"pack-"+k}, h("span",{class:"trk-t"}, h("b",{},P.ic+" "+P.name), h("small",{},P.desc)), cb, h("span",{class:"sw-ui","aria-hidden":"true"})); };
   return h("div",{class:"field"}, h("span",{class:"hint"},"Switch on a care pack for each condition you live with. It adds a few quick questions to your daily check-in, a score, early warnings and a plan."), ...Object.keys(PACKS).map(sw), h("p",{class:"fineprint"},"More packs are coming: asthma, diabetes, blood pressure, migraine, arthritis and more."));
+}
+
+/* ---------- Paste my list: a day's running notes → Dr Quackers sorts them into the log ---------- */
+const PASTE_AREAS=["upper-tum","ru-tum","lu-tum","rl-tum","ll-tum","pelvis","r-chest","l-chest","low-back","ur-back","ul-back","mr-back","ml-back"];
+function pastePrompt(text, iso){
+  const meds=ofKind("medication").filter(m=>m.status==="current").map(m=>shortMed(m.title)).filter((v,i,a)=>v&&a.indexOf(v)===i);
+  return "You turn a person's running notes for one day into tidy log items for their personal health logbook. The day is "+longDate(iso)+". UK person, UK foods, brands and portion sizes.\n"
+  +"Their current medicines (use these exact names in \"med\" items when they match): "+(meds.join(", ")||"none listed")+".\n"
+  +"RULES:\n"
+  +"- Keep every time exactly as written (24-hour HH:MM). Never invent things they didn't write.\n"
+  +"- Food eaten at one time is ONE \"meal\" item with an items list. Drinks are separate \"drink\" items (one per drink line or per time), even when drunk with food, so alcohol and caffeine can be tracked. Plain water goes in \"glasses\" on a drink item called Water.\n"
+  +"- Give nutrition for the amount eaten using typical UK values: kcal, protein, carbs, fat, satfat (saturated fat), fibre, sugar, in grams. If THEY wrote their own nutrition figures, use theirs: split a group total across the matching items so the totals still add up.\n"
+  +"- Alcohol: give UK units in \"units\" (a single 25ml shot of 40% spirit is 1 unit, a pint of 5% lager about 2.8, a 175ml glass of 12% wine 2.1).\n"
+  +"- Each symptom mentioned at a time is its own \"symptom\" item. Severity 1-10: use their number if given; mild=3, moderate=5, severe=8, or null if not said. For pain, also give \"area\" if clear, one of: "+PASTE_AREAS.join(", ")+" (epigastric, upper stomach or heartburn-type pain = upper-tum; right upper tummy under the ribs = ru-tum). \"No pain\", \"symptom-free\" and similar go in as a \"note\" (e.g. title \"No pain\"), not a symptom. Put extra words like \"fluctuating\" in details.\n"
+  +"- Medicines AND supplements are \"med\" items with the dose in the title; set supplement true for vitamins, probiotics, herbal remedies (e.g. Symprove, milk thistle, slippery elm, vitamin D).\n"
+  +"- Weight goes in a \"weight\" item in kg (convert stones and pounds: 1 st = 6.35029 kg, 1 lb = 0.453592 kg; if they gave kg as well, use their kg).\n"
+  +"- Woke up = \"wake\" item, went to bed = \"bed\" item. A poo = \"stool\" item with bristol 1-7 if given. Exercise or activity = \"activity\". Anything else worth keeping = \"note\".\n"
+  +"- Ignore their summary/total lines once used for nutrition; don't add them as items.\n"
+  +"Reply with ONLY compact JSON on one line: {\"items\":[ ... ],\"note\":\"one short sentence for them about anything you guessed or couldn't place\"}. Item shapes:\n"
+  +"{\"type\":\"meal\",\"time\":\"HH:MM\",\"meal\":\"Breakfast|Lunch|Dinner|Snack\",\"desc\":\"what they ate, with the place if given\",\"items\":[{\"name\":\"\",\"amount\":\"\",\"kcal\":0,\"protein\":0,\"carbs\":0,\"fat\":0,\"satfat\":0,\"fibre\":0,\"sugar\":0}]}\n"
+  +"{\"type\":\"drink\",\"time\":\"HH:MM\",\"title\":\"e.g. 1 pint Kronenbourg\",\"drink\":\"Tea|Coffee|Alcohol|Fizzy drink|Energy drink|Juice|Milk|Water|Other\",\"units\":0,\"glasses\":0,\"n\":{\"kcal\":0,\"protein\":0,\"carbs\":0,\"fat\":0,\"satfat\":0,\"fibre\":0,\"sugar\":0}}\n"
+  +"{\"type\":\"med\",\"time\":\"HH:MM\",\"title\":\"Esomeprazole 20mg\",\"supplement\":false}\n"
+  +"{\"type\":\"symptom\",\"time\":\"HH:MM\",\"title\":\"Epigastric pain\",\"severity\":5,\"area\":\"upper-tum\",\"details\":\"\"}\n"
+  +"{\"type\":\"weight\",\"time\":\"HH:MM\",\"kg\":74.6}  {\"type\":\"wake\",\"time\":\"HH:MM\"}  {\"type\":\"bed\",\"time\":\"HH:MM\"}  {\"type\":\"stool\",\"time\":\"HH:MM\",\"bristol\":4}  {\"type\":\"activity\",\"time\":\"HH:MM\",\"title\":\"\"}  {\"type\":\"note\",\"time\":\"HH:MM\",\"title\":\"\"}\n\n"
+  +"THEIR NOTES:\n"+text.slice(0,12000);
+}
+function pasteHM(t){ const m=/^(\d{1,2})[:.](\d{2})/.exec(String(t||"")); return m&&+m[1]<24&&+m[2]<60? String(+m[1]).padStart(2,"0")+":"+m[2] : ""; }
+function pasteNum(v,max){ const n=+v; return isFinite(n)&&n>0? Math.min(max||1e5, Math.round(n*10)/10) : 0; }
+function pasteNut(o){ const r={}; for(const [k] of NUTS){ const v=pasteNum(o&&o[k],k==="kcal"?6000:800); if(v) r[k]=v; } return r; }
+function pasteClean(res){
+  const out=[], S_=(v,n)=>String(v==null?"":v).trim().slice(0,n||120);
+  for(const x of (res&&Array.isArray(res.items)? res.items : [])){
+    if(!x||typeof x!=="object") continue;
+    const time=pasteHM(x.time), t=x.type;
+    if(t==="meal"){ const items=(Array.isArray(x.items)?x.items:[]).filter(i=>i&&i.name).slice(0,15).map(i=>({name:S_(i.name,80),amount:S_(i.amount,60),...Object.fromEntries(NUTS.map(([k])=>[k,pasteNum(i[k],k==="kcal"?4000:500)]))}));
+      out.push({type:"meal",time,meal:MEALS.includes(x.meal)?x.meal:mealName(time),desc:S_(x.desc,300)||items.map(i=>i.name).join(", "),items}); }
+    else if(t==="drink"){ const title=S_(x.title,100); if(!title) continue; out.push({type:"drink",time,title,drink:S_(x.drink,20),units:pasteNum(x.units,40)||undefined,glasses:Math.round(pasteNum(x.glasses,20))||undefined,n:pasteNut(x.n)}); }
+    else if(t==="med"){ const title=S_(x.title,100); if(title) out.push({type:"med",time,title,supplement:!!x.supplement}); }
+    else if(t==="symptom"){ const title=S_(x.title,80); if(!title) continue; const sv=Math.round(+x.severity); out.push({type:"symptom",time,title,severity:sv>=1&&sv<=10?sv:null,area:PASTE_AREAS.includes(x.area)?x.area:null,details:S_(x.details,200)}); }
+    else if(t==="weight"){ const kg=pasteNum(x.kg,300); if(kg>=20) out.push({type:"weight",time,kg}); }
+    else if(t==="wake"||t==="bed") out.push({type:t,time});
+    else if(t==="stool"){ const b=Math.round(+x.bristol); out.push({type:"stool",time,bristol:b>=1&&b<=7?b:null}); }
+    else if(t==="activity"||t==="note"){ const title=S_(x.title,140); if(title) out.push({type:t,time,title}); }
+  }
+  return out.sort((a,b)=>(a.time||"99").localeCompare(b.time||"99"));
+}
+const PASTE_LOOK={meal:["🍽️","meal"],drink:["🥤","drink"],med:["💊","med"],symptom:["🤕","symptom"],weight:["⚖️","note"],wake:["⏰","wake"],bed:["🛏️","wake"],stool:["💩","stool"],activity:["🚶","activity"],note:["📝","note"]};
+function pasteLabel(x){
+  if(x.type==="meal") return [(x.meal||"Meal")+": "+x.desc, (()=>{ const n=sumNut(x.items); return [n.kcal?Math.round(n.kcal)+" kcal":"", n.fat?Math.round(n.fat)+"g fat":"", n.satfat?Math.round(n.satfat)+"g sat fat":"", n.sugar?Math.round(n.sugar)+"g sugar":""].filter(Boolean).join(" · "); })()];
+  if(x.type==="drink") return [x.title, [x.n&&x.n.kcal?Math.round(x.n.kcal)+" kcal":"", x.units? x.units+" unit"+(x.units==1?"":"s")+" of alcohol":"", x.glasses? x.glasses+" glass"+(x.glasses==1?"":"es")+" of water":""].filter(Boolean).join(" · ")];
+  if(x.type==="med") return [x.title, x.supplement?"Supplement":"Medicine"];
+  if(x.type==="symptom") return [x.area? x.title+" ("+(BZ_NAME[x.area]||x.area).toLowerCase()+")" : x.title, [x.severity? x.severity+"/10":"", x.details].filter(Boolean).join(" · ")];
+  if(x.type==="weight") return ["Weight "+x.kg+" kg", Math.floor(Math.round(x.kg*2.20462)/14)+" st "+(Math.round(x.kg*2.20462)%14)+" lb"];
+  if(x.type==="wake") return ["Woke up",""]; if(x.type==="bed") return ["Went to bed",""];
+  if(x.type==="stool") return ["Poo", x.bristol? "Bristol type "+x.bristol : ""];
+  return [x.title,""];
+}
+function pasteDup(iso,x){
+  const L=dayLog(iso), key=s=>String(s||"").toLowerCase().replace(/\s+/g," ").trim();
+  if(x.type==="symptom") return ofKind("symptom").some(e=>e.date===iso&&e.time===x.time&&key(e.title)===key(x.title));
+  if(x.type==="weight") return ((S.days||{})[iso]||{}).weight===x.kg;
+  if(x.type==="meal") return L.some(l=>l.type==="meal"&&l.time===x.time&&key(l.desc)===key(x.desc));
+  const title= x.type==="wake"?"Woke up" : x.type==="bed"?"Went to bed" : x.title;
+  return L.some(l=>l.time===x.time&&(l.type===x.type||(x.type==="bed"&&l.type==="note"))&&key(l.title)===key(title));
+}
+async function pasteSave(iso, list){
+  const d=(S.days||{})[iso]||{}, log=[...dayLog(iso)], patch={}, sym=[];
+  const curMeds=ofKind("medication").filter(m=>m.status==="current").map(m=>shortMed(m.title)).filter(Boolean);
+  const taken=new Set(Array.isArray(d.medsTaken)?d.medsTaken:[]);
+  const nid=()=>"l"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  let water=+d.water||0;
+  for(const x of list){
+    if(x.type==="meal") log.push({id:nid(),type:"meal",meal:x.meal,time:x.time||undefined,desc:x.desc,title:x.meal,items:x.items.length?x.items:undefined,n:x.items.length?sumNut(x.items):undefined,src:"paste"});
+    else if(x.type==="drink"){ if(/^water$/i.test(x.title)&&x.glasses){ water+=x.glasses; continue; } const n=Object.keys(x.n||{}).length? x.n : undefined; log.push({id:nid(),type:"drink",time:x.time||undefined,title:x.title,details:x.units? x.units+" units of alcohol":undefined,units:x.units,n,src:"paste"}); if(x.glasses) water+=x.glasses; }
+    else if(x.type==="med"){ log.push({id:nid(),type:"med",time:x.time||undefined,title:x.title,details:x.supplement?"Supplement":undefined,src:"paste"}); const lc=x.title.toLowerCase(); for(const m of curMeds){ const w=m.toLowerCase().split(/\s+/)[0]; if(w.length>3&&lc.includes(w)) taken.add(m); } }
+    else if(x.type==="symptom") sym.push({kind:"symptom",title:x.title,date:iso,time:x.time||undefined,severity:x.severity||undefined,details:x.details||undefined,areas:x.area?[x.area]:undefined,source:"paste"});
+    else if(x.type==="weight") patch.weight=x.kg;
+    else if(x.type==="wake") log.push({id:nid(),type:"wake",time:x.time||undefined,title:"Woke up",src:"paste"});
+    else if(x.type==="bed") log.push({id:nid(),type:"note",time:x.time||undefined,title:"Went to bed",src:"paste"});
+    else if(x.type==="stool") log.push({id:nid(),type:"stool",time:x.time||undefined,bristol:x.bristol||undefined,colour:"brown",src:"paste"});
+    else log.push({id:nid(),type:x.type,time:x.time||undefined,title:x.title,src:"paste"});
+  }
+  log.sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+  patch.log=log.length?log:null;
+  if(taken.size) patch.medsTaken=[...taken];
+  if(water!==(+d.water||0)) patch.water=water;
+  const ok=await saveDay(iso,patch); if(!ok) return false;
+  for(const e of sym) await saveEntry(Object.fromEntries(Object.entries(e).filter(([,v])=>v!==undefined)));
+  return true;
+}
+function dayPickRow(iso, onPick){
+  const t=todayISO(), y=addDays(t,-1);
+  const di=h("input",{type:"date",max:t,value:iso,"aria-label":"Pick a date",class:"pd-date"});
+  di.addEventListener("change",()=>{ if(di.value) onPick(di.value); });
+  return h("div",{class:"pd-row",role:"group","aria-label":"Which day?"},
+    h("button",{type:"button",class:"fchip"+(iso===t?" on":""),"aria-pressed":String(iso===t),onclick:()=>onPick(t)},"Today"),
+    h("button",{type:"button",class:"fchip"+(iso===y?" on":""),"aria-pressed":String(iso===y),onclick:()=>onPick(y)},"Yesterday"),
+    di);
+}
+function openPaste(iso0, text0){
+  let iso=iso0||todayISO(), list=null, sel=[];
+  const dayBox=h("div",{}), ta=h("textarea",{rows:"9",placeholder:"Paste or type your notes for the day, e.g.\n08:15 Woke up, Esomeprazole 20mg, weight 11st 10lb, tummy pain 5/10\n09:45 Porridge and a flat white\n…"});
+  ta.value=text0||""; try{ if(!ta.value) ta.value=localStorage.getItem("hl-paste")||""; }catch(e){}
+  ta.addEventListener("input",()=>{ try{ localStorage.setItem("hl-paste",ta.value); }catch(e){} });
+  const st=h("div",{"aria-live":"polite"}), res=h("div",{}), go=h("button",{class:"btn ai",type:"button",disabled:!S.canWrite||!S.sample||null},"✦ Sort it out for me");
+  const drawDay=()=>dayBox.replaceChildren(h("p",{class:"flabel"},"Which day is this for?"), dayPickRow(iso,v=>{ iso=v; drawDay(); if(list) drawRes(); }));
+  const drawRes=()=>{
+    const fresh=list.map(x=>!pasteDup(iso,x));
+    const rows=list.map((x,i)=>{ const [ic,col]=PASTE_LOOK[x.type]||PASTE_LOOK.note, [a,b]=pasteLabel(x);
+      const cb=h("input",{type:"checkbox","aria-label":"Add "+a}); cb.checked=sel[i]&&fresh[i]; cb.addEventListener("change",()=>{ sel[i]=cb.checked; foot(); });
+      return h("label",{class:"pl-row"+(fresh[i]?"":" dup")}, cb, h("span",{class:"pl-t"},x.time||"–"), h("span",{class:"pl-ic","aria-hidden":"true"},ic), h("span",{class:"pl-x"}, h("b",{},a), b||!fresh[i]? h("small",{}, [b, fresh[i]?"":"already in your log"].filter(Boolean).join(" · ")) : null)); });
+    const save=h("button",{class:"btn primary",type:"button"});
+    const tot=h("p",{class:"pl-tot"});
+    const foot=()=>{ const pick=list.filter((x,i)=>sel[i]&&fresh[i]); save.textContent="Add "+pick.length+" thing"+(pick.length===1?"":"s")+" to "+(iso===todayISO()?"today":iso===addDays(todayISO(),-1)?"yesterday":longDate(iso)); save.disabled=!pick.length||null;
+      const n=sumNut([...pick.filter(x=>x.type==="meal").flatMap(x=>x.items), ...pick.filter(x=>x.type==="drink").map(x=>x.n||{})]), u=pick.reduce((a,x)=>a+(x.units||0),0);
+      tot.textContent= n.kcal? "Adds up to about "+Math.round(n.kcal)+" kcal · fat "+Math.round(n.fat||0)+"g (sat fat "+Math.round(n.satfat||0)+"g) · sugar "+Math.round(n.sugar||0)+"g · protein "+Math.round(n.protein||0)+"g"+(u? " · "+Math.round(u*10)/10+" units of alcohol" : "") : ""; };
+    save.addEventListener("click", async()=>{ save.disabled=true; const pick=list.filter((x,i)=>sel[i]&&fresh[i]); const ok=await pasteSave(iso,pick);
+      if(ok){ try{ localStorage.removeItem("hl-paste"); }catch(e){} closeSheet(); toast(pick.length+" things added"); S.selDay=iso; if(iso!==todayISO()) openDay(iso); } else save.disabled=false; });
+    foot();
+    res.replaceChildren(h("p",{class:"flabel"},"Check it over, untick anything that's wrong"), h("div",{class:"pl-list"}, ...rows), tot, save,
+      h("p",{class:"fineprint"},"Food numbers are Dr Quackers' estimates unless you gave your own. You can edit anything afterwards in the diary."));
+  };
+  go.addEventListener("click", async()=>{
+    const text=ta.value.trim(); if(text.length<4){ ta.focus(); return; }
+    go.disabled=true; res.replaceChildren(); st.replaceChildren(duckSay("Reading your notes and working out the food. This takes about 30 seconds for a full day…","think"));
+    try{
+      const r=await S.sample.json(pastePrompt(text,iso),{modelTier:"complex"});
+      list=pasteClean(r); sel=list.map(()=>true);
+      if(!list.length) throw new Error("nothing");
+      st.replaceChildren(duckSay("Found "+list.length+" things."+(r&&r.note? " "+String(r.note).slice(0,240) : "")));
+      drawRes();
+    }catch(e){ st.replaceChildren(h("p",{class:"none"},"Sorry, I couldn't sort that out. Check your connection and try again, or add things one at a time.")); }
+    go.disabled=false; go.textContent="✦ Sort it out again";
+  });
+  drawDay();
+  openSheet("📋 Paste my list",[h("p",{class:"none"},"Keep notes through the day in any app, then paste them here. Dr Quackers sorts them into food, drinks, medicines, symptoms and weight, with the calories worked out."), dayBox, ta, go, st, res]);
 }
 
 async function scanBigEvents(){
@@ -4654,6 +4810,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-07.1", items:[["📋","Paste my list: keep notes through the day in any app, paste them in, and Dr Quackers logs it all. That's food with calories worked out, drinks and alcohol units, medicines, supplements, symptoms with scores, and weight. You check it over before anything is added."],["📅","Logging for another day is easier. The + button has Today, Yesterday and a date picker, and the diary has Add to this day and Paste a list buttons."],["🧈","Saturated fat is now tracked, with the NHS daily maximum shown."]]},
  {v:"2026-11-05.9", items:[["🤓","In Mind mode Dr Quackers puts his reading glasses on. He pushes them up and scratches his beak while he thinks."],["📖","New My mental health history: your mood and stress over 90 days, low patches, what lifts or drags your mood, questionnaire scores and notes of your Mind mode chats. There's a Summary for my GP button too."],["✅","The daily check-in now asks what's affecting your mood. On a low day it offers a calm chat in Mind mode."],["📝","After a Mind mode chat, a short note (never the whole chat) is kept in your history. You can switch this off."]]},
  {v:"2026-11-05.8", items:[["🧠","New Mind mode in the Quackers tab: a calm space to talk things through. No jokes, one question at a time."],["🧩","Dr Quackers can take you through self-help skills from CBT: untangling a thought, thinking traps, planning small steps when you're low, the worry tree, sleep tips and being kinder to yourself."],["🫁","Breathe with me and 5-4-3-2-1 grounding buttons for anxious moments."],["🆘","Help now is always one tap away, with crisis numbers and the people in your plan. If you mention not being safe, it shows straight away in any chat."]]},
  {v:"2026-11-05.7", items:[["🩺","New care packs in Settings, under My conditions. Switch one on for each condition you live with: Mental health and Crohn's and colitis to start, with more coming."],["✅","Each pack adds a few quick taps to Today's check-in, so it's still one check-in a day."],["📈","Crohn's gets a home flare score, like the one IBD teams use. Mental health gets the 2-minute monthly mood and anxiety questionnaires GPs use."],["⚠️","Dr Quackers warns you early when a flare or a low patch looks like it's building, and points you to your own plan and the right help."]]},
@@ -5149,7 +5306,9 @@ $("#ciMore").addEventListener("click",()=>openDay(todayISO()));
 $("#ciToggle").addEventListener("click",()=>{ CI.open=!CI.open; renderCheckin(); if(CI.open) $("#checkin").scrollIntoView({block:"start",behavior:"smooth"}); });
 $("#hhGear").addEventListener("click",()=>$("#gearBtn").click());
 $("#hhLock").addEventListener("click",()=>$("#lockBtn").click());
-$("#fab").addEventListener("click",openAddSheet);
+$("#fab").addEventListener("click",()=>openAddSheet());
+$("#dayAddBtn").addEventListener("click",()=>openAddSheet(S.selDay||todayISO()));
+$("#dayPasteBtn").addEventListener("click",()=>openPaste(S.selDay||todayISO()));
 $("#recPrep").addEventListener("click",()=>show("prepare"));
 $("#tlFind").addEventListener("click",scanBigEvents);
 $("#tlOpen").addEventListener("click",()=>show("timeline"));
