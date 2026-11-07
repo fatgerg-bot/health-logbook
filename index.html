@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-07.1">
+<meta name="app-version" content="2026-11-07.2">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -208,6 +208,19 @@ body.mind #v-ask .dq .dq-specs{display:inline}
 .pl-row:first-child{border-top:0}.pl-row input{width:18px;height:18px;margin-top:2px}.pl-row.dup{opacity:.55}
 .pl-t{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.9rem}.pl-x{display:flex;flex-direction:column;gap:1px}.pl-x b{font-size:.93rem;font-weight:700}.pl-x small{color:var(--muted);font-size:.82rem}
 .pl-tot{font-weight:700;margin:10px 0}
+.rx-body{display:flex;flex-direction:column;gap:8px}.rx-body .fchip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.rx-sum{margin:6px 0 2px;font-size:1rem}
+.rx-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.rx-row{display:grid;grid-template-columns:26px 1fr 64px auto;gap:8px;align-items:center;padding:9px 10px;border-top:1px solid var(--line)}.rx-row:first-child{border-top:0}
+.rx-ic{font-size:1.2rem}.rx-x{display:flex;flex-direction:column;min-width:0}.rx-x b{font-size:.93rem}.rx-x small{color:var(--muted);font-size:.8rem}
+.rx-bar{position:relative;height:10px;border-radius:99px;background:var(--line);overflow:visible}.rx-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:#C98A2E}.rx-bar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.7}
+.rb{font-size:.74rem;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap;text-align:center}
+.rb-strong{background:#F6D9D5;color:#8A1F16}.rb-poss{background:#FBE9CC;color:#7A4B0C}.rb-unc{background:var(--line);color:var(--muted)}.rb-safe{background:#DCEFE6;color:#1E6B57}.rb-few{background:transparent;color:var(--muted);border:1px dashed var(--line)}
+@media (max-width:420px){ .rx-row{grid-template-columns:26px 1fr auto} .rx-bar{grid-column:2 / -1;grid-row:2} }
+.rx-sg{border-left:4px solid #C98A2E;padding:4px 0 4px 10px;margin:6px 0}.rx-sg p{margin:0 0 6px}
+.ft-card{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:6px 0;background:var(--surface)}.ft-card.done{border-color:#7FB59F}
+.ft-h{display:flex;justify-content:space-between;gap:8px;margin:0 0 4px}.ft-h small{color:var(--muted)}.ft-card p{margin:0 0 6px}
+.rx-ai{background:var(--ai-soft,#ECE8F6);border-radius:14px;padding:10px 14px}
 .composer{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px}
 .composer textarea{min-height:64px;background:transparent;border:0;padding:4px}
 .composer textarea:focus-visible{outline:none}
@@ -2022,6 +2035,7 @@ function buildContext(opts){
   const pats=afterEatingPatterns(60); if(pats.length) lines.push("\nPATTERNS FOUND BY THE APP: "+pats.map(p=>p.title+" came within 3 hours of eating on "+p.after+" of "+p.n+" logged occasions (average "+p.avg+" min after)").join("; ")+".");
   if(!opts.noCases){ const ct=casesContext(); if(ct) lines.push(ct); }
   { const pt=packsSummary(); if(pt) lines.push(pt); }
+  { const rt=reactContext(); if(rt) lines.push(rt); }
   if(lines.length<2) lines.push("(The logbook is empty so far.)");
   const txt=lines.join("\n");
   return txt.length>80000? txt.slice(0,80000)+"\n(…logbook cut short)" : txt;
@@ -3313,6 +3327,7 @@ function dqFeeling(){
 function dqThingsList(){
   const t=todayISO(), soon=addDays(t,3), fort=addDays(t,14), out=[];
   for(const w of packWarnings()) out.push({kind:"pack "+w.level, pack:w.pack, q:w.q, e:{id:"pack-"+w.pack+"-"+w.level}, text:w.text});
+  for(const x of reactThings()) out.push(x);
   for(const k of packSuggestions().slice(0,1)) out.push({kind:"pack suggest", pack:k, e:{id:"packsug-"+k}, text:"I've spotted "+PACKS[k].spot+" in your records. Want the care pack for it? It adds a few quick taps to your check-in, early warnings and a plan."});
   for(const d of ofKind("due").filter(e=>e.status!=="done"&&e.date&&e.date<=soon).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2))
     out.push({kind:"due", e:d, text: d.date<t? d.title+" is overdue." : d.title+" is due "+dqWhen(d.date)+"."});
@@ -3338,12 +3353,12 @@ function renderThings(){
   if(box._key!==key){
     box._key=key;
     const cards=items.map(x=>{
-      const icon= x.pack? "M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z" : x.kind==="due"? "M12 13m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0M12 9v4l2 2" : "M4 5h16v15H4zM8 3v4M16 3v4M4 10h16";
+      const icon= x.react? "M7 3v8a2 2 0 0 0 2 2v8M9 3v6M5 3v6M17 3c-2 2-2 6 0 8v10" : x.pack? "M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z" : x.kind==="due"? "M12 13m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0M12 9v4l2 2" : "M4 5h16v15H4zM8 3v4M16 3v4M4 10h16";
       const txt=h("p",{class:"th-t"},x.text); if(!x.pack) quackify(txt);
       return h("article",{class:"th-card "+x.kind},
         h("div",{class:"th-row"}, h("span",{class:"th-ic","aria-hidden":"true"}, svgIcon(icon)), txt),
         h("div",{class:"row"},
-          ...(x.pack? thingsPackBtns(x) : [
+          ...(x.react? thingsReactBtns(x) : x.pack? thingsPackBtns(x) : [
           x.kind==="due"? h("button",{class:"btn small primary",type:"button",disabled:!S.canWrite||null,onclick:()=>markDone(x.e)},"Done") : h("button",{class:"btn small ai",type:"button",onclick:()=>{ $("#prepAppt").value=x.e.id; show("prepare"); }}, x.e.prep?"See my brief":"Get ready"),
           h("button",{class:"btn small ghost",type:"button",onclick:()=>openEntry(x.e)},"Details")])));
     });
@@ -3412,6 +3427,7 @@ function renderTiles(){
     hp.pain? ["Pain map","pain","r",()=>openPain(todayISO())] : null,
     packsOn().includes("mental")||mindLogAll().length? ["My mind","mind","k",()=>openMindHistory()] : null,
     ["My illnesses","case","r",()=>openCases(),casesBadge()],
+    (trk().food||trk().log)? ["Food and symptoms","food","g",()=>openReactions()] : null,
     ["Blood tests","tests","a",()=>recFilter("result"),lowTests],
     ["Medicines","meds","p",()=>recFilter("medication")],
     ["Get ready","prep","p",()=>show("prepare")],
@@ -3983,6 +3999,245 @@ function openPaste(iso0, text0){
   openSheet("📋 Paste my list",[h("p",{class:"none"},"Keep notes through the day in any app, then paste them here. Dr Quackers sorts them into food, drinks, medicines, symptoms and weight, with the calories worked out."), dayBox, ta, go, st, res]);
 }
 
+/* ---------- Food and symptoms: which kinds of food are followed by which symptoms, refined as you go ---------- */
+const FTAGS=[
+  ["fatty","🧈","Fatty food",/\b(fried|chips|fries|fry[- ]?up|full english|bacon|sausage|burger|cheeseburger|pizza|cheese|cream|butter|pastry|pie|kebab|doughnut|donut|crisps|takeaway|mayo|mayonnaise|gravy|lasagne|carbonara|korma|pork belly|salami|pepperoni|hobnob|kitkat|chocolate|ice cream|cake|croissant)\b/i],
+  ["fried","🍟","Fried food",/\b(fried|chips|fries|fry[- ]?up|battered|crispy|tempura|kfc|nuggets?|hash browns?|doughnut|donut|onion rings|scampi|spring rolls?)\b/i],
+  ["big","🍽️","Big meal",null],
+  ["late","🌙","Late eating (after 8pm)",null],
+  ["alcohol","🍺","Alcohol",/\b(beer|lager|ale|stout|cider|wine|prosecco|champagne|vodka|gin|whisky|whiskey|rum|tequila|brandy|shots?|pints?|kronenbourg|stella|fosters|carling|peroni|guinness|bacardi|baileys|cocktail|martini)\b/i],
+  ["caffeine","☕","Caffeine",/\b(coffee|latte|flat white|cappuccino|espresso|americano|mocha|macchiato|tea|coke|cola|pepsi|red bull|monster|relentless|energy drink|pre[- ]?workout)\b/i],
+  ["fizzy","🫧","Fizzy drinks",/\b(fizzy|coke|cola|pepsi|lemonade|rio|tango|fanta|sprite|7up|irn[- ]?bru|sparkling|soda|tonic|red bull|monster|beer|lager|cider|prosecco|champagne)\b/i],
+  ["spicy","🌶️","Spicy food",/\b(curry|chilli|chili|spicy|hot sauce|peri[- ]?peri|nando'?s|jalfrezi|vindaloo|madras|phall|sriracha|salsa|jalape[nñ]o|cajun|tikka|hot wings)\b/i],
+  ["chocolate","🍫","Chocolate",/\b(chocolate|kitkat|kit kat|twix|mars|snickers|dairy milk|brownie|cocoa|hot chocolate|maltesers|buttons|galaxy|toblerone)\b/i],
+  ["sugary","🍬","Very sugary",/\b(sweets|haribo|cake|doughnut|donut|biscuits?|hobnobs?|kitkat|ice cream|dessert|pudding|sugar|syrup|jam|fizzy|rio|lemonade|cola|coke)\b/i],
+  ["dairy","🥛","Dairy",/\b(milk|cheese|cheeseburger|yogh?urt|cream|ice cream|butter|latte|flat white|cappuccino|milkshake|custard|mocha|macchiato|paneer|brie|cheddar|mozzarella)\b/i],
+  ["wheat","🍞","Wheat (bread, pasta)",/\b(bread|toast|crumpets?|pasta|spaghetti|pizza|sandwich|wrap|bagel|croissant|biscuits?|hobnobs?|cake|cereal|weetabix|pies?|pastry|bun|burger|cheeseburger|doughnut|donut|crackers?|noodles?|naan|pitta|baguette|muffin|scone)\b/i],
+  ["tomato","🍅","Tomato or citrus",/\b(tomato|tomatoes|ketchup|pasta sauce|bolognese|marinara|pizza|orange|lemon|lime|grapefruit|citrus|tropical|juice|salsa)\b/i],
+  ["onion","🧅","Onion or garlic",/\b(onions?|garlic|leeks?|shallots?|spring onion)\b/i],
+  ["beans","🫘","Beans and pulses",/\b(beans|lentils?|chickpeas?|hummus|houmous|dhal|dal|peas)\b/i],
+  ["processed","🥓","Processed meat",/\b(bacon|sausages?|ham|salami|pepperoni|hot ?dogs?|burger|cheeseburger|nuggets?|chorizo|spam|corned beef|kebab)\b/i]
+];
+const FTAG=Object.fromEntries(FTAGS.map(t=>[t[0],t]));
+const FT_TRY_OK=new Set(["dairy","wheat","onion","beans","tomato","caffeine","spicy","chocolate","fizzy"]); /* safe to try in a normal portion; never suggest provoking with fatty, fried, big, late or alcohol */
+function symKey(e){
+  const t=String(e.title||"").toLowerCase();
+  if(Array.isArray(e.areas)&&e.areas.length&&!/heartburn|reflux/.test(t)) return "pain";
+  if(/heartburn|reflux|acid/.test(t)) return "heartburn";
+  if(/burp|belch/.test(t)) return "burping";
+  if(/bloat/.test(t)) return "bloating";
+  if(/nause|sick|vomit/.test(t)) return "nausea";
+  if(/diarr|loose|runs\b/.test(t)) return "diarrhoea";
+  if(/wind|gas|fart|flatul/.test(t)) return "wind";
+  if(/hiccup/.test(t)) return "hiccups";
+  if(/pain|ache|cramp|sore/.test(t)) return "pain";
+  return t.replace(/\s+\d+\/10$/,"").trim()||"symptom";
+}
+const SYM_LBL={pain:"Pain",heartburn:"Heartburn or reflux",burping:"Burping",bloating:"Bloating",nausea:"Feeling sick",diarrhoea:"Diarrhoea",wind:"Wind",hiccups:"Hiccups"};
+function symLbl(k){ return SYM_LBL[k]||k.charAt(0).toUpperCase()+k.slice(1); }
+function symWinDefault(k){ return ["bloating","diarrhoea","wind"].includes(k)? 8 : 4; }
+function itemText(x){ return [x.title, x.desc, ...(x.items||[]).map(i=>i.name)].filter(Boolean).join(" "); }
+function mealTags(x){
+  if(Array.isArray(x.ftags)) return new Set(x.ftags.filter(t=>FTAG[t]));
+  const txt=itemText(x), out=new Set();
+  for(const [id,, ,rx] of FTAGS) if(rx&&rx.test(txt)) out.add(id);
+  const n=x.n||null;
+  if(n&&(n.fat!=null||n.satfat!=null)){ if((+n.fat||0)>=20||(+n.satfat||0)>=8) out.add("fatty"); else if(x.type==="meal"&&n.fat!=null) out.delete("fatty"); }
+  if(n&&(+n.sugar||0)>=30) out.add("sugary");
+  if(x.type==="drink"&&(+x.units||0)>0) out.add("alcohol");
+  if(x.type==="drink"&&/\bmilk\b/i.test(txt)&&!/oat|soya|almond|lactose/i.test(txt)) out.add("dairy");
+  return out;
+}
+function dayTracked(iso){
+  const d=(S.days||{})[iso]||{};
+  return !!d.feel || ofKind("symptom").some(e=>e.date===iso) || dayLog(iso).some(l=>l.type==="note"&&/no (pain|symptoms?)|symptom[- ]?free|felt (fine|good|ok)/i.test(l.title||""));
+}
+/* eating occasions: meals and drinks within 30 minutes merged */
+function eatOccasions(days){
+  const from=addDays(todayISO(),-(days||120)), occ=[];
+  for(const iso of Object.keys(S.days||{}).filter(k=>k>=from).sort()){
+    if(!dayTracked(iso)) continue;
+    const L=dayLog(iso).filter(x=>(x.type==="meal"||x.type==="drink")&&x.time&&!/^water$/i.test(x.title||"")).sort((a,b)=>a.time.localeCompare(b.time));
+    for(const x of L){
+      const m=hm2m(x.time), last=occ[occ.length-1];
+      const tags=mealTags(x), kcal=x.n&&+x.n.kcal||0;
+      if(last&&last.iso===iso&&m-last.m<=30){ for(const t of tags) last.tags.add(t); last.kcal+=kcal; last.items.push(x); continue; }
+      occ.push({iso, m, time:x.time, tags:new Set(tags), kcal, items:[x]});
+    }
+  }
+  for(const o of occ){ if(o.kcal>=800) o.tags.add("big"); if(o.m>=20*60) o.tags.add("late"); }
+  return occ;
+}
+function symEvents(key){ return ofKind("symptom").filter(e=>e.date&&e.time&&symKey(e)===key).map(e=>({iso:e.date,m:hm2m(e.time),sev:+e.severity||null,e})); }
+function absMin(iso,m){ return daysBetween("2020-01-01",iso)*1440+m; }
+function reactStats(key, winH){
+  const occ=eatOccasions(120), ev=symEvents(key).map(x=>({...x,t:absMin(x.iso,x.m)})).sort((a,b)=>a.t-b.t);
+  const W=winH*60;
+  /* each time the symptom starts or gets worse, link it to the last thing eaten before it (within the window) */
+  for(const o of occ){ o.t=absMin(o.iso,o.m); o.react=false; }
+  for(const x of ev){
+    const prev=ev.filter(y=>y!==x&&y.t<x.t&&y.t>=x.t-120), prevSev=prev.length? Math.max(...prev.map(y=>y.sev||0)) : 0;
+    if(prev.length&&!(x.sev&&x.sev>prevSev)) continue;
+    let best=null; for(const o of occ) if(o.t<x.t&&x.t-o.t<=W&&(!best||o.t>best.t)) best=o;
+    if(best) best.react=true;
+  }
+  const n=occ.length, base=n? occ.filter(o=>o.react).length/n : 0;
+  const tags=FTAGS.map(([id,ic,l])=>{
+    const w=occ.filter(o=>o.tags.has(id)), wo=occ.filter(o=>!o.tags.has(id));
+    const a=w.length? w.filter(o=>o.react).length/w.length : 0, b=wo.length? wo.filter(o=>o.react).length/wo.length : 0;
+    const hit=w.filter(o=>o.react).length;
+    let band="none", rank=0;
+    if(w.length<3) band="few";
+    else if(a-b>=0.3&&a>=0.5&&w.length>=4){ band="strong"; rank=3; }
+    else if(a-b>=0.15){ band="possible"; rank=2; }
+    else if(a<=b+0.05&&w.length>=4){ band="safe"; rank=0; }
+    else { band="unclear"; rank=1; }
+    return {id,ic,l,n:w.length,hit,a,b,band,rank};
+  });
+  /* untangle foods that are usually eaten together: check each link again among meals without the stronger links */
+  const cand=tags.filter(t=>t.band==="strong"||t.band==="possible").sort((x,y)=>(y.a-y.b)*Math.sqrt(y.n)-(x.a-x.b)*Math.sqrt(x.n)), leaders=[];
+  for(const t of cand){
+    if(!leaders.length){ leaders.push(t); continue; }
+    const rest=occ.filter(o=>!leaders.some(L=>o.tags.has(L.id)));
+    const w=rest.filter(o=>o.tags.has(t.id)), wo=rest.filter(o=>!o.tags.has(t.id));
+    if(w.length<3){ t.band="tangled"; t.rank=1; t.with=leaders.filter(L=>occ.some(o=>o.tags.has(L.id)&&o.tags.has(t.id))).map(L=>L.l.toLowerCase()).join(" or ")||leaders[0].l.toLowerCase(); continue; }
+    const a=w.filter(o=>o.react).length/w.length, b=wo.length? wo.filter(o=>o.react).length/wo.length : 0;
+    if(a-b>=0.3&&a>=0.5&&w.length>=4){ t.band="strong"; t.rank=3; leaders.push(t); }
+    else if(a-b>=0.15){ t.band="possible"; t.rank=2; leaders.push(t); }
+    else { t.band="tangled"; t.rank=1; t.with=leaders.map(L=>L.l.toLowerCase()).join(" or "); }
+  }
+  return {key, winH, occ, n, base, reacted:occ.filter(o=>o.react).length, tags};
+}
+const RB={tangled:["Can't tell yet","rb-unc"],strong:["Strong link","rb-strong"],possible:["Possible link","rb-poss"],unclear:["Unclear","rb-unc"],safe:["Doesn't look like a trigger","rb-safe"],few:["Not enough yet","rb-few"]};
+function symKeysLogged(){ const c={}; for(const e of ofKind("symptom")) if(e.date&&e.time){ const k=symKey(e); c[k]=(c[k]||0)+1; } return Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,n])=>({k,n})); }
+function foodTests(){ const t=(S.profile||{}).foodTests; return Array.isArray(t)? t : []; }
+function testResult(t){
+  const st=reactStats(t.sym, t.win||symWinDefault(t.sym)), end=addDays(t.start,t.days);
+  const during=st.occ.filter(o=>o.iso>=t.start&&o.iso<end), before=st.occ.filter(o=>o.iso<t.start);
+  if(t.mode==="avoid"){
+    const slips=during.filter(o=>o.tags.has(t.tag)).length;
+    const rd=during.length? during.filter(o=>o.react).length/during.length : null, rb=before.length? before.filter(o=>o.react).length/before.length : null;
+    return {during:during.length, slips, rd, rb, hitD:during.filter(o=>o.react).length, hitB:before.filter(o=>o.react).length, nb:before.length};
+  }
+  const tried=during.filter(o=>o.tags.has(t.tag));
+  return {tried:tried.length, hit:tried.filter(o=>o.react).length};
+}
+function testDay(t){ return Math.min(t.days, daysBetween(t.start,todayISO())+1); }
+async function testStart(tag,mode,sym,win){
+  const days= mode==="avoid"? 10 : 5;
+  const list=foodTests().filter(t=>!(t.tag===tag&&!t.done));
+  await saveProfilePatch({foodTests:[...list,{id:"ft"+Date.now(),tag,mode,sym,win,start:todayISO(),days}]});
+  toast(mode==="avoid"? "Test started: cut down "+FTAG[tag][2].toLowerCase()+" for "+days+" days" : "Test started: try "+FTAG[tag][2].toLowerCase()+" over "+days+" days");
+}
+async function testEnd(id){ await saveProfilePatch({foodTests:foodTests().map(t=>t.id===id? {...t,done:todayISO()} : t)}); }
+function testCard(t, refresh){
+  const r=testResult(t), d=testDay(t), fin=d>=t.days||t.done, nm=FTAG[t.tag][2].toLowerCase();
+  let msg;
+  if(t.mode==="avoid"){
+    const pct=x=>x==null? "–" : Math.round(x*100)+"%";
+    msg= r.during? symLbl(t.sym)+" after "+r.hitD+" of "+r.during+" meals since you started ("+pct(r.rd)+"), compared with "+r.hitB+" of "+r.nb+" before ("+pct(r.rb)+")."+(r.slips?" "+r.slips+" meal"+(r.slips>1?"s":"")+" still had "+nm+".":"") : "Log your meals as normal and Dr Quackers keeps score.";
+    if(fin&&r.during>=5&&r.rb!=null&&r.rd!=null) msg+= r.rd<=r.rb-0.25? " That's a clear drop: "+nm+" looks like a real trigger. Worth telling your GP." : r.rd<=r.rb-0.1? " A small drop. It may play a part, alongside other things." : " No real change, so "+nm+" probably isn't the main cause.";
+  } else {
+    msg= r.tried? symLbl(t.sym)+" followed "+r.hit+" of "+r.tried+" times you had "+nm+"." : "Have a normal portion of "+nm+" on a day you feel OK, and log it.";
+    if(fin&&r.tried>=2) msg+= r.hit/r.tried>=0.5? " That looks like a trigger for you." : r.hit===0? " No reaction, so it looks fine for you." : " Mixed: keep an eye on it.";
+  }
+  return h("div",{class:"ft-card"+(fin?" done":"")},
+    h("p",{class:"ft-h"}, h("b",{}, FTAG[t.tag][1]+" "+(t.mode==="avoid"?"Cutting down ":"Trying ")+nm), h("small",{}, fin? "Finished" : "Day "+d+" of "+t.days)),
+    h("p",{},msg),
+    h("button",{class:"btn small ghost",type:"button",disabled:!S.canWrite||null,onclick:async()=>{ if(fin){ await saveProfilePatch({foodTests:foodTests().filter(x=>x.id!==t.id)}); } else await testEnd(t.id); refresh(); }}, fin? "Clear" : "Stop the test"));
+}
+function reactSuggest(st){
+  const out=[], active=new Set(foodTests().filter(t=>!t.done&&testDay(t)<t.days).map(t=>t.tag));
+  const T=st.tags.filter(t=>!active.has(t.id));
+  for(const t of T.filter(t=>t.band==="strong"||t.band==="possible").sort((a,b)=>b.rank-a.rank||(b.a-b.b)*Math.sqrt(b.n)-(a.a-a.b)*Math.sqrt(a.n)).slice(0,2))
+    out.push({tag:t.id, mode:"avoid", text:(t.band==="strong"?"Confirm it: ":"Test it: ")+"cut down "+t.l.toLowerCase()+" for 10 days and see if "+symLbl(st.key).toLowerCase()+" after meals drops. Change only this one thing."});
+  for(const t of T.filter(t=>t.band==="few"&&FT_TRY_OK.has(t.id)).slice(0,2))
+    out.push({tag:t.id, mode:"try", text:"Not enough data on "+t.l.toLowerCase()+" yet. If you'd normally have it, have a normal portion on a day you feel OK, one new thing at a time, and log it."});
+  return out;
+}
+function reactContext(){
+  const ks=symKeysLogged().slice(0,3); if(!ks.length) return "";
+  const L=[];
+  for(const {k} of ks){ const st=reactStats(k,symWinDefault(k)); if(st.n<5) continue;
+    const links=st.tags.filter(t=>t.band==="strong"||t.band==="possible").map(t=>t.l.toLowerCase()+" ("+(t.band==="strong"?"strong":"possible")+": "+t.hit+" of "+t.n+" meals vs "+Math.round(t.b*100)+"% otherwise)");
+    const safe=st.tags.filter(t=>t.band==="safe").map(t=>t.l.toLowerCase()), tg=st.tags.filter(t=>t.band==="tangled").map(t=>t.l.toLowerCase()+" (usually eaten with "+t.with+")");
+    L.push("- "+symLbl(k)+" within "+st.winH+"h of eating: after "+st.reacted+" of "+st.n+" eating times."+(links.length?" Linked to: "+links.join("; ")+".":"")+(safe.length?" Not linked: "+safe.join(", ")+".":"")+(tg.length?" Can't separate yet: "+tg.join("; ")+".":"")); }
+  for(const t of foodTests()){ const r=testResult(t); L.push("- food test: "+(t.mode==="avoid"?"cutting down ":"trying ")+FTAG[t.tag][2].toLowerCase()+" from "+fmtDate(t.start)+" ("+(t.done||testDay(t)>=t.days?"finished":"day "+testDay(t)+" of "+t.days)+")"+(t.mode==="avoid"&&r.during? ": "+symLbl(t.sym).toLowerCase()+" after "+r.hitD+"/"+r.during+" meals vs "+r.hitB+"/"+r.nb+" before" : t.mode==="try"&&r.tried? ": reacted "+r.hit+"/"+r.tried : "")); }
+  return L.length? "\nFOOD AND SYMPTOMS (worked out by the app from their meal and symptom times; counts are small, so treat as clues, not proof):\n"+L.join("\n") : "";
+}
+async function reactAITag(btn, refresh){
+  const from=addDays(todayISO(),-120), todo=[];
+  for(const iso of Object.keys(S.days||{}).filter(k=>k>=from)) for(const x of dayLog(iso)) if((x.type==="meal"||x.type==="drink")&&!Array.isArray(x.ftags)&&itemText(x).trim()) todo.push({iso,id:x.id,txt:(x.type==="drink"?"drink: ":"")+itemText(x).slice(0,200)+(x.n&&x.n.fat!=null?" [fat "+Math.round(x.n.fat)+"g, sat fat "+Math.round(x.n.satfat||0)+"g, "+Math.round(x.n.kcal||0)+" kcal]":"")});
+  if(!todo.length){ toast("All your meals are already checked."); return; }
+  btn.disabled=true; const old=btn.textContent; btn.textContent="Dr Quackers is checking "+Math.min(todo.length,80)+" meals…";
+  try{
+    const batch=todo.slice(0,80);
+    const prompt="Tag each UK meal or drink with the food types it contains, choosing ONLY from these ids: "+FTAGS.filter(t=>t[3]).map(t=>t[0]+" ("+t[2]+")").join(", ")+". Rules: fatty = a fairly high-fat meal overall (roughly 20g fat or more, or rich/creamy/fried/pastry/cheesy food), not just a dab of butter; dairy includes milk in coffee; wheat includes most bread, biscuits, cakes, pizza and pasta; caffeine includes coffee, tea, cola and energy drinks. Return JSON only: {\"tags\":{\"<n>\":[\"id\",...]}} using the number before each line.\n\n"+batch.map((x,i)=>i+". "+x.txt).join("\n");
+    const r=await S.sample.json(prompt,{modelTier:"default"}); const T=(r&&r.tags)||{};
+    const byDay={};
+    batch.forEach((x,i)=>{ const v=T[i]||T[String(i)]; if(Array.isArray(v)) (byDay[x.iso]=byDay[x.iso]||{})[x.id]=v.filter(t=>FTAG[t]); });
+    for(const [iso,map] of Object.entries(byDay)){ const log=dayLog(iso).map(x=>map[x.id]? {...x,ftags:map[x.id]} : x); await saveDay(iso,{log}); }
+    toast("Checked "+Object.values(byDay).reduce((a,m)=>a+Object.keys(m).length,0)+" meals"+(todo.length>80?". Tap again for the rest":""));
+  }catch(e){ toast("Couldn't check the meals just now. Try again later."); }
+  btn.disabled=false; btn.textContent=old; refresh();
+}
+function openReactions(key0){
+  const ks=symKeysLogged();
+  let key=key0||(ks[0]&&ks[0].k)||"pain", win=symWinDefault(key);
+  const body=h("div",{class:"rx-body"});
+  const draw=()=>{
+    const st=reactStats(key,win);
+    const tests=foodTests().filter(t=>t.sym===key||!ks.some(x=>x.k===t.sym));
+    const shown=st.tags.filter(t=>t.n>0).sort((a,b)=>b.rank-a.rank||(b.a-b.b)-(a.a-a.b)||b.n-a.n);
+    const sugg=reactSuggest(st);
+    const aiBox=h("div",{});
+    const aiBtn=h("button",{class:"btn ai",type:"button",disabled:(!S.sample||st.n<3)||null},"✦ Ask Dr Quackers what to try next");
+    aiBtn.addEventListener("click",async()=>{
+      aiBtn.disabled=true; aiBox.replaceChildren(duckSay("Looking at your meals and "+symLbl(key).toLowerCase()+"…","think"));
+      const conds=ofKind("condition").map(e=>e.title).join(", ")||"none", meds=ofKind("medication").filter(m=>m.status==="current").map(m=>m.title).join(", ")||"none";
+      const table=shown.map(t=>t.l+": "+t.hit+" of "+t.n+" eating times followed by "+symLbl(key).toLowerCase()+" (vs "+Math.round(t.b*100)+"% of other times) → "+RB[t.band][0]).join("\n");
+      const cases=(typeof casesContext==="function"? casesContext() : "").slice(0,2500);
+      const prompt="You are Dr Quackers, the health helper duck in this personal health logbook (an AI, not a doctor; don't write the word quack, the app adds it). Plain, warm UK English, short. Help the person work out which foods affect their "+symLbl(key).toLowerCase()+", by suggesting what to try next.\n\nThe app compared each time they ate or drank with whether "+symLbl(key).toLowerCase()+" came on (or got worse) within "+win+" hours, over the last 120 days ("+st.n+" eating times, "+st.reacted+" followed by it):\n"+table+"\n\nTheir conditions: "+conds+". Current medicines: "+meds+".\n"+cases+"\n\nGive: 1) one or two sentences on what the pattern suggests so far, with how sure (small numbers mean clues, not proof); 2) a 'Try next' list of 2-4 simple experiments, ONE change at a time, each with how long (usually 7-14 days) and what to log. Prefer cutting down a suspected trigger to confirm it. To learn about foods with too little data, suggest a normal portion on a good day. NEVER suggest deliberately eating a large, fatty, fried or alcohol-heavy meal to provoke symptoms, especially with suspected gallstones, pancreatitis, ulcers or inflammatory bowel disease, and never suggest cutting out whole food groups long-term without a GP or dietitian (mention a low FODMAP diet only as something to do with a dietitian); 3) which test or referral this pattern would support asking the GP about, if any; 4) red flags that need same-day help (severe or lasting pain, pain with fever or yellow skin or eyes, vomiting blood, black poo, difficulty swallowing, unexplained weight loss). Use '## ' headings and short bullets.";
+      try{ const r=await S.sample(prompt,{modelTier:"complex"}); const txt=(r&&r.text)||String(r||""); aiBox.replaceChildren(h("div",{class:"rx-ai"}, md(txt), replyActions(txt))); }
+      catch(e){ aiBox.replaceChildren(h("p",{class:"none"},"Dr Quackers couldn't answer just now. Try again in a minute.")); }
+      aiBtn.disabled=false;
+    });
+    const tagBtn=h("button",{class:"btn small ghost",type:"button",disabled:(!S.sample||!S.canWrite)||null},"✦ Let Dr Quackers check the food types");
+    tagBtn.addEventListener("click",()=>reactAITag(tagBtn,draw));
+    body.replaceChildren(...[
+      h("p",{class:"flabel"},"Which symptom?"),
+      h("div",{class:"chips wrapchips"}, ...(ks.length? ks.slice(0,8) : [{k:"pain",n:0}]).map(({k,n})=>h("button",{type:"button",class:"fchip"+(k===key?" on":""),"aria-pressed":String(k===key),onclick:()=>{ key=k; win=symWinDefault(k); draw(); }}, symLbl(k)+(n?" ("+n+")":"")))),
+      h("p",{class:"flabel"},"Counts if it starts or gets worse within"),
+      h("div",{class:"chips"}, ...[2,4,8].map(v=>h("button",{type:"button",class:"fchip"+(v===win?" on":""),"aria-pressed":String(v===win),onclick:()=>{ win=v; draw(); }}, v+" hours"))),
+      st.n? h("p",{class:"rx-sum"}, h("b",{}, symLbl(key)+" followed "+st.reacted+" of "+st.n), " times you ate or drank (last 120 days, on days you logged how you were). Each time it came on, it's linked to the last thing you had before it.") : h("p",{class:"none"},"No meals with times logged yet on days you also logged how you felt. Log meals and symptoms with times, or paste your list each day, and this fills in."),
+      tests.length? h("div",{class:"il-sec"}, h("b",{class:"il-h"},"🧪 Your food tests"), ...tests.map(t=>testCard(t,draw))) : null,
+      shown.length? h("div",{class:"rx-list"}, ...shown.map(t=>h("div",{class:"rx-row"},
+        h("span",{class:"rx-ic","aria-hidden":"true"},t.ic),
+        h("span",{class:"rx-x"}, h("b",{},t.l), h("small",{}, t.hit+" of "+t.n+" times"+(t.n>=3? " · "+Math.round(t.b*100)+"% without it" : "")+(t.band==="tangled"? " · usually with "+t.with : ""))),
+        h("span",{class:"rx-bar","aria-hidden":"true"}, h("i",{style:"width:"+Math.round(t.a*100)+"%"}), h("em",{style:"left:"+Math.round(t.b*100)+"%"})),
+        h("span",{class:"rb "+RB[t.band][1]}, RB[t.band][0])))) : null,
+      shown.length? h("p",{class:"fineprint"},"The bar shows how often it followed that food. The line marks how often it followed everything else. Links get firmer the more you log.") : null,
+      sugg.length? h("div",{class:"il-sec"}, h("b",{class:"il-h"},"🧪 What to try next"), ...sugg.map(s=>h("div",{class:"rx-sg"}, h("p",{}, FTAG[s.tag][1]+" "+s.text), h("button",{class:"btn small primary",type:"button",disabled:!S.canWrite||null,onclick:async()=>{ await testStart(s.tag,s.mode,key,win); draw(); }}, s.mode==="avoid"? "Start a 10-day test" : "Start a 5-day test")))) : null,
+      aiBtn, aiBox,
+      h("div",{class:"row"}, tagBtn),
+      h("p",{class:"fineprint"},"These are clues from your own diary, not a diagnosis. Don't cut out whole food groups for long without talking to your GP or a dietitian. Get help the same day for severe or lasting pain, pain with a fever or yellow skin, vomiting blood or black poo.")].filter(Boolean));
+  };
+  draw();
+  openSheet("🍽️ Food and symptoms",[body]);
+}
+
+function reactThings(){
+  const out=[]; let seen=[]; try{ seen=JSON.parse(localStorage.getItem("hl-rxseen")||"[]"); }catch(e){}
+  for(const t of foodTests()) if(!t.done&&testDay(t)>=t.days&&!seen.includes("t:"+t.id)) out.push({kind:"react", react:"test", sym:t.sym, sid:"t:"+t.id, e:{id:"rx-"+t.id}, text:"Your "+t.days+"-day food test is finished ("+(t.mode==="avoid"?"cutting down ":"trying ")+FTAG[t.tag][2].toLowerCase()+"). See what it showed."});
+  for(const {k} of symKeysLogged().slice(0,2)){ const st=reactStats(k,symWinDefault(k)); for(const t of st.tags.filter(t=>t.band==="strong")){ const sid="s:"+k+":"+t.id; if(seen.includes(sid)) continue;
+    out.push({kind:"react", react:"link", sym:k, sid, e:{id:"rx-"+sid}, text:symLbl(k)+" followed "+t.hit+" of your "+t.n+" "+t.l.toLowerCase()+" times, much more than other meals. Want to test it?"}); break; } }
+  return out.slice(0,1);
+}
+function thingsReactBtns(x){
+  const seen=()=>{ try{ const L=JSON.parse(localStorage.getItem("hl-rxseen")||"[]"); L.push(x.sid); localStorage.setItem("hl-rxseen",JSON.stringify(L.slice(-50))); }catch(e){} };
+  return [h("button",{class:"btn small primary",type:"button",onclick:()=>{ seen(); openReactions(x.sym); renderAll(); }}, x.react==="test"? "See the result" : "Have a look"), h("button",{class:"btn small ghost",type:"button",onclick:()=>{ seen(); renderAll(); }},"Not now")];
+}
+
 async function scanBigEvents(){
   if(!S.sample||S.aiOff){ toast("Dr Quackers isn't available here."); return; }
   const src=S.entries.filter(e=>e.kind!=="event"&&e.kind!=="symptom"&&(e.title||e.details));
@@ -4100,6 +4355,7 @@ function openGut(stoolId){
       ...stoolWarn(stool).map(w=>h("div",{class:"lg-flag"}, h("span",{class:"wk-dot","aria-hidden":"true"}), h("span",{},w))),
       ask, ai,
       transitBox(),
+      h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); openReactions(); }},"🍽️ Which foods go with my symptoms?"),
       h("p",{class:"fineprint"},"Food usually takes 1 to 3 days to come out, so these links are best guesses. "+(f.W.personal?"The window uses your measured gut speed.":"Do the sweetcorn test to make the window fit you.")));
   }
   openSheet("Gut journey",[body]);
@@ -4810,6 +5066,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-07.2", items:[["🍽️","New Food and symptoms screen. It checks which kinds of food and drink are followed by pain, heartburn, bloating or any other symptom within a few hours, and sharpens the picture as you log more."],["🧪","Food tests: Dr Quackers suggests what to try next, one change at a time, such as cutting down fatty food for 10 days. Then he keeps score and tells you what it showed."],["📈","Fat, saturated fat and alcohol can now go on the timeline next to your symptoms."]]},
  {v:"2026-11-07.1", items:[["📋","Paste my list: keep notes through the day in any app, paste them in, and Dr Quackers logs it all. That's food with calories worked out, drinks and alcohol units, medicines, supplements, symptoms with scores, and weight. You check it over before anything is added."],["📅","Logging for another day is easier. The + button has Today, Yesterday and a date picker, and the diary has Add to this day and Paste a list buttons."],["🧈","Saturated fat is now tracked, with the NHS daily maximum shown."]]},
  {v:"2026-11-05.9", items:[["🤓","In Mind mode Dr Quackers puts his reading glasses on. He pushes them up and scratches his beak while he thinks."],["📖","New My mental health history: your mood and stress over 90 days, low patches, what lifts or drags your mood, questionnaire scores and notes of your Mind mode chats. There's a Summary for my GP button too."],["✅","The daily check-in now asks what's affecting your mood. On a low day it offers a calm chat in Mind mode."],["📝","After a Mind mode chat, a short note (never the whole chat) is kept in your history. You can switch this off."]]},
  {v:"2026-11-05.8", items:[["🧠","New Mind mode in the Quackers tab: a calm space to talk things through. No jokes, one question at a time."],["🧩","Dr Quackers can take you through self-help skills from CBT: untangling a thought, thinking traps, planning small steps when you're low, the worry tree, sleep tips and being kinder to yourself."],["🫁","Breathe with me and 5-4-3-2-1 grounding buttons for anxious moments."],["🆘","Help now is always one tap away, with crisis numbers and the people in your plan. If you mention not being safe, it shows straight away in any chat."]]},
@@ -5368,6 +5625,9 @@ function tlLanes(){
          {id:"steps",name:"Steps",type:"line",unit:"",fn:d=>d.dev&&d.dev.steps!=null? d.dev.steps : null},
          {id:"kcal",name:"Calories",type:"line",unit:"kcal",fn:d=>{ const n=dayNut(d.date); return n&&n.kcal? Math.round(n.kcal) : null; }},
          {id:"protein",name:"Protein",type:"line",unit:"g",fn:d=>{ const n=dayNut(d.date); return n&&n.protein? Math.round(n.protein) : null; }},
+         {id:"fat",name:"Fat",type:"line",unit:"g",fn:d=>{ const n=dayNut(d.date); return n&&n.fat? Math.round(n.fat) : null; }},
+         {id:"satfat",name:"Saturated fat",type:"line",unit:"g",fn:d=>{ const n=dayNut(d.date); return n&&n.satfat? Math.round(n.satfat) : null; }},
+         {id:"alcohol",name:"Alcohol",type:"line",unit:"units",fn:d=>{ const u=dayLog(d.date).reduce((a,x)=>a+(x.type==="drink"&&+x.units||0),0); return u? Math.round(u*10)/10 : null; }},
          {id:"water",name:"Water",type:"line",unit:"glasses",fn:d=>d.water||null});
   const g=testGroups();
   const keys=[...g.keys()].sort((a,b)=>{ const ia=TEST_PRIORITY.indexOf(a), ib=TEST_PRIORITY.indexOf(b); if(ia!==ib) return (ia<0?99:ia)-(ib<0?99:ib); return g.get(b).length-g.get(a).length; });
