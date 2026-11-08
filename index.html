@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-08.1">
+<meta name="app-version" content="2026-11-08.2">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -765,6 +765,28 @@ details.fold[open] .fchev{transform:rotate(90deg)}
 .za-f{background:var(--alert-soft,#FBE4E1);border-radius:10px;padding:8px 10px}
 .wk-pain-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .wk-zl{background:none;border:0;padding:0;font:inherit;font-weight:700;color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px;cursor:pointer;text-align:left}
+body.b3d-open{overflow:hidden}
+.b3d{position:fixed;inset:0;z-index:40;background:radial-gradient(ellipse at 50% 35%,#FBF7F2,#E4ECE8);display:grid;grid-template-rows:auto minmax(0,1fr) auto;color:#16302A}
+.b3d-top{display:flex;justify-content:space-between;align-items:center;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 4px}
+.b3d-h{margin:0;font-size:1.25rem}.b3d-x{width:42px;height:42px;border-radius:50%;border:1px solid #CFDAD5;background:#fff;font-size:1.1rem;cursor:pointer}
+.b3d-cv{position:relative;min-height:0;touch-action:none}.b3d-cv canvas{display:block;width:100%!important;height:100%!important;cursor:grab}
+.b3d-st{position:absolute;top:45%;left:0;right:0;text-align:center;margin:0;color:#566A64}
+.b3d-side{max-height:46vh;overflow:auto;background:#fff;border-radius:18px 18px 0 0;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 24px rgba(0,0,0,.08);display:flex;flex-direction:column;gap:8px}
+.b3d-side .btn{color:#16302A}
+.b3d-dnav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.pc-wd{text-align:center;color:#566A64;font-size:.72rem}
+.pc-d{aspect-ratio:1.4;border:1px solid #DDE6E2;border-radius:8px;background:#F4F7F5;font:inherit;font-size:.8rem;cursor:pointer;color:#16302A;padding:0}
+.pc-d.on{outline:3px solid #16302A;outline-offset:1px}.pc-d:disabled{opacity:.3;cursor:default}
+.b3d-jump{gap:6px;flex-wrap:wrap}
+.b3d-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:.9rem}.b3d-list li{display:flex;gap:8px;align-items:baseline}.b3d-list i{width:10px;height:10px;border-radius:50%;flex:none;transform:translateY(1px)}
+.b3d-near{margin:0;font-size:.92rem}.b3d-tip{margin:0;font-weight:700}
+.b3d-depth{display:flex;flex-direction:column;gap:4px}.b3d-depth input{width:100%;accent-color:#C0392B}.b3d-dl{font-weight:700;color:#C0392B}
+.b3d-ticks{display:flex;justify-content:space-between;color:#566A64}
+.b3d-layers{display:flex;gap:6px;flex-wrap:wrap}.b3d-layers .fchip.on{background:#1E6B57;color:#fff;border-color:#1E6B57}
+.b3d-info p{margin:2px 0}
+@media (min-width:900px){ .b3d{grid-template-columns:minmax(0,1fr) 380px;grid-template-rows:auto minmax(0,1fr)} .b3d-top{grid-column:1 / -1} .b3d-side{max-height:none;border-radius:18px 0 0 0;grid-row:2;grid-column:2} .b3d-cv,.b3d-st{grid-row:2;grid-column:1} }
+.wk-ph-b{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.p3-box{display:flex;flex-direction:column;gap:4px;margin:4px 0}
 .wk-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
 .wk-nav span{font-weight:700;font-size:.95rem}
 .wk-arr{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:1.5rem;line-height:1;cursor:pointer;display:grid;place-items:center}
@@ -2881,7 +2903,7 @@ const BZ_BACK=[
 const BZ_NAME=Object.fromEntries([...BZ_ALL,...BZ_FRONT,...BZ_BACK].map(z=>[z[0],z[1]]));
 const CHEST_Z=new Set(["l-chest","r-chest","upper-tum"]);
 function heDesc(e){ const p=e.ep||{}; return [p.dur, (p.feel||[]).join(", ").toLowerCase(), (p.ctx||[]).join(", ").toLowerCase(), (p.with||[]).length?"with "+p.with.join(", ").toLowerCase():"", p.pulse?"pulse "+p.pulse+" bpm":""].filter(Boolean).join(" · "); }
-function pnDesc(e){ return [(e.areas||[]).map(a=>(BZ_NAME[a]||a).toLowerCase()).join(", "), (e.pkind||[]).join(", ").toLowerCase(), (e.pctx||[]).join(", ").toLowerCase()].filter(Boolean).join(" · "); }
+function pnDesc(e){ return [Array.isArray(e.p3)&&e.p3.length? "felt "+depthLabel(Math.max(...e.p3.map(p=>p.d||0)))+(e.near&&e.near.length? ", close to "+e.near.join(", ").toLowerCase() : "") : "",(e.areas||[]).map(a=>(BZ_NAME[a]||a).toLowerCase()).join(", "), (e.pkind||[]).join(", ").toLowerCase(), (e.pctx||[]).join(", ").toLowerCase()].filter(Boolean).join(" · "); }
 function symDesc(e){ return e&&e.ep? heDesc(e) : e&&Array.isArray(e.areas)? pnDesc(e) : ""; }
 function isHeart(t){ return /palpitation|heart (flutter|tremor|racing)|racing heart/i.test(String(t||"")); }
 function isPain(t){ return /^pain\b/i.test(String(t||"").trim()); }
@@ -2977,7 +2999,7 @@ function wkPainMap(iso){
     for(const el of m.querySelectorAll("[data-z]")){ el.removeAttribute("tabindex"); el.removeAttribute("role"); el.removeAttribute("aria-pressed"); const z=el.getAttribute("data-z"); if(worst[z]) el.setAttribute("style","fill:"+col(worst[z])+";fill-opacity:"+(worst[z]>=7?.95:.8)); }
     return h("div",{class:"wk-bm"}, m, h("small",{}, view==="back"?"Back":"Front")); };
   const list= ids.length? h("ul",{class:"wk-pl"}, ...ids.sort((a,b)=>worst[b]-worst[a]).map(a=>h("li",{}, h("i",{style:"background:"+col(worst[a])}), h("button",{type:"button",class:"wk-zl",onclick:()=>openZone(a),title:"What's under here?"},BZ_NAME[a]||a), " ", h("span",{}, notes[a].filter(Boolean).join(", "))))) : h("p",{class:"none"},"No pain marked on the body this day.");
-  return h("div",{class:"wk-pain"}, h("div",{class:"wk-pain-h"}, h("p",{class:"flabel"},"Where it hurt"), h("button",{class:"more",type:"button",onclick:()=>openZone(ids.sort((a,b)=>worst[b]-worst[a])[0]||"upper-tum")},"What's under here? ›")), h("div",{class:"wk-pain-row"}, map("front"), map("back"), list));
+  return h("div",{class:"wk-pain"}, h("div",{class:"wk-pain-h"}, h("p",{class:"flabel"},"Where it hurt"), h("span",{class:"wk-ph-b"}, h("button",{class:"more",type:"button",onclick:()=>open3D({date:iso})},"See in 3D ›"), h("button",{class:"more",type:"button",onclick:()=>openZone(ids.sort((a,b)=>worst[b]-worst[a])[0]||"upper-tum")},"What's under here? ›"))), h("div",{class:"wk-pain-row"}, map("front"), map("back"), list));
 }
 /* ---------- what's under each body zone: organs there, organs that send pain there, nerve bands, causes to discuss, when to get help ---------- */
 /* u: what lies here · r: pain that can be felt here from somewhere else · b: nerve bands (dermatomes) · c: common causes to talk about with a GP · f: get help now */
@@ -3042,13 +3064,206 @@ function zoneContext(){
   return "\nBODY AREAS WHERE PAIN WAS LOGGED (last 60 days) AND WHAT LIES THERE (use this to weigh the organs underneath, organs that refer pain there, and one-sided nerve-band patterns such as shingles):\n"+ids.map(a=>{ const z=BZ_ANAT[a]; return "- "+BZ_NAME[a]+": logged "+cnt[a]+" times"+(worst[a]?", worst "+worst[a]+"/10":"")+". Under it: "+z.u.join(", ")+". Pain here can also come from: "+(z.r.join(", ")||"–")+". Nerve band "+z.b+"."; }).join("\n");
 }
 
+/* ---------- 3D body: pain shown inside the body, with depth, organs nearby and a day-by-day pain calendar ---------- */
+/* Model: BodyParts3D 4.0 (DBCLS, CC BY 4.0) via Human Atlas, simplified. Coordinates in metres: +x = the person's left, +y up, +z = front. */
+const B3={T:null,data:null,loading:null};
+const THREE_URL="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js";
+/* where each body-map zone sits: [x, y, face] — face f = front, b = back, l = limb (aim at the bone) */
+const ZONE3D={"head":[0,1.64,"f"],"neck":[0,1.5,"f"],"r-shoulder":[-0.17,1.43,"f"],"l-shoulder":[0.17,1.43,"f"],
+  "r-arm":[-0.2,1.27,"l"],"l-arm":[0.2,1.27,"l"],"r-fore":[-0.25,1.0,"l"],"l-fore":[0.25,1.0,"l"],
+  "r-chest":[-0.075,1.32,"f"],"l-chest":[0.075,1.32,"f"],"ru-tum":[-0.075,1.165,"f"],"upper-tum":[0,1.18,"f"],"lu-tum":[0.075,1.17,"f"],
+  "rl-tum":[-0.07,0.98,"f"],"ll-tum":[0.07,0.98,"f"],"pelvis":[0,0.87,"f"],
+  "r-thigh":[-0.09,0.66,"l"],"l-thigh":[0.09,0.66,"l"],"r-knee":[-0.09,0.47,"l"],"l-knee":[0.09,0.47,"l"],"r-shin":[-0.09,0.25,"l"],"l-shin":[0.09,0.25,"l"],
+  "ur-back":[-0.07,1.35,"b"],"ul-back":[0.07,1.35,"b"],"mr-back":[-0.07,1.1,"b"],"ml-back":[0.07,1.1,"b"],"low-back":[0,0.99,"b"],"buttocks":[0,0.84,"b"]};
+const DEPTH_L=[[0,"On the skin"],[0.35,"Under the skin"],[0.7,"Deep inside"]];
+function depthLabel(d){ return d>=0.6? "deep inside" : d>=0.2? "under the skin" : "on the skin"; }
+async function b3Load(){
+  if(B3.data) return B3.data;
+  if(B3.loading) return B3.loading;
+  B3.loading=(async()=>{
+    const T=B3.T=await import(THREE_URL);
+    const [man,bin]=await Promise.all([fetch("models/body3d.json").then(r=>{ if(!r.ok) throw new Error("model"); return r.json(); }), fetch("models/body3d.bin").then(r=>{ if(!r.ok) throw new Error("model"); return r.arrayBuffer(); })]);
+    const lo=man.lo, sp=man.hi.map((v,i)=>v-lo[i]), meshes=[];
+    for(const m of man.meshes){
+      const q=new Int16Array(bin,m.v[0],m.v[1]*3), pos=new Float32Array(q.length);
+      for(let i=0;i<q.length;i++) pos[i]=lo[i%3]+(q[i]+32767)/65534*sp[i%3];
+      const g=new T.BufferGeometry(); g.setAttribute("position",new T.BufferAttribute(pos,3)); g.setIndex(new T.BufferAttribute(new Uint16Array(bin,m.i[0],m.i[1]),1)); g.computeVertexNormals(); g.computeBoundingSphere();
+      meshes.push({...m,geo:g,pos});
+    }
+    B3.data={man,meshes}; return B3.data;
+  })();
+  try{ return await B3.loading; }catch(e){ B3.loading=null; throw e; }
+}
+/* closest organs to a point: smallest distance to any of the organ's vertices */
+function b3Near(meshes,p,maxD,inside){
+  const out=[];
+  for(const m of meshes){ if(m.group!=="organ") continue; if(m.id==="prostate"&&b3Fem()) continue;
+    const [x,y,z]=p, P=m.pos; let best=1e9;
+    if(x<m.min[0]-maxD||x>m.max[0]+maxD||y<m.min[1]-maxD||y>m.max[1]+maxD||z<m.min[2]-maxD||z>m.max[2]+maxD) continue;
+    for(let i=0;i<P.length;i+=3){ const dx=P[i]-x,dy=P[i+1]-y,dz=P[i+2]-z, d=dx*dx+dy*dy+dz*dz; if(d<best) best=d; }
+    best=Math.sqrt(best);
+    if(best>maxD&&inside&&x>=m.min[0]&&x<=m.max[0]&&y>=m.min[1]&&y<=m.max[1]&&z>=m.min[2]&&z<=m.max[2]&&inside(m,p)) best=0;
+    if(best<=maxD) out.push({m,d:best});
+  }
+  return out.sort((a,b)=>a.d-b.d);
+}
+function b3Fem(){ return /^f/i.test(String((S.profile||{}).sex||"")); }
+function sevCol(v){ return v>=7? 0xC0392B : v>=4? 0xE67E22 : 0xE8B04A; }
+/* the overlay: one 3D scene used both to look back through days and to place a new pain */
+function open3D(opt){
+  opt=opt||{};
+  const place=!!opt.place, overlay=h("div",{class:"b3d",role:"dialog","aria-modal":"true","aria-label":"3D body"});
+  const canvasBox=h("div",{class:"b3d-cv"}), status=h("p",{class:"b3d-st"},"Loading the 3D body…");
+  const side=h("div",{class:"b3d-side"}), close=h("button",{class:"b3d-x",type:"button","aria-label":"Close"},"✕");
+  const title=h("h2",{class:"b3d-h"}, place? "📍 Where does it hurt?" : "🧍 Pain in 3D");
+  overlay.append(h("div",{class:"b3d-top"}, title, close), canvasBox, status, side);
+  document.body.append(overlay); document.body.classList.add("b3d-open");
+  let alive=true, raf=0, ro=null;
+  const done=()=>{ if(!alive) return; alive=false; cancelAnimationFrame(raf); if(ro) ro.disconnect(); try{ R&&R.dispose(); }catch(e){} overlay.remove(); document.body.classList.remove("b3d-open"); document.removeEventListener("keydown",esc); };
+  const esc=e=>{ if(e.key==="Escape") done(); };
+  document.addEventListener("keydown",esc); close.onclick=()=>{ done(); opt.onClose&&opt.onClose(); };
+  let R=null;
+  b3Load().then(D=>{ if(alive) start(D); }).catch(()=>{ status.textContent="The 3D body couldn't load. Check your internet connection and try again."; });
+  function start(D){
+    const T=B3.T; status.textContent="";
+    const W=()=>canvasBox.clientWidth||360, H=()=>canvasBox.clientHeight||420;
+    R=new T.WebGLRenderer({antialias:true,alpha:true}); R.setPixelRatio(Math.min(2,window.devicePixelRatio||1)); R.setSize(W(),H()); canvasBox.append(R.domElement);
+    R.domElement.setAttribute("aria-label","3D body. Drag to turn it, pinch or scroll to zoom"+(place?", tap to mark where it hurts":"")+".");
+    const scene=new T.Scene(), cam=new T.PerspectiveCamera(30,W()/H(),0.01,20);
+    scene.add(new T.HemisphereLight(0xffffff,0x8a7a70,1.6)); const dl=new T.DirectionalLight(0xffffff,1.6); dl.position.set(1,2,3); scene.add(dl); const dl2=new T.DirectionalLight(0xffffff,.7); dl2.position.set(-1,1,-2); scene.add(dl2);
+    const groups={skin:new T.Group(),bone:new T.Group(),organ:new T.Group()}; Object.values(groups).forEach(g=>scene.add(g));
+    const objs={};
+    for(const m of D.meshes){
+      if(m.id==="prostate"&&b3Fem()) continue;
+      const skin=m.group==="skin";
+      const mat=new T.MeshStandardMaterial({color:m.color,roughness:skin?.7:.55,metalness:0,transparent:skin||m.opacity<1,opacity:skin?.16:m.opacity,depthWrite:!skin,side:skin?T.DoubleSide:T.FrontSide});
+      const o=new T.Mesh(m.geo,mat); o.userData.m=m; o.renderOrder=skin?2:1; groups[m.group].add(o); objs[m.id]=o;
+    }
+    const skinObj=objs.skin, ray=new T.Raycaster();
+    /* is a point inside an organ? cast a ray out and count the walls it crosses */
+    const inside=(m,p)=>{ const o=objs[m.id]; if(!o) return false; const side=o.material.side; o.material.side=T.DoubleSide; ray.set(new T.Vector3(...p),new T.Vector3(0.31,0.52,0.79).normalize()); const n=ray.intersectObject(o,false).length; o.material.side=side; return n%2===1; };
+    /* camera: orbit around the body by hand (drag to turn, pinch/scroll to zoom) */
+    const ctr=new T.Vector3(0,1.05,0); let az=0, el=0.08, dist=2.3;
+    const setCam=()=>{ cam.position.set(ctr.x+dist*Math.sin(az)*Math.cos(el), ctr.y+dist*Math.sin(el), ctr.z+dist*Math.cos(az)*Math.cos(el)); cam.lookAt(ctr); };
+    const focus=(p,d)=>{ ctr.set(p[0],p[1],p[2]); dist=d||1.1; setCam(); };
+    setCam();
+    const pts=new Map(); let drag=null, moved=0, pinch=0;
+    R.domElement.addEventListener("pointerdown",e=>{ R.domElement.setPointerCapture(e.pointerId); pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); moved=0; if(pts.size===2){ const [a,b]=[...pts.values()]; pinch=Math.hypot(a.x-b.x,a.y-b.y); } });
+    R.domElement.addEventListener("pointermove",e=>{ const p=pts.get(e.pointerId); if(!p) return; const dx=e.clientX-p.x, dy=e.clientY-p.y; p.x=e.clientX; p.y=e.clientY; moved+=Math.abs(dx)+Math.abs(dy);
+      if(pts.size===2){ const [a,b]=[...pts.values()], d=Math.hypot(a.x-b.x,a.y-b.y); if(pinch){ dist=Math.min(4,Math.max(.35,dist*pinch/d)); } pinch=d; }
+      else { az-=dx*0.01; el=Math.min(1.3,Math.max(-1.3,el+dy*0.008)); }
+      setCam(); });
+    const up=e=>{ const wasTap=pts.size===1&&moved<6; pts.delete(e.pointerId); if(pts.size<2) pinch=0; if(wasTap) tap(e); };
+    R.domElement.addEventListener("pointerup",up); R.domElement.addEventListener("pointercancel",e=>{ pts.delete(e.pointerId); });
+    R.domElement.addEventListener("wheel",e=>{ e.preventDefault(); dist=Math.min(4,Math.max(.35,dist*(1+Math.sign(e.deltaY)*0.1))); setCam(); },{passive:false});
+    /* pain markers */
+    const mk=new T.Group(); scene.add(mk);
+    const sphere=new T.SphereGeometry(1,20,14);
+    function marker(p,sev,big){ const c=sevCol(sev||5);
+      const core=new T.Mesh(sphere,new T.MeshBasicMaterial({color:c,depthTest:false,transparent:true,opacity:.95})); core.scale.setScalar(big?.011:.009); core.position.set(...p); core.renderOrder=5;
+      const glow=new T.Mesh(sphere,new T.MeshBasicMaterial({color:c,transparent:true,opacity:.22,depthTest:false,depthWrite:false})); glow.scale.setScalar(.03); glow.position.set(...p); glow.renderOrder=4; glow.userData.pulse=true;
+      mk.add(core,glow); }
+    function linePts(a,b){ const g=new T.BufferGeometry().setFromPoints([new T.Vector3(...a),new T.Vector3(...b)]); const l=new T.Line(g,new T.LineDashedMaterial({color:0x7a2a22,dashSize:.006,gapSize:.004,depthTest:false,transparent:true,opacity:.7})); l.computeLineDistances(); l.renderOrder=3; mk.add(l); }
+    /* find the skin point for a zone, and the "core" point deep inside behind it */
+    function skinHit(o,dir){ ray.set(new T.Vector3(...o),new T.Vector3(...dir).normalize()); const hits=ray.intersectObject(skinObj,false); return hits[0]||null; }
+    function zoneSurface(z){
+      const a=ZONE3D[z]; if(!a) return null; const [x,y,f]=a;
+      if(f==="l"){ const hit=skinHit([x,y,0.6],[0,0,-1]); if(!hit) return null; const s=hit.point.toArray(); const back=skinHit([x,y,-0.6],[0,0,1]); const c=back? [x,y,(s[2]+back.point.z)/2] : [x,y,s[2]-0.04]; return {s,c}; }
+      const z0= f==="b"? -0.6 : 0.6, hit=skinHit([x,y,z0],[0,0,f==="b"?1:-1]); if(!hit) return null;
+      const s=hit.point.toArray(), opp=skinHit([x,y,-z0],[0,0,f==="b"?-1:1]);
+      const mid= opp? (s[2]+opp.point.z)/2 : 0; return {s,c:[x*0.75,y,mid]};
+    }
+    const lerp=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+    function surfaceFromHit(hit){
+      const s=hit.point.toArray(), n=hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize();
+      ray.set(hit.point.clone().addScaledVector(n,-0.003),n.clone().negate()); const opp=ray.intersectObject(skinObj,false).find(x=>x.distance>0.01);
+      const c= opp? lerp(s,opp.point.toArray(),0.5) : s.map((v,i)=>v-n.getComponent(i)*0.06);
+      return {s,c};
+    }
+    function nearestZone(p){ let best=null,bd=1e9; for(const z of Object.keys(ZONE3D)){ const zs=zoneSurface(z); if(!zs) continue; const d=Math.hypot(zs.s[0]-p[0],zs.s[1]-p[1],zs.s[2]-p[2]); if(d<bd){ bd=d; best=z; } } return best; }
+    /* highlight organs near the pain */
+    let lit=[];
+    function lightOrgans(list){ for(const o of lit){ o.material.emissive&&o.material.emissive.setHex(0); } lit=[]; for(const {m} of list){ const o=objs[m.id]; if(!o) continue; o.material.emissive.setHex(0x5a1410); o.material.emissiveIntensity=.6; lit.push(o); } }
+    /* layers */
+    const layerRow=h("div",{class:"b3d-layers",role:"group","aria-label":"Show"}, ...[["skin","Skin"],["bone","Bones"],["organ","Organs"]].map(([g,l])=>{ const b=h("button",{type:"button",class:"fchip on","aria-pressed":"true"},l); b.onclick=()=>{ groups[g].visible=!groups[g].visible; b.classList.toggle("on",groups[g].visible); b.setAttribute("aria-pressed",String(groups[g].visible)); }; return b; }),
+      h("button",{type:"button",class:"fchip",onclick:()=>{ az=0; el=.08; ctr.set(0,1.05,0); dist=2.3; setCam(); }},"Front"), h("button",{type:"button",class:"fchip",onclick:()=>{ az=Math.PI; el=.08; ctr.set(0,1.05,0); dist=2.3; setCam(); }},"Back"));
+    /* tapping: in place mode marks a pain; otherwise names the organ */
+    const info=h("div",{class:"b3d-info","aria-live":"polite"});
+    function tap(e){
+      const r=R.domElement.getBoundingClientRect(), v=new T.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+      ray.setFromCamera(v,cam);
+      if(place){ const hit=ray.intersectObject(skinObj,false)[0]; if(!hit){ return; } const sc=surfaceFromHit(hit); PL.push({s:sc.s.map(x=>+x.toFixed(4)),c:sc.c.map(x=>+x.toFixed(4)),d:PL.length? PL[PL.length-1].d : 0.35}); drawPlace(); return; }
+      const vis=[...(groups.organ.visible?groups.organ.children:[]),...(groups.bone.visible?groups.bone.children:[])];
+      const hit=ray.intersectObjects(vis,false)[0]; if(!hit){ info.replaceChildren(); return; }
+      const m=hit.object.userData.m; lightOrgans([{m}]);
+      info.replaceChildren(h("p",{}, h("b",{},m.name)), m.approx? h("p",{class:"fineprint"},"Approximate outline: the open anatomy data has this organ's inner tree, not its surface.") : null, m.zones&&m.zones[0]&&BZ_ANAT[m.zones[0]]? h("button",{class:"btn small ghost",type:"button",onclick:()=>openZone(m.zones[0])},"What's under "+(BZ_NAME[m.zones[0]]||"").toLowerCase()+"? ›") : null);
+    }
+    /* ===== place mode ===== */
+    const PL=(opt.points||[]).map(p=>({...p}));
+    const dSlider=h("input",{type:"range",min:"0",max:"1",step:"0.05",value:String(PL.length?PL[PL.length-1].d:0.35),"aria-label":"How deep does it feel?"});
+    const dLab=h("span",{class:"b3d-dl"});
+    function drawPlace(){
+      mk.clear(); const near=[];
+      PL.forEach((p,i)=>{ const at=lerp(p.s,p.c,p.d); marker(at,opt.sev||5,i===PL.length-1); if(p.d>0.05) linePts(p.s,at); near.push(...b3Near(D.meshes,at,0.035,inside)); });
+      const seen=new Set(), uniq=near.sort((a,b)=>a.d-b.d).filter(x=>!seen.has(x.m.id)&&seen.add(x.m.id));
+      lightOrgans(uniq.slice(0,4));
+      const last=PL[PL.length-1]; if(last){ dSlider.value=String(last.d); dLab.textContent=depthLabel(last.d); }
+      side.replaceChildren(
+        h("p",{class:"b3d-tip"}, PL.length? "Tap again to add another spot, or drag the slider to say how deep it feels." : "Turn the body, then tap where it hurts."),
+        h("label",{class:"b3d-depth"}, h("span",{},"How deep does it feel? ", dLab), dSlider, h("span",{class:"b3d-ticks"}, ...DEPTH_L.map(([v,l])=>h("small",{},l)))),
+        uniq.length? h("p",{class:"b3d-near"}, h("b",{},"Close to: "), uniq.slice(0,4).map(x=>x.m.name.replace(/ \(approximate shape\)/,"")).join(", ")) : PL.length? h("p",{class:"b3d-near"},"Not right next to any organ: likely skin, muscle or bone.") : null,
+        h("div",{class:"row"}, h("button",{class:"btn",type:"button",disabled:!PL.length||null,onclick:()=>{ PL.pop(); drawPlace(); }},"Undo last spot"), h("button",{class:"btn primary",type:"button",disabled:!PL.length||null,onclick:()=>{ const zones=[...new Set(PL.map(p=>nearestZone(p.s)).filter(Boolean))]; done(); opt.onDone&&opt.onDone(PL.map(p=>({s:p.s,c:p.c,d:+(+p.d).toFixed(2)})), zones, uniq.slice(0,4).map(x=>x.m.name.replace(/ \(approximate shape\)/,""))); }},"Use these spots")),
+        layerRow, info);
+    }
+    dSlider.addEventListener("input",()=>{ const last=PL[PL.length-1]; if(!last) return; last.d=+dSlider.value; drawPlace(); });
+    /* ===== day mode: the pain calendar ===== */
+    const t0=todayISO(); let day=opt.date||t0, playing=null;
+    const painDays=()=>{ const w={}; for(const e of ofKind("symptom")) if(e.date&&((Array.isArray(e.areas)&&e.areas.length)||(Array.isArray(e.p3)&&e.p3.length))) w[e.date]=Math.max(w[e.date]||0,+e.severity||1); return w; };
+    function drawDay(){
+      mk.clear(); const W_=painDays();
+      const es=ofKind("symptom").filter(e=>e.date===day&&((Array.isArray(e.areas)&&e.areas.length)||(Array.isArray(e.p3)&&e.p3.length))).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+      const near=[], rows=[];
+      for(const e of es){
+        const sv_=+e.severity||0, spots=[];
+        if(Array.isArray(e.p3)&&e.p3.length) for(const p of e.p3) spots.push({at:lerp(p.s,p.c,p.d||0),s:p.s,d:p.d||0});
+        else for(const z of e.areas){ const zs=zoneSurface(z); if(!zs) continue; const d=typeof e.depth==="number"? e.depth : (z.endsWith("tum")||z==="pelvis"||z.endsWith("-back")? .45 : .2); spots.push({at:lerp(zs.s,zs.c,d),s:zs.s,d}); }
+        for(const sp of spots){ marker(sp.at,sv_,false); if(sp.d>0.05) linePts(sp.s,sp.at); near.push(...b3Near(D.meshes,sp.at,0.035,inside)); }
+        rows.push(h("li",{}, h("i",{style:"background:#"+sevCol(sv_).toString(16).padStart(6,"0")}), h("span",{}, h("b",{}, (e.time||"")+" "+(e.title||"Pain")), " ", (e.areas||[]).map(a=>(BZ_NAME[a]||a).toLowerCase()).join(", ")+(sv_?" · "+sv_+"/10":"")+(Array.isArray(e.p3)&&e.p3.length? " · "+depthLabel(Math.max(...e.p3.map(p=>p.d||0))) : ""))));
+      }
+      const seen=new Set(), uniq=near.sort((a,b)=>a.d-b.d).filter(x=>!seen.has(x.m.id)&&seen.add(x.m.id)); lightOrgans(uniq.slice(0,5));
+      /* calendar: 5 weeks ending with the week of the chosen day */
+      const end=addDays(day,(7-((new Date(day+"T12:00").getDay()+6)%7)-1)), start=addDays(end,-34), cells=[];
+      for(let i=0;i<35;i++){ const iso=addDays(start,i), v=W_[iso]||0, fut=iso>t0;
+        cells.push(h("button",{type:"button",class:"pc-d"+(iso===day?" on":"")+(v?" has":""),disabled:fut||null,style:v?"background:#"+sevCol(v).toString(16).padStart(6,"0")+";color:#fff":"","aria-label":fmtDate(iso)+(v?", worst pain "+v+"/10":", no pain logged"),onclick:()=>{ day=iso; drawDay(); }}, String(+iso.slice(8)))); }
+      const prevPain=Object.keys(W_).filter(d=>d<day).sort().pop(), nextPain=Object.keys(W_).filter(d=>d>day).sort()[0];
+      side.replaceChildren(
+        h("div",{class:"b3d-dnav"}, h("button",{class:"wk-arr",type:"button","aria-label":"Previous day",onclick:()=>{ day=addDays(day,-1); drawDay(); }},"‹"), h("b",{}, longDate(day)), h("button",{class:"wk-arr",type:"button","aria-label":"Next day",disabled:day>=t0||null,onclick:()=>{ day=addDays(day,1); drawDay(); }},"›")),
+        h("div",{class:"pc-grid"}, ...["M","T","W","T","F","S","S"].map(l=>h("small",{class:"pc-wd"},l)), ...cells),
+        h("div",{class:"row b3d-jump"},
+          h("button",{class:"btn small ghost",type:"button",disabled:!prevPain||null,onclick:()=>{ day=prevPain; drawDay(); }},"‹ Previous pain"),
+          h("button",{class:"btn small",type:"button",onclick:()=>{ if(playing){ clearInterval(playing); playing=null; drawDay(); return; } const L=Object.keys(W_).filter(d=>d>=addDays(t0,-60)).sort(); if(!L.length) return; let i=0; day=L[0]; drawDay(); playing=setInterval(()=>{ if(!alive||++i>=L.length){ clearInterval(playing); playing=null; if(alive) drawDay(); return; } day=L[i]; drawDay(); },900); }}, playing? "■ Stop" : "▶ Play 60 days"),
+          h("button",{class:"btn small ghost",type:"button",disabled:!nextPain||null,onclick:()=>{ day=nextPain; drawDay(); }},"Next pain ›")),
+        es.length? h("ul",{class:"b3d-list"}, ...rows) : h("p",{class:"none"},"No pain marked on the body this day."),
+        uniq.length? h("p",{class:"b3d-near"}, h("b",{},"Organs close to the pain: "), uniq.slice(0,5).map(x=>x.m.name.replace(/ \(approximate shape\)/,"")).join(", ")) : null,
+        layerRow, info,
+        h("p",{class:"fineprint"},"Drag to turn the body, pinch or scroll to zoom, tap an organ to name it. Body data: BodyParts3D, © DBCLS, CC BY 4.0, simplified. Liver and lung outlines are approximate. A guide, not a diagnosis."));
+    }
+    if(place) drawPlace(); else drawDay();
+    if(place&&opt.zone&&ZONE3D[opt.zone]){ const a=ZONE3D[opt.zone]; focus([a[0],a[1],0],1.0); if(a[2]==="b"){ az=Math.PI; setCam(); } }
+    ro=new ResizeObserver(()=>{ R.setSize(W(),H()); cam.aspect=W()/H(); cam.updateProjectionMatrix(); }); ro.observe(canvasBox);
+    const clock=performance.now();
+    const loop=()=>{ if(!alive) return; const t=(performance.now()-clock)/1000; for(const o of mk.children) if(o.userData.pulse) o.scale.setScalar(.026+.008*Math.sin(t*4)); R.render(scene,cam); raf=requestAnimationFrame(loop); };
+    loop();
+  }
+}
+
 function openPain(iso, entry){
   iso=(entry&&entry.date)||iso||todayISO();
   const isNew=!entry, e=JSON.parse(JSON.stringify(entry||{kind:"symptom",title:"Pain",date:iso}));
   e.areas=e.areas||[]; e.pkind=e.pkind||[]; e.pctx=e.pctx||[];
   let view= e.areas.some(a=>BZ_BACK.some(z=>z[0]===a))&&!e.areas.some(a=>BZ_FRONT.some(z=>z[0]===a))? "back" : "front";
   const hist=painHistory();
-  const mapBox=h("div",{class:"bmap-wrap"}), where=h("p",{class:"bz-where"}), warn=warnBox(), zbox=h("div",{class:"za-list"});
+  const mapBox=h("div",{class:"bmap-wrap"}), where=h("p",{class:"bz-where"}), warn=warnBox(), zbox=h("div",{class:"za-list"}), p3box=h("div",{class:"p3-box"});
   const tm=h("input",{type:"time",id:"pn-time",value:e.time||nowHM()});
   const det=h("textarea",{id:"pn-det",rows:"2",placeholder:"Anything else (optional)"}); det.value=e.details||"";
   const tabs=h("div",{class:"pflow bz-tabs"});
@@ -3057,6 +3272,9 @@ function openPain(iso, entry){
     mapBox.replaceChildren(bodyMap(view,e.areas,hist,id=>{ const i=e.areas.indexOf(id); if(i>=0) e.areas.splice(i,1); else e.areas.push(id); draw(); }));
     where.textContent= e.areas.length? "Where: "+e.areas.map(a=>BZ_NAME[a]).join(", ") : "Tap where it hurts. You can pick more than one place.";
     zbox.replaceChildren(...e.areas.map((a,i)=>zoneInfo(a,false)).filter(Boolean));
+    const n3=Array.isArray(e.p3)? e.p3.length : 0;
+    p3box.replaceChildren(h("button",{class:"btn",type:"button",onclick:()=>open3D({place:true,points:e.p3||[],sev:e.severity,zone:e.areas[0],onDone:(pts,zones,near)=>{ e.p3=pts; e.near=near.length?near:undefined; for(const z of zones) if(!e.areas.includes(z)) e.areas.push(z); draw(); }})}, n3? "📍 Change the spots on the 3D body" : "📍 Show exactly where on a 3D body"),
+      n3? h("p",{class:"hint"}, n3+" spot"+(n3>1?"s":"")+", "+depthLabel(Math.max(...e.p3.map(p=>p.d||0)))+(e.near&&e.near.length? ", close to "+e.near.join(", ").toLowerCase() : "")+".") : h("p",{class:"hint"},"Turn a 3D body, tap the spot, and say how deep it feels."));
     const out=[];
     if(e.areas.some(a=>CHEST_Z.has(a))) out.push("Chest pain that's sudden, feels heavy or tight, or spreads to your arms, back, neck or jaw, or comes with sweating, feeling sick or breathlessness: call 999.");
     if(e.areas.includes("ru-tum")&&e.pctx.includes("After eating")) out.push("Pain under the right ribs after eating can come from the gallbladder. Mention it to your GP, and call 111 if you also have a high temperature or yellow skin or eyes.");
@@ -3073,7 +3291,7 @@ function openPain(iso, entry){
     if(ok){ closeSheet(); toast(isNew? "Pain logged · "+e.areas.map(a=>BZ_NAME[a].toLowerCase()).join(", ") : "Saved"); }
   });
   openSheet(isNew?"Where does it hurt?":"Edit pain",[
-    tabs, mapBox, where, zbox,
+    tabs, mapBox, where, p3box, zbox,
     Object.keys(hist).length? h("p",{class:"hint"},"Shaded: where you've logged pain in the last 3 months.") : null,
     warn,
     h("p",{class:"flabel"},"How bad is it?"), sevRow(()=>e.severity,v=>{ e.severity=v; }),
@@ -3537,6 +3755,7 @@ function renderTiles(){
     hp.heart? ["Heart","heart","r",()=>tlWith(["heart","rhr"]),hearts] : null,
     hp.pain? ["Pain map","pain","r",()=>openPain(todayISO())] : null,
     hp.pain? ["What's under here?","pain","p",()=>openZone()] : null,
+    hp.pain||ofKind("symptom").some(e=>Array.isArray(e.areas)&&e.areas.length)? ["Pain in 3D","pain","k",()=>open3D()] : null,
     packsOn().includes("mental")||mindLogAll().length? ["My mind","mind","k",()=>openMindHistory()] : null,
     ["My illnesses","case","r",()=>openCases(),casesBadge()],
     (trk().food||trk().log)? ["Food and symptoms","food","g",()=>openReactions()] : null,
@@ -5305,6 +5524,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-08.2", items:[["🧍","New 3D body. When you log pain, tap Show exactly where on a 3D body: turn the body, tap the spot, and slide to say how deep it feels. The organs closest to it light up."],["📅","Pain in 3D lets you step back and forward through the days, with a pain calendar coloured by how bad each day was. Press Play to watch the last 60 days."],["🔎","Tap any organ to see its name, and turn skin, bones and organs on or off. Dr Quackers now knows how deep your pain feels and which organs are nearby."]]},
  {v:"2026-11-08.1", items:[["🧍","New What's under here? Tap anywhere on the body to see the organs there, what else can send pain to that spot (gallbladder pain in the right shoulder, for example), the nerve band shingles would follow, common causes to ask your GP about, and when to get help."],["🩺","It shows when you log pain, and from the pain map in Your week. Dr Quackers also uses it in your illness files and chats, so he can say which organs might be involved."]]},
  {v:"2026-11-07.5", items:[["🗂️","New My files in Records: keep the full photos, PDFs and short videos from tests, like a camera test, a scan or a procedure report. They're private to you, up to 50 MB each."],["✦","Dr Quackers can read a stored report and add the findings to your logbook. When you import letters, you can now keep the original files too."]]},
  {v:"2026-11-07.4", items:[["🧍","Your week now shows a body map under each day, marking where it hurt and how bad: amber for mild, orange for moderate, red for 7/10 or worse. Flick through the days and weeks to watch it change."]]},
