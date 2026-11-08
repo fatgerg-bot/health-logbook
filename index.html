@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-08.5">
+<meta name="app-version" content="2026-11-08.6">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -962,6 +962,11 @@ body.b3d-open{overflow:hidden}
 .hx-warn{background:var(--due-soft);border-radius:12px;padding:10px 12px;margin:0;font-weight:700}
 .hx-dq{display:flex;gap:10px;align-items:flex-start;background:var(--ai-soft);border-radius:14px;padding:10px 12px}
 .hx-back{align-self:flex-start;font-weight:700}
+.hs{display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 12px}
+.hs-row{display:flex;gap:10px;align-items:center}.hs-play{width:44px;height:44px;border-radius:22px;border:0;background:var(--accent);color:#fff;font-size:1rem;flex:none;cursor:pointer}
+.hs-sl{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.hs-sl input{width:100%;accent-color:var(--accent);margin:0}.hs-top{display:flex;justify-content:space-between;font-size:.88rem}.hs-lab{color:var(--muted)}
+.hs-cap{margin:0;background:var(--ai-soft);border-radius:12px;padding:8px 10px;font-size:.92rem;line-height:1.4}
+.hx-row.future{opacity:.45}.hx-findrow{margin:4px 0}
 .hx-near{display:flex;flex-direction:column;gap:8px}.hx-near:empty{display:none}
 .b3d-hl{display:flex;flex-direction:column;gap:4px;max-height:220px;overflow:auto}.b3d-hr{display:flex;gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;border-radius:12px;padding:8px 10px;cursor:pointer}.b3d-hr.on{border-color:var(--accent);background:var(--soft)}.b3d-hr span{display:flex;flex-direction:column}.b3d-hr small{color:var(--muted)}
 .b3d-hsel p{margin:0 0 4px}
@@ -2126,7 +2131,7 @@ function buildContext(opts){
   { const zt=zoneContext(); if(zt) lines.push(zt); }
   if(lines.length<2) lines.push("(The logbook is empty so far.)");
   const txt=lines.join("\n");
-  return txt.length>80000? txt.slice(0,80000)+"\n(…logbook cut short)" : txt;
+  return !opts.full&&txt.length>80000? txt.slice(0,80000)+"\n(…logbook cut short)" : txt;
 }
 
 /* ---------- writes ---------- */
@@ -3090,7 +3095,41 @@ function hDob(){ const d=(S.profile||{}).dob; return d&&/^\d{4}/.test(d)? +Strin
 function hWhen(e){ const y=hYear(e), a= e.age!=null&&e.age!==""? +e.age : (y&&hDob()? +y-hDob() : null);
   return [y? (String(e.date).length>4? fmtDate(e.date) : y) : "", a!=null&&a>=0? "age "+a : ""].filter(Boolean).join(" · ") || "Date not known"; }
 function hWhere(e){ const z=e.pin&&e.pin.z; return [e.part, z? BZ_NAME[z] : ""].filter(Boolean).join(" · "); }
-function hPins(sel){ const num=hNum(); return hList().filter(e=>e.pin&&typeof e.pin.x==="number").map(e=>({id:e.id,v:e.pin.v||"f",x:e.pin.x,y:e.pin.y,n:num[e.id],col:HT_COL[e.htype]||HT_COL.other,hi:sel===e.id})); }
+function hPins(sel,upto){ const num=hNum(); return hList().filter(e=>e.pin&&typeof e.pin.x==="number").map(e=>({id:e.id,v:e.pin.v||"f",x:e.pin.x,y:e.pin.y,n:num[e.id],col:HT_COL[e.htype]||HT_COL.other,hi:sel===e.id||(upto!=null&&hYear(e)===String(upto)),ghost:hFuture(e,upto)})); }
+/* the life story: the years events happened in, oldest first, and a line Dr Quackers says for each */
+function hStoryYears(){ return [...new Set(hList().map(hYear).filter(Boolean))].sort(); }
+function hStoryRange(){ const ys=hStoryYears().map(Number), now=+todayISO().slice(0,4), dob=hDob(); return {from: dob||(ys.length? Math.min(...ys)-1 : now-1), to: now}; }
+function hStoryLabel(y){ const now=+todayISO().slice(0,4), dob=hDob(); if(y==null||y>=now) return "Now"+(dob?" · age "+(now-dob):""); return (dob? "Age "+(y-dob)+" · " : "")+y; }
+function hFuture(e,y){ return y!=null&&hYear(e)&&+hYear(e)>y; }
+function hNarr(y){ const L=hList().filter(e=>hYear(e)===String(y)), dob=hDob();
+  if(!L.length) return "";
+  return y+(dob?", age "+(y-dob):"")+". "+L.map(e=>e.title+"."+(e.treat?" "+e.treat.replace(/\.$/,"")+".":"")+(Array.isArray(e.now)&&e.now.length? " Now: "+e.now.join(", ").toLowerCase()+"." : "")+((e.now||[]).includes("Metal still in")||e.htype==="metal"? " Always mention it before an MRI." : "")).join(" "); }
+function storyCtl(onYear){
+  /* a slider back through your life with a play button; onYear(year or null for now, line) */
+  const R=hStoryRange(); let y=null, timer=null;
+  const lab=h("span",{class:"hs-lab"}, hStoryLabel(null));
+  const sl=h("input",{type:"range",min:String(R.from),max:String(R.to),step:"1",value:String(R.to),"aria-label":"Go back through your life","aria-valuetext":hStoryLabel(null)});
+  const play=h("button",{type:"button",class:"hs-play","aria-label":"Play my story"},"▶");
+  const cap=h("p",{class:"hs-cap","aria-live":"polite"});
+  const set=(v,line)=>{ y= v==null||v>=R.to? null : v; sl.value=String(y==null?R.to:y); lab.textContent=hStoryLabel(y); sl.setAttribute("aria-valuetext",lab.textContent);
+    const done=hList().filter(e=>!hFuture(e,y)&&hYear(e)).length, left=hList().filter(e=>hFuture(e,y)).length;
+    cap.textContent= line!=null? line : y==null? "" : (hNarr(y)||("By then: "+done+" thing"+(done===1?"":"s")+" had happened."))+(left? " Still to come: "+left+"." : "");
+    cap.hidden=!cap.textContent; onYear(y); };
+  const stop=()=>{ if(timer){ clearTimeout(timer); timer=null; } play.textContent="▶"; play.setAttribute("aria-label","Play my story"); };
+  sl.addEventListener("input",()=>{ stop(); set(+sl.value); });
+  play.addEventListener("click",()=>{
+    if(timer){ stop(); return; }
+    const ys=hStoryYears().map(Number); if(!ys.length){ toast("Add something with a year first."); return; }
+    play.textContent="❚❚"; play.setAttribute("aria-label","Pause");
+    let i=0; set(R.from, "Here's your body's story."+(hDob()? " Born "+hDob()+"." : ""));
+    const step=()=>{ if(!document.body.contains(play)){ stop(); return; }
+      if(i>=ys.length){ set(null,"That's your story so far."); stop(); return; }
+      const yy=ys[i++]; set(yy, hNarr(yy)); timer=setTimeout(step, Math.max(2600, Math.min(6000, hNarr(yy).length*45))); };
+    timer=setTimeout(step,1600);
+  });
+  cap.hidden=true;
+  return {el:h("div",{class:"hs"}, h("div",{class:"hs-row"}, play, h("div",{class:"hs-sl"}, h("div",{class:"hs-top"}, h("b",{},"Your story"), lab), sl)), cap), stop};
+}
 const H_NEAR=0.095;
 const HT_WORD={break:"break",op:"operation",metal:"implant",injury:"injury",illness:"illness",other:"event"};
 function hLabel(e){ return (e.title||"Untitled")+(hYear(e)?" ("+hYear(e)+")":""); }
@@ -3121,23 +3160,24 @@ function hContext(e){ const b=[HT_NAME[e.htype]||"event"]; const w=hWhere(e); if
   if(e.treat) b.push("treated: "+e.treat); if(e.place) b.push("at "+e.place); if(Array.isArray(e.now)&&e.now.length) b.push("now: "+e.now.join(", ").toLowerCase()); return b.join(" | "); }
 
 function openHistory(){
-  let layer=bodySex()==="m"? "bones" : "skin";
+  let layer=bodySex()==="m"? "bones" : "skin", upto=null;
   const maps=h("div",{class:"hx-maps"}), list=h("div",{class:"hx-list"}), sw=h("div",{class:"hx-sw"}), links=h("div",{});
+  const story=storyCtl(y=>{ upto=y; draw(); });
   const draw=()=>{
-    const L=hList(), num=hNum(), pins=hPins();
+    const L=hList(), num=hNum(), pins=hPins(null,upto);
     sw.hidden=bodySex()!=="m";
     sw.replaceChildren(...(bodySex()==="m"? [["skin","Skin"],["bones","Bones"]].map(([v,l])=>h("button",{type:"button",class:"hx-sb","aria-pressed":String(layer===v),onclick:()=>{ layer=v; draw(); }},l)) : []));
     const tapOpen=(id,ev,svg,view)=>{ const pt=bmPoint(svg,ev,view,id); let best=null,bd=1e9;
       for(const e of L){ if(!e.pin||(e.pin.v||"f")!==(view==="back"?"b":"f")) continue; const d=Math.hypot(e.pin.x-pt.x,e.pin.y-pt.y); if(d<bd){ bd=d; best=e; } }
       if(best&&bd<0.07) openHistItem(best); else if(S.canWrite) openHistEdit(null,{pin:{v:view==="back"?"b":"f",x:pt.x,y:pt.y,z:id}}); };
     maps.replaceChildren(...["front","back"].map(view=>h("div",{class:"hx-map"}, bodyMap(view,[],{},(id,ev,svg)=>tapOpen(id,ev,svg,view),{layer,pins,label:"Tap a pin to open it, or tap the body to add something there.",noLabels:true,onPin:p=>{ const e=L.find(x=>x.id===p.id); if(e) openHistItem(e); }}), h("small",{}, view==="back"?"Back":"Front"))));
-    list.replaceChildren(...(L.length? L.slice().reverse().map(e=>h("button",{type:"button",class:"hx-row",onclick:()=>openHistItem(e)},
+    list.replaceChildren(...(L.length? L.slice().reverse().map(e=>h("button",{type:"button",class:"hx-row"+(hFuture(e,upto)?" future":""),onclick:()=>openHistItem(e)},
         h("b",{class:"hx-yr"}, hYear(e)||"—"), hDot(e,num[e.id]),
         h("span",{class:"hx-t"}, h("b",{}, e.title||"Untitled"), h("small",{}, [Array.isArray(e.now)&&e.now.length? e.now.join(", ") : "", !e.pin? "not pinned yet" : ""].filter(Boolean).join(" · ")||hWhere(e))),
         h("span",{"aria-hidden":"true",class:"hx-chev"},"›"))) :
       [h("div",{class:"hx-empty"}, h("p",{}, h("b",{},"Nothing here yet.")), h("p",{class:"none"},"Add the big things that have happened to your body: broken bones, operations, metal plates or implants, bad injuries and serious illnesses. A year is enough."))]));
     const lk=hLinkable();
-    links.replaceChildren(lk.length&&S.canWrite? h("details",{class:"hx-links"}, h("summary",{}, "From your records ("+lk.length+")"),
+    links.replaceChildren(S.canWrite? h("div",{class:"hx-findrow"}, h("button",{class:"btn ai",type:"button",disabled:!S.sample||S.aiOff||null,onclick:()=>openHistFind()}, h("span",{"aria-hidden":"true"},"✦ "),"Find past events in my records")) : "", lk.length&&S.canWrite? h("details",{class:"hx-links"}, h("summary",{}, "From your records ("+lk.length+")"),
       h("p",{class:"none"},"Operations and conditions already in your logbook. Tap one to pin it to the body."),
       ...lk.slice(0,30).map(r=>h("button",{type:"button",class:"hx-lk",onclick:()=>openHistEdit(null,{title:r.title,date:r.date?String(r.date).slice(0,4):"",details:r.details?String(r.details).slice(0,400):"",htype:/operat|surgery|removed|ectomy|bypass|sleeve|replacement|repair/i.test(r.title+" "+(r.details||""))?"op":r.kind==="event"?"other":"illness",src:r.id})},
         h("span",{}, r.title), h("small",{}, r.date? fmtDate(r.date) : KINDS[r.kind].one)))) : "");
@@ -3148,7 +3188,8 @@ function openHistory(){
     h("button",{class:"btn",type:"button",disabled:!S.canWrite||!S.sample||S.aiOff||null,onclick:()=>openHistTell()}, h("span",{"aria-hidden":"true"},"✦ "),"Tell Dr Quackers"),
     h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); open3D({hist:true}); }},"🧍 3D"), sw);
   openSheet("🦴 Body history",[h("p",{class:"none"},"The big things that have happened to your body, pinned where they happened. Dr Quackers uses them, and they help any new doctor."), hdr, maps,
-    h("div",{class:"hx-key"}, ...HT.slice(0,5).map(t=>h("span",{}, h("i",{style:"background:"+t[2]}), t[1]))), list, links]);
+    hList().some(e=>hYear(e))? story.el : null,
+    h("div",{class:"hx-key"}, ...HT.slice(0,5).map(t=>h("span",{}, h("i",{style:"background:"+t[2]}), t[1]))), list, links].filter(Boolean));
   S.hxRedraw=()=>{ if(document.querySelector(".hx-maps")) draw(); };
 }
 function openHistItem(e){
@@ -3217,26 +3258,16 @@ function openHistEdit(entry, preset){
     entrySheetFoot(e,isNew,save)].filter(Boolean));
 }
 /* tell Dr Quackers in your own words; he fills in the details and asks which side if you didn't say */
-function hTellPrompt(text){
+function hTellPrompt(text, find){
   const zones=[...BZ_ALL,...BZ_FRONT,...BZ_BACK].map(z=>z[0]+" = "+z[1]).join("; ");
-  return "You turn what a person says about their past injuries, operations, implants and serious illnesses into body history items for their personal health logbook. UK English. Today is "+fmtDate(todayISO())+"."+(hDob()?" They were born in "+hDob()+".":"")+"\n"
+  return (find? "You read a person's health logbook and find past events that belong in their BODY HISTORY: operations, broken bones, metal or implants (plates, pins, screws, joint replacements, pacemakers, coils, stents), serious injuries, and major illnesses tied to one part of the body (for example a kidney stone, pneumonia, gallstones, a hernia). Only include things the logbook says actually happened, with the year if it's given. Leave out anything already listed under BODY HISTORY, ongoing symptoms, everyday illnesses, and tests that were only planned. Return an empty list if there's nothing. UK English." : "You turn what a person says about their past injuries, operations, implants and serious illnesses into body history items for their personal health logbook. UK English.")+" Today is "+fmtDate(todayISO())+"."+(hDob()?" They were born in "+hDob()+".":"")+"\n"
   +"Return JSON only: {\"items\":[{\"htype\":\"break|op|metal|injury|illness|other\",\"title\":\"short plain name including the side if known, e.g. Broken right collarbone\",\"year\":\"4-digit year or null\",\"age\":number or null,\"zone\":\"one zone id from the list\",\"side_known\":true or false,\"part\":\"short part name such as Collarbone, Wrist, Appendix, or null\",\"details\":\"what happened, in their words, tidied, or null\",\"treat\":\"how it was treated, or null\",\"place\":\"hospital or null\",\"now\":[zero or more of: "+HNOW.map(n=>JSON.stringify(n)).join(", ")+"]}]}\n"
   +"RULES: one item per separate event. Never invent anything they didn't say. If they give an age but no year, give the age and leave year null. A break fixed with a plate, pins or screws is htype break, with \"Metal still in\" in now only if they say it's still in. An implant, joint replacement, pacemaker or plate on its own is htype metal. If they don't say which side, set side_known false and use the right-hand zone. Pick the zone where it is on the body, for example appendix = rl-tum, kidney stone = mr-back or ml-back, collarbone = r-shoulder or l-shoulder, wrist = r-fore or l-fore, gallbladder = ru-tum.\n"
-  +"Zones: "+zones+"\n\nWhat they said:\n"+String(text).slice(0,4000);
+  +"Zones: "+zones+(find? "\n\nTheir logbook:\n"+String(text).slice(0,70000) : "\n\nWhat they said:\n"+String(text).slice(0,4000));
 }
-function openHistTell(){
-  const ta=h("textarea",{id:"hx-tell",rows:"4",placeholder:"e.g. Broke my collarbone when I was 15, fell off my bike. Sling for 6 weeks. Still aches when it's cold. Had my appendix out in 2015."});
-  const out=h("div",{class:"hx-found"}), go=h("button",{class:"btn primary",type:"button"},"Fill it in");
-  go.addEventListener("click", async()=>{
-    const text=ta.value.trim(); if(!text){ ta.focus(); return; }
-    go.disabled=true; out.replaceChildren(h("p",{class:"none"},"Dr Quackers is reading it…"));
-    let items=[];
-    try{ const r=await S.sample.json(hTellPrompt(text),{modelTier:"default"}); items=(r&&Array.isArray(r.items)? r.items : []).filter(i=>i&&i.title).slice(0,12); }
-    catch(err){ out.replaceChildren(h("p",{class:"st-warn"},"Dr Quackers couldn't read that just now. Try again, or tap + Add to fill it in yourself.")); go.disabled=false; return; }
-    go.disabled=false;
-    if(!items.length){ out.replaceChildren(h("p",{class:"none"},"I couldn't find a break, operation or illness in that. Try saying what happened, roughly when, and where on the body.")); return; }
+function hFoundCards(items){
     const all=new Set([...BZ_ALL,...BZ_FRONT,...BZ_BACK].map(z=>z[0])), dob=hDob();
-    const cards=items.map(it=>{
+    return items.map(it=>{
       const e={kind:"history",source:"dq",htype:HT_NAME[it.htype]? it.htype : "other",title:String(it.title).slice(0,120),part:it.part||undefined,details:it.details||undefined,treat:it.treat||undefined,place:it.place||undefined,
         now:(Array.isArray(it.now)?it.now:[]).filter(n=>HNOW.includes(n))};
       const y=/^\d{4}$/.test(String(it.year||""))? String(it.year) : (it.age!=null&&dob? String(dob+(+it.age)) : "");
@@ -3260,6 +3291,34 @@ function openHistTell(){
       };
       drawCard(); card.append(body); return card;
     });
+}
+function openHistFind(){
+  const out=h("div",{class:"hx-found"}), go=h("button",{class:"btn primary",type:"button"},"Look through my records");
+  go.addEventListener("click", async()=>{
+    go.disabled=true; out.replaceChildren(h("p",{class:"thinking"},"Dr Quackers is reading your letters, conditions, results and notes…"));
+    let items=[];
+    try{ const r=await S.sample.json(hTellPrompt(buildContext(),true),{modelTier:"default"}); items=(r&&Array.isArray(r.items)? r.items : []).filter(i=>i&&i.title).slice(0,15); }
+    catch(err){ out.replaceChildren(h("p",{class:"st-warn"},"Dr Quackers couldn't read your records just now. Try again in a minute.")); go.disabled=false; return; }
+    go.disabled=false;
+    const have=new Set(hList().map(e=>String(e.title||"").toLowerCase()));
+    items=items.filter(i=>!have.has(String(i.title).toLowerCase()));
+    if(!items.length){ out.replaceChildren(h("p",{class:"none"},"I didn't find any operations, breaks or implants in your records that aren't already in your body history.")); return; }
+    out.replaceChildren(h("p",{class:"flabel"},"I found "+items.length+" in your records. Check each one, then save the ones that are right."), ...hFoundCards(items), h("button",{class:"linkbtn hx-back",type:"button",onclick:()=>openHistory()},"Back to Body history ›"));
+  });
+  openSheet("✦ Find past events in my records",[h("p",{class:"none"},"Dr Quackers reads what's already in your logbook, like NHS letters, conditions, results and notes, and picks out past operations, breaks and implants to pin to the body. Nothing is saved until you say."), go, out]);
+}
+function openHistTell(){
+  const ta=h("textarea",{id:"hx-tell",rows:"4",placeholder:"e.g. Broke my collarbone when I was 15, fell off my bike. Sling for 6 weeks. Still aches when it's cold. Had my appendix out in 2015."});
+  const out=h("div",{class:"hx-found"}), go=h("button",{class:"btn primary",type:"button"},"Fill it in");
+  go.addEventListener("click", async()=>{
+    const text=ta.value.trim(); if(!text){ ta.focus(); return; }
+    go.disabled=true; out.replaceChildren(h("p",{class:"none"},"Dr Quackers is reading it…"));
+    let items=[];
+    try{ const r=await S.sample.json(hTellPrompt(text),{modelTier:"default"}); items=(r&&Array.isArray(r.items)? r.items : []).filter(i=>i&&i.title).slice(0,12); }
+    catch(err){ out.replaceChildren(h("p",{class:"st-warn"},"Dr Quackers couldn't read that just now. Try again, or tap + Add to fill it in yourself.")); go.disabled=false; return; }
+    go.disabled=false;
+    if(!items.length){ out.replaceChildren(h("p",{class:"none"},"I couldn't find a break, operation or illness in that. Try saying what happened, roughly when, and where on the body.")); return; }
+    const cards=hFoundCards(items);
     out.replaceChildren(h("p",{class:"flabel"},"Here's what I found. Check each one, then save it."), ...cards, h("button",{class:"linkbtn hx-back",type:"button",onclick:()=>openHistory()},"Back to Body history ›"));
   });
   openSheet("✦ Tell Dr Quackers",[h("p",{class:"none"},"Say it in your own words: what happened, roughly when (a year or your age), and how it was treated. You can put several things in one go."), field("hx-tell","What happened",ta), go, out]);
@@ -3540,16 +3599,20 @@ function open3D(opt){
       if(e.htype==="break"||e.htype==="metal"||e.htype==="injury"){ ray.set(new T.Vector3(pn.x,pn.y,z0),new T.Vector3(...dir)); const b=ray.intersectObjects(groups.bone.children,false)[0]; if(b&&b.distance-hit.distance<0.12) return b.point.toArray(); return lerp(s,[pn.x,pn.y,0],.25); }
       const opp=skinHit([pn.x,pn.y,-z0],[0,0,-dir[2]]); return lerp(s, opp? opp.point.toArray() : [pn.x,pn.y,0], .4);
     }
+    let h3upto=null;
     function drawHist(sel){ hk.clear(); const num=hNum();
-      for(const e of hList()){ const p=hWhere3(e); if(!p) continue; hPos[e.id]=p; const sp=hSprite(num[e.id],HT_COL[e.htype]||HT_COL.other); sp.position.set(...p); if(sel&&sel!==e.id) sp.material.opacity=.45; hk.add(sp); } }
+      for(const e of hList()){ const p=hWhere3(e); if(!p) continue; hPos[e.id]=p; const fut=hFuture(e,h3upto); const sp=hSprite(num[e.id],fut?"#9DB0A8":(HT_COL[e.htype]||HT_COL.other)); sp.position.set(...p);
+        if(fut){ sp.material.opacity=.35; sp.scale.setScalar(.04); } else if(sel&&sel!==e.id) sp.material.opacity=.45; hk.add(sp); } }
+    const story3= hmode&&hList().some(e=>hYear(e))? storyCtl(y=>{ h3upto=y; drawHist(curSel); }) : null; let curSel=opt.sel||null;
     let showHist= !place && !hmode && hList().some(e=>e.pin||e.p3);
     if(!place&&!hmode&&hList().length){ const hb=h("button",{type:"button",class:"fchip"+(showHist?" on":""),"aria-pressed":String(showHist)},"🦴 Old injuries"); hb.onclick=()=>{ showHist=!showHist; hb.classList.toggle("on",showHist); hb.setAttribute("aria-pressed",String(showHist)); if(showHist) drawHist(); else hk.clear(); }; layerRow.append(hb); }
     function drawHistMode(sel){
-      mk.clear(); drawHist(sel); const num=hNum(), L=hList();
+      curSel=sel||null; mk.clear(); drawHist(sel); const num=hNum(), L=hList();
       const cur=L.find(e=>e.id===sel);
       side.replaceChildren(
         cur? h("div",{class:"b3d-hsel"}, h("p",{}, hDot(cur,num[cur.id])," ",h("b",{},cur.title)), h("p",{class:"none"}, [HT_NAME[cur.htype],hWhen(cur),hWhere(cur)].filter(Boolean).join(" · ")), h("button",{class:"btn small ghost",type:"button",onclick:()=>{ done(); openHistItem(cur); }},"Open it ›")) :
           h("p",{class:"b3d-tip"}, L.length? "Turn the body to see each pin on the bone or organ. Tap one in the list to zoom in." : "Nothing in your body history yet."),
+        story3? story3.el : null,
         L.length? h("div",{class:"b3d-hl"}, ...L.slice().reverse().map(e=>h("button",{type:"button",class:"b3d-hr"+(e.id===sel?" on":""),onclick:()=>{ const p=hPos[e.id]; if(p) focus(p,0.75); drawHistMode(e.id); }}, hDot(e,num[e.id]), h("span",{}, h("b",{}, e.title), h("small",{}, hYear(e)||""))))) : null,
         layerRow, info,
         h("p",{class:"fineprint"},"Breaks and metal sit on the nearest bone; operations and illnesses sit inside. Use Fine-tune in Edit to move one exactly. Body data: BodyParts3D, © DBCLS, CC BY 4.0."));
@@ -5826,6 +5889,7 @@ function renderSettings(full){
     S.viewing? setRow("👀","You're looking at "+S.viewing.name+"'s logbook","Look only. Nothing here can be changed.", h("button",{type:"button",class:"btn small",onclick:stopViewing},"Back to mine")) :
     S.isAdmin? setRow("🔒","Only you can see your records","Each person has their own login. Your logbook is never shared with other users.", h("span")) :
     setRow("🔒","Only you can see your records","Each person has their own login. Nobody else can see your logbook unless you switch on the admin look below.", h("span")),
+    !S.viewing? setRow("💾","Download all my data","Everything in one file: all your records, diary days, body history, settings and stored photos and reports.", h("button",{type:"button",class:"btn small",onclick:downloadAll},"Download")) : null,
     !S.isAdmin&&!S.viewing? setRow("👀","Let the admin look at my logbook","Look only, so they can check everything's working. They can't change anything. Switch it off any time.",
       h("button",{type:"button",class:"set-pill"+(S.adminShare?" on":""),"aria-pressed":String(!!S.adminShare),"aria-label":"Let the admin look at my logbook",onclick:()=>setAdminShare(!S.adminShare)}, S.adminShare?"On":"Off")) : null,
     p.pinHash? setRow("🔢","PIN lock is on","Asked when the app opens and after 5 minutes away.", h("span",{class:"set-pill on"},"On")) : setRow("🔢","PIN lock","Ask for a 4-digit PIN whenever the app is opened.", h("span",{class:"set-pill"},"Off")),
@@ -5847,6 +5911,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-08.6", items:[["▶","Your story: drag the slider back through your life, or press play, and watch your body history appear year by year. It's on the flat body and in 3D, handy when a new doctor asks about your past."],["✦","Find past events in my records: Dr Quackers reads your NHS letters and notes and picks out past operations, breaks and implants for you to pin."],["💾","Download all my data, in Settings → Privacy and security: everything in one file, including your stored photos and reports."]]},
  {v:"2026-11-08.5", items:[["🦴","Your body history is now on the 3D body: breaks and metal sit on the bone, operations inside. Tap 3D in Body history, and use Fine-tune on the 3D body to place one exactly."],["📍","When you log pain, old injuries show as dotted circles. Pain next to one gets linked so your GP sees both, and Dr Quackers tells you if it keeps happening."],["📋","Get ready briefs now list your past operations, breaks and implants, flag metal before any scan, and say what an old operation rules out."]]},
  {v:"2026-11-08.4", items:[["👀","New in Settings → Privacy and security: Let the admin look at my logbook. Switch it on and the admin can look through your logbook to check everything's working. It's look only: they can't change anything, and you can switch it off any time."]]},
  {v:"2026-11-08.3", items:[["🦴","New Body history. Pin the big things that have happened to your body where they happened: broken bones, operations, metal plates or implants, bad injuries and serious illnesses. A year or your age is enough."],["✦","Tell Dr Quackers in your own words, like \"broke my collarbone at 15\", and he fills it in and asks which side if you didn't say. He also uses your body history when he helps you."],["🧍","The body map now looks like a real body, drawn from the 3D model: a man's body for men and a woman's for women."]]},
@@ -7277,6 +7342,42 @@ async function openViewList(){
     h("p",{class:"none"},"Only people who have switched on Let the admin look in their own Settings are listed. You can look at everything but can't change anything, and they can switch it off at any time."),
     ...(L.length? L.map(x=>setRow("👤",names[x.user_id]||"Someone","Allowed since "+fmtDate(String(x.granted_at||"").slice(0,10)), null, ()=>viewAs(x.user_id,names[x.user_id]))) :
       [h("p",{class:"hx-empty"},"Nobody has switched it on yet. They can do it in Settings → Privacy and security.")]));
+}
+/* one .zip with everything: the full data as JSON, a readable summary, and every stored file */
+let JSZIP=null;
+function loadJSZip(){ if(window.JSZip) return Promise.resolve(window.JSZip); if(JSZIP) return JSZIP;
+  JSZIP=new Promise((ok,no)=>{ const sc=document.createElement("script"); sc.src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"; sc.onload=()=>window.JSZip? ok(window.JSZip) : no(new Error("zip")); sc.onerror=()=>{ JSZIP=null; no(new Error("zip")); }; document.head.append(sc); });
+  return JSZIP; }
+async function downloadAll(){
+  if(S.viewing){ toast("Go back to your own logbook first."); return; }
+  if(!S.loaded){ toast("Your records are still loading."); return; }
+  const st=h("p",{class:"none","aria-live":"polite"},"Getting everything together…"), bar=h("progress",{max:"1",value:"0",style:"width:100%"});
+  openSheet("💾 Download all my data",[st,bar]);
+  try{
+    const Z=await loadJSZip(), zip=new Z();
+    const name=((S.profile||{}).name||"my").replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"-")||"my";
+    const prof={...(S.profile||{})}; delete prof.pinHash; delete prof.pinSalt;
+    const data={app:"Health Logbook", exported:new Date().toISOString(), version:APP_VERSION||"", profile:prof,
+      records:S.entries.slice().sort(byDateDesc), diary:Object.values(S.days||{}).sort((a,b)=>String(a.date).localeCompare(String(b.date))),
+      illnesses:S.cases||null, files:(S.files||[]).map(f=>({...f}))};
+    zip.file("health-logbook-data.json", JSON.stringify(data,null,1));
+    zip.file("summary.txt", "My health logbook, downloaded "+fmtDate(todayISO())+".\nThis is a plain summary of everything. The full details are in health-logbook-data.json.\n\n"+buildContext({full:true}));
+    zip.file("READ ME.txt", "What's in this download\n\n- summary.txt: everything in your logbook as plain text you can read, print, or give to a doctor.\n- health-logbook-data.json: every record, diary day and setting, in full (for backups or moving to another app).\n- files: your stored photos and reports.\n\nKeep this file somewhere safe: it has your private health information in it.\n");
+    const F_=(S.files||[]).filter(f=>f.path); let n=0, miss=0;
+    for(const f of F_){
+      st.textContent="Adding your stored files… "+(n+1)+" of "+F_.length; bar.value=F_.length? n/F_.length : 1;
+      try{ const blob=await fileBlob(f.path); const base=String(f.name||f.title||f.path.split("/").pop()).replace(/[\\/:*?"<>|]+/g,"-").slice(0,80); zip.file("files/"+(f.date?f.date+" ":"")+base, blob); }
+      catch(e){ miss++; }
+      n++;
+    }
+    st.textContent="Packing it into one file…"; bar.value=1;
+    const blob=await zip.generateAsync({type:"blob",compression:"DEFLATE",compressionOptions:{level:6}});
+    const fname="health-logbook-"+name+"-"+todayISO()+".zip";
+    await (S.downloads||makeDownloads()).save({filename:fname,data:blob});
+    st.replaceChildren(h("b",{},"Done. "),"Saved "+fname+" ("+(blob.size>1e6? (blob.size/1e6).toFixed(1)+" MB" : Math.max(1,Math.round(blob.size/1e3))+" KB")+") to your downloads."+(miss? " "+miss+" stored file"+(miss>1?"s":"")+" couldn't be fetched, so try again later for those." : ""));
+    st.append(h("p",{class:"hint"},"On an iPhone it's in the Files app, under Downloads. It has your private health information in it, so keep it somewhere safe."));
+    bar.remove();
+  }catch(e){ console.warn("export",e); st.textContent="Couldn't make the download. Check your internet connection and try again."; bar.remove(); }
 }
 async function setAdminShare(on){
   const r= on? await sb.from("admin_view").insert({user_id:S.uid}) : await sb.from("admin_view").delete().eq("user_id",S.uid);
