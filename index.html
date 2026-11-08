@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-08.2">
+<meta name="app-version" content="2026-11-08.3">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -935,12 +935,34 @@ body.b3d-open{overflow:hidden}
 .sevrow{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
 .sevrow .sevb{min-height:40px;border-radius:10px;font-size:.95rem;padding:0}
 .bmap-wrap{display:flex;justify-content:center}
-.bmap{width:100%;max-width:180px;height:auto;touch-action:manipulation}
-.bz{fill:var(--bg);stroke:var(--line);stroke-width:1.2;cursor:pointer;transition:fill .15s}
-.bz:hover{stroke:var(--accent)}
-.bz:focus{outline:none;stroke:var(--accent);stroke-width:2}
-.bz.on{fill:var(--alert);fill-opacity:.9;stroke:var(--alert)}
-.bz-lab{font-size:7px;fill:var(--muted);font-family:var(--f-body,inherit)}
+.bmap{width:100%;max-width:190px;height:auto;touch-action:manipulation}
+.bz{fill:transparent;stroke:none;cursor:pointer;transition:fill .15s}
+.bz:hover{fill:var(--accent);fill-opacity:.14}
+.bz:focus{outline:none;stroke:var(--accent);stroke-width:4}
+.bz.on{fill:var(--alert);fill-opacity:.55;stroke:var(--alert);stroke-width:2}
+.bz-lab{font-size:24px;fill:var(--muted);font-family:var(--f-body,inherit)}
+.bm-pin-c{stroke:#fff;stroke-width:4}.bm-pin-halo{opacity:.25}.bm-pin-t{font-size:22px;font-weight:700;fill:#fff;font-family:var(--f-body,inherit)}
+.bm-pin-g{fill:none;stroke:#8FA39B;stroke-width:4;stroke-dasharray:7 6}.bm-pin{pointer-events:none}
+.hx-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.hx-sw{display:inline-flex;gap:2px;padding:3px;border-radius:17px;background:var(--soft);margin-left:auto}
+.hx-sb{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:700;font-size:.85rem;padding:6px 12px;border-radius:14px;cursor:pointer;min-height:32px}
+.hx-sb[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.hx-maps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 6px}
+.hx-map{display:flex;flex-direction:column;align-items:center;gap:2px}.hx-map .bmap{max-width:170px}.hx-map small,.hx-one small{color:var(--muted);font-size:.8rem}
+.hx-key{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.82rem;color:var(--muted)}.hx-key span{display:inline-flex;align-items:center;gap:5px}.hx-key i{width:11px;height:11px;border-radius:6px;display:inline-block}
+.hx-list{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.hx-row{display:grid;grid-template-columns:44px 26px minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px 12px;border:0;border-top:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer;min-height:52px}
+.hx-row:first-child{border-top:0}.hx-row:hover{background:var(--soft)}.hx-yr{color:var(--muted);font-size:.9rem}.hx-chev{color:var(--muted)}
+.hx-t{display:flex;flex-direction:column;min-width:0}.hx-t small{color:var(--muted);font-size:.8rem}
+.hx-dot{width:24px;height:24px;border-radius:12px;color:#fff;font-weight:700;font-size:.75rem;display:inline-flex;align-items:center;justify-content:center;flex:none;vertical-align:middle}
+.hx-empty{padding:14px}.hx-empty p{margin:0 0 4px}
+.hx-links summary{cursor:pointer;font-weight:700;padding:8px 0}.hx-lk{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;border-radius:12px;padding:10px 12px;margin-top:6px;cursor:pointer}.hx-lk small{color:var(--muted)}
+.hx-sub{display:flex;align-items:center;gap:6px;margin:0;flex-wrap:wrap}.hx-one{display:flex;flex-direction:column;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px}.hx-one .bmap{max-width:150px}
+.hx-card{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px}.hx-card:empty{display:none}.hx-f{display:flex;flex-direction:column}.hx-f b{font-size:.85rem;color:var(--muted)}
+.hx-chip{padding:6px 12px;border-radius:16px;background:var(--soft);font-weight:700;font-size:.85rem}.hx-chip.metal{background:var(--due-soft)}
+.hx-warn{background:var(--due-soft);border-radius:12px;padding:10px 12px;margin:0;font-weight:700}
+.hx-dq{display:flex;gap:10px;align-items:flex-start;background:var(--ai-soft);border-radius:14px;padding:10px 12px}
+.hx-back{align-self:flex-start;font-weight:700}
+.hx-found{display:flex;flex-direction:column;gap:10px}.hx-fc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}.hx-fh{display:flex;gap:8px;align-items:center}.hx-fs{margin:4px 0 0;color:var(--muted);font-size:.88rem}.hx-ok{color:var(--accent);font-weight:700;margin:6px 0 0}.hx-fc .row{margin-top:8px}
 .bz-where{font-weight:700;text-align:center;font-size:.92rem}
 .bz-tabs{grid-template-columns:repeat(2,minmax(0,1fr));max-width:240px;margin:0 auto;width:100%}
 .bz-tabs .pf{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
@@ -1746,9 +1768,10 @@ const KINDS = {
   result:{one:"Test result or letter", many:"Results & letters", date:"Date"},
   note:{one:"Note", many:"Notes & reviews", date:"Date"},
   event:{one:"Big event", many:"Big events", date:"Date (or start)"},
+  history:{one:"Body history", many:"Body history", date:"Year"},
   due:{one:"Due date", many:"Due dates", date:"Next due"}
 };
-const ORDER = ["allergy","medication","condition","event","appointment","due","symptom","result","note"];
+const ORDER = ["allergy","medication","condition","event","history","appointment","due","symptom","result","note"];
 const S = {db:null,col:null,user:null,sample:null,downloads:null,img:null,entries:[],profile:{},loaded:false,canWrite:true,aiOff:false,filter:"all",chat:[],chatFiles:[],prepCtl:null,chatCtl:null,prepText:"",prepFor:"",revCtl:null,revText:"",days:{},cal:null,selDay:null,notesFor:null};
 
 const GUIDE0 = "You are Dr Quackers (Doctor Quackers), a friendly cartoon duck in a white coat who is the health helper inside this personal health logbook app. You are an AI (Claude, made by Anthropic), not a real doctor: never claim medical qualifications or to be a person, and if asked what you are, say so plainly. In chat replies speak as Dr Quackers in the first person: warm, kind and plain-spoken, with gentle duck charm but no jokes when something is worrying or serious. Never write the word quack yourself: the app adds his quacks. In briefs, notes and documents don't mention yourself.\nYou are helping a person in the UK keep track of their own health and push their care forward with the NHS (GP, nurse, hospital, pharmacist), especially when appointments have gone round in circles. Use UK English and NHS terms. Be warm, plain-spoken, direct and practical.\n"
@@ -1795,6 +1818,7 @@ function subline(e){
   if(e.kind==="due"){ const ev=everyText(e); if(ev) bits.push(ev); if(e.status==="done") bits.push("done"); else if(e.date&&e.date<todayISO()) bits.push("overdue"); }
   if(e.kind==="symptom"){ const sd=symDesc(e); if(sd) bits.push(sd); }
   if(e.kind==="event"){ bits.push((EVT_EMO[e.etype]||"🚩")+" "+(EVT_NAME[e.etype]||"Big event")+(e.endDate?" · until "+fmtDate(e.endDate):"")); }
+  if(e.kind==="history"){ bits.push((HT_NAME[e.htype]||"Other")+(hWhere(e)?" · "+hWhere(e):"")); if(Array.isArray(e.now)&&e.now.length) bits.push(e.now.join(", ")); }
   if(e.details && e.kind!=="appointment") bits.push(e.details.length>90? e.details.slice(0,90)+"…" : e.details);
   return bits.join(" · ");
 }
@@ -2052,6 +2076,7 @@ function buildContext(opts){
       if(e.severity) bits.push("severity "+e.severity+"/10");
       if(e.kind==="symptom"){ const sd=symDesc(e); if(sd) bits.push(sd); }
       if(e.kind==="event"){ bits.push(EVT_NAME[e.etype]||"big event"); if(e.endDate) bits.push("until "+fmtDate(e.endDate)); }
+      if(e.kind==="history") bits.push(hContext(e));
       if(typeof e.value==="number") bits.push("result: "+valueText(e));
       if(e.place) bits.push("with/at: "+e.place);
       if(e.details) bits.push(String(e.details).slice(0, e.kind==="note"?2000:e.kind==="result"?1500:600));
@@ -2971,23 +2996,238 @@ function openHeart(iso, entry){
   check();
 }
 function painHistory(){ const from=addDays(todayISO(),-89), c={}; for(const e of ofKind("symptom")) if(e.date&&e.date>=from) for(const a of (e.areas||[])) c[a]=(c[a]||0)+1; return c; }
-function bodyMap(view, sel, hist, onTap){
-  const s=sv("svg",{viewBox:"0 0 120 250",class:"bmap",role:"group","aria-label":(view==="back"?"Back":"Front")+" of body. Tap where it hurts."});
+/* the body map: a flat render of the 3D body (men's or women's, front or back), with tap zones traced from it */
+const BZ_PATH={"mf":{"head":"M186,22 175,29 166,37 163,42 161,51 161,72 165,87 165,93 169,111 229,112 233,93 233,86 237,76 239,64 239,56 236,43 233,37 227,31 215,23 203,20 196,20Z","l-arm":"M284,200 284,289 277,290 284,311 285,319 333,319 325,291 323,278 323,264 319,244 319,201Z","l-chest":"M200,153 200,275 283,275 283,200 252,199 252,153Z","l-fore":"M244,878 283,879 285,878ZM285,320 287,327 287,345 290,361 299,392 307,413 312,435 312,442 310,450 309,481 308,487 307,502 309,504 312,503 315,494 315,491 317,490 320,507 324,510 326,510 328,506 328,499 331,498 333,503 334,512 337,516 341,516 342,514 342,507 340,491 342,490 343,496 350,509 353,512 356,512 358,511 359,507 351,481 351,476 353,475 357,480 361,483 364,483 366,479 363,472 363,468 359,460 356,450 348,439 341,433 337,403 338,348 333,321Z","l-knee":"M209,615 208,630 210,647 213,661 213,674 267,674 265,657 264,630 267,615Z","l-shin":"M213,675 211,694 211,708 212,725 218,760 221,790 221,820 217,835 217,872 221,876 230,878 243,877 258,877 259,879 277,879 277,877 286,877 287,874 285,870 271,862 262,852 255,843 255,838 252,830 252,814 254,806 260,764 266,737 269,713 269,696 267,675Z","l-shoulder":"M253,153 253,199 318,199 317,195 313,185 307,177 302,173 290,167 277,163 257,153Z","l-thigh":"M200,480 200,496 201,496 202,500 203,542 208,576 209,614 268,614 270,598 275,582 277,566 283,509 283,480Z","ll-tum":"M200,345 200,415 281,415 279,398 276,389 274,375 270,357 269,345Z","lu-tum":"M223,275 223,345 269,345 269,334 273,315 276,290 283,289 283,275Z","neck":"M142,152 256,152 235,141 231,137 229,133 228,129 228,115 229,113 169,113 171,115 171,124 170,132 168,136 159,143Z","pelvis":"M118,415 115,479 283,479 283,459 281,440 281,415Z","r-arm":"M81,200 79,209 81,241 76,265 75,283 71,303 66,319 113,319 121,289 115,289 115,200Z","r-chest":"M147,153 147,199 116,200 116,275 199,275 199,153Z","r-fore":"M113,878 115,878 116,879 156,878ZM113,320 66,320 61,347 61,409 57,433 56,435 52,437 43,450 41,459 36,467 36,472 33,478 33,482 38,483 41,480 46,474 48,474 47,482 41,506 41,511 43,512 45,512 49,509 55,497 57,490 59,491 56,513 59,516 61,516 65,512 68,496 70,496 71,507 74,510 77,510 79,507 81,491 83,492 86,502 87,504 89,504 91,502 91,493 89,481 89,450 87,442 87,434 91,414 106,370 111,345Z","r-knee":"M131,615 135,629 131,674 186,674 185,660 188,651 191,632 190,615Z","r-shin":"M131,675 129,694 131,722 133,738 140,772 147,816 147,831 143,843 135,854 129,862 115,870 113,872 112,877 124,877 125,879 131,880 138,879 139,877 157,877 162,878 173,878 179,875 181,873 182,869 181,862 182,840 178,818 178,792 181,754 188,710 188,693 186,675Z","r-shoulder":"M147,153 141,153 127,160 103,169 97,173 90,179 85,187 81,199 147,199Z","r-thigh":"M115,480 115,499 123,575 127,594 131,614 190,614 191,575 195,543 197,526 197,500 197,497 199,496 199,480Z","rl-tum":"M129,345 129,354 120,399 118,415 199,415 199,345Z","ru-tum":"M116,275 116,289 123,289 126,317 129,334 129,345 177,345 177,275Z","upper-tum":"M177,275 177,345 222,345 222,275Z"},"mb":{"buttocks":"M119,420 118,441 116,460 116,499 197,499 199,496 201,496 202,499 285,498 284,464 281,420Z","head":"M181,25 173,31 166,39 163,46 161,57 162,77 166,87 166,93 169,111 230,112 234,93 234,87 239,71 239,54 237,45 235,39 225,29 211,21 196,20 189,21Z","l-arm":"M81,200 80,207 81,245 77,265 74,292 67,319 114,319 115,313 122,290 115,289 115,200Z","l-fore":"M114,878 117,879 156,878ZM114,320 67,320 61,349 62,403 58,433 51,439 43,450 41,458 37,466 37,472 33,480 35,483 38,483 43,480 47,473 49,474 48,482 41,508 41,511 43,512 46,512 49,508 55,497 57,490 59,491 57,508 57,515 59,516 62,516 65,512 67,503 69,497 70,497 71,500 71,507 73,510 75,510 79,507 82,491 84,492 87,502 89,504 92,501 91,487 90,480 89,450 87,441 87,435 92,415 109,360 112,345 113,327Z","l-knee":"M131,615 135,629 134,658 132,674 187,674 186,660 189,646 191,630 191,615Z","l-shin":"M132,675 130,696 131,714 133,738 139,765 147,814 147,831 144,843 138,852 129,862 116,869 113,874 113,876 125,877 126,879 141,879 142,877 157,877 170,878 178,876 181,873 183,868 181,862 182,835 179,819 179,790 181,759 188,716 189,693 187,675Z","l-shoulder":"M147,153 142,153 121,163 113,165 103,169 95,174 85,187 81,199 147,199Z","l-thigh":"M116,500 116,510 122,567 126,588 129,599 131,614 191,614 191,576 196,542 197,500Z","low-back":"M127,365 124,387 121,399 119,419 281,419 280,403 273,365Z","ml-back":"M116,275 116,289 123,290 126,315 130,335 130,351 127,365 199,365 199,275Z","mr-back":"M200,275 200,365 273,365 270,353 270,334 275,308 277,289 283,289 283,275Z","neck":"M143,152 257,152 241,144 231,136 229,132 228,124 229,115 230,113 170,113 171,115 171,129 171,133 168,137 163,141Z","r-arm":"M284,200 284,289 278,289 278,291 287,319 333,319 329,303 325,283 323,260 319,240 320,217 319,201 319,200Z","r-fore":"M251,878 285,878ZM287,320 287,340 293,367 297,384 308,414 313,434 313,442 311,450 310,482 308,494 308,502 309,504 312,504 313,502 316,491 318,490 319,502 321,508 324,510 328,508 329,503 329,497 331,496 335,512 338,516 342,516 343,512 341,492 343,491 345,498 351,509 354,512 357,512 359,511 359,505 352,482 352,476 354,475 357,480 362,483 365,483 367,480 363,471 363,467 359,458 357,450 349,439 344,435 342,432 339,409 339,346 333,320Z","r-knee":"M209,615 209,632 211,648 214,661 213,674 268,674 265,630 268,618 268,615Z","r-shin":"M213,675 211,693 211,711 218,754 221,793 221,819 217,840 219,853 219,863 217,868 218,872 223,876 231,878 261,878 262,879 269,880 275,879 276,878 287,878 287,872 283,868 271,862 264,854 256,843 255,838 253,830 253,811 259,772 267,737 269,721 270,693 268,675Z","r-shoulder":"M253,153 253,199 319,199 318,195 313,183 310,179 301,171 294,168 279,163 258,153Z","r-thigh":"M202,500 204,543 209,575 209,614 269,614 271,596 277,574 284,508 284,500Z","ul-back":"M147,153 147,199 116,200 116,275 199,275 199,153Z","ur-back":"M200,153 200,275 283,275 283,200 252,199 252,153Z"},"ff":{"head":"M180,55 176,57 171,63 167,72 164,87 164,103 158,105 157,109 159,115 159,119 161,127 168,128 172,139 227,139 231,129 232,127 237,127 239,125 240,114 242,109 241,104 235,103 235,81 233,73 229,63 223,57 219,55 208,51 195,50 187,51Z","l-arm":"M271,224 271,270 275,293 279,302 281,319 287,335 287,339 323,339 317,317 316,308 312,287 310,247 307,224Z","l-chest":"M200,178 200,295 265,295 270,272 270,224 247,223 247,181 239,178Z","l-fore":"M288,340 289,353 293,365 315,417 315,419 311,419 307,424 296,432 296,434 298,435 304,435 311,432 316,437 318,441 319,451 313,461 313,467 316,469 319,466 321,466 317,482 318,485 321,486 321,490 323,492 325,492 332,472 333,464 335,460 335,428 333,422 333,396 327,352 323,340Z","l-knee":"M224,624 227,644 233,666 235,682 290,682 287,666 282,646 281,624Z","l-shin":"M235,682 237,701 237,722 238,734 242,756 247,774 252,810 252,824 250,850 248,858 242,866 240,872 244,877 247,878 258,878 259,879 269,880 273,879 274,878 281,878 285,875 285,872 284,868 279,862 277,858 277,847 275,839 275,828 279,807 281,790 286,766 292,722 290,682Z","l-shoulder":"M247,181 247,223 307,223 304,214 299,205 294,200 284,192 264,185Z","l-thigh":"M200,494 202,496 205,503 205,522 217,576 224,624 280,624 280,607 282,586 286,559 289,548 292,521 293,494Z","ll-tum":"M200,364 200,431 282,431 279,417 277,400 265,364Z","lu-tum":"M223,296 223,363 265,363 260,347 260,335 261,330 263,300 265,296Z","neck":"M161,177 237,177 234,176 227,169 223,160 223,148 224,144 227,139 172,139 176,145 177,149 175,163 173,169 166,175Z","pelvis":"M107,469 107,493 293,493 293,478 291,461 287,446 282,431 117,431 113,444Z","r-arm":"M92,224 89,247 87,287 82,321 77,339 112,339 113,332 118,319 121,301 124,292 129,270 129,224Z","r-chest":"M153,181 153,223 129,224 129,273 135,295 199,295 199,178 160,178 155,181Z","r-fore":"M111,340 77,340 73,353 67,396 66,423 65,428 65,460 67,464 67,472 75,492 76,492 78,490 78,486 81,485 83,482 81,475 80,474 79,468 81,467 84,469 87,467 87,462 81,451 81,440 88,432 90,432 96,435 101,435 103,434 103,432 97,426 93,425 88,419 85,419 84,416 107,363 110,352Z","r-knee":"M119,624 117,646 109,682 164,682 166,666 172,644 175,624Z","r-shin":"M109,682 107,722 113,767 119,790 121,812 125,828 125,840 123,847 123,858 121,862 115,868 114,875 118,878 126,878 127,879 131,880 141,879 141,878 153,878 155,878 159,874 159,870 157,866 153,861 149,850 147,824 147,809 153,773 157,758 161,734 163,722 163,700 164,682Z","r-shoulder":"M152,181 133,185 115,192 103,203 97,211 92,223 152,223Z","r-thigh":"M107,494 107,521 111,548 113,560 118,592 119,607 119,624 175,624 183,575 194,522 195,502 197,496 199,494Z","rl-tum":"M135,364 123,400 121,417 117,431 199,431 199,364Z","ru-tum":"M135,296 136,301 137,323 139,335 139,348 135,363 177,363 177,296Z","upper-tum":"M177,296 177,363 222,363 222,296Z"},"fb":{"buttocks":"M115,437 111,452 107,469 107,512 194,512 195,502 199,494 201,494 202,496 204,500 205,512 292,512 292,469 287,446 283,436Z","head":"M180,55 176,57 171,63 167,72 164,87 164,103 158,105 157,109 159,115 159,119 161,127 168,128 172,139 227,139 231,129 232,127 237,127 239,125 240,114 242,109 241,104 235,103 235,81 233,73 229,63 223,57 219,55 208,51 195,50 187,51Z","l-arm":"M92,224 89,247 87,287 82,321 77,339 112,339 113,332 118,319 121,301 124,292 129,270 129,224Z","l-fore":"M111,340 77,340 73,353 67,396 66,423 65,428 65,460 67,464 67,472 75,492 76,492 78,490 78,486 81,485 83,482 81,475 80,474 79,468 81,467 84,469 87,467 87,462 81,451 81,440 88,432 90,432 96,435 101,435 103,434 103,432 97,426 93,425 88,419 85,419 84,416 107,363 110,352Z","l-knee":"M119,624 117,646 109,682 164,682 166,666 172,644 175,624Z","l-shin":"M109,682 107,722 113,767 119,790 121,812 125,828 125,840 123,847 123,858 121,862 115,868 114,875 118,878 126,878 127,879 131,880 141,879 141,878 153,878 155,878 159,874 159,870 157,866 153,861 149,850 147,824 147,809 153,773 157,758 161,734 163,722 163,700 164,682Z","l-shoulder":"M152,181 133,185 115,192 103,203 97,211 92,223 152,223Z","l-thigh":"M107,513 109,534 118,592 119,607 119,624 175,624 183,575 194,522 194,513Z","low-back":"M116,435 283,435 279,417 277,400 271,383 128,383 123,400 121,417Z","ml-back":"M135,296 136,301 137,323 139,335 139,348 131,377 128,383 199,383 199,296Z","mr-back":"M200,296 200,383 271,383 262,356 260,347 260,335 261,330 263,300 265,296Z","neck":"M161,177 237,177 234,176 227,169 223,160 223,148 224,144 227,139 172,139 176,145 177,149 175,163 173,169 166,175Z","r-arm":"M271,224 271,270 275,293 279,302 281,319 287,335 287,339 323,339 317,317 316,308 312,287 310,247 307,224Z","r-fore":"M288,340 289,353 293,365 315,417 315,419 311,419 307,424 296,432 296,434 298,435 304,435 311,432 316,437 318,441 319,451 313,461 313,467 316,469 319,466 321,466 317,482 318,485 321,486 321,490 323,492 325,492 332,472 333,464 335,460 335,428 333,422 333,396 327,352 323,340Z","r-knee":"M224,624 227,644 233,666 235,682 290,682 287,666 282,646 281,624Z","r-shin":"M235,682 237,701 237,722 238,734 242,756 247,774 252,810 252,824 250,850 248,858 242,866 240,872 244,877 247,878 258,878 259,879 269,880 273,879 274,878 281,878 285,875 285,872 284,868 279,862 277,858 277,847 275,839 275,828 279,807 281,790 286,766 292,722 290,682Z","r-shoulder":"M247,181 247,223 307,223 304,214 299,205 294,200 284,192 264,185Z","r-thigh":"M205,513 205,522 217,576 224,624 280,624 281,598 285,567 289,543 292,521 292,513Z","ul-back":"M153,181 153,223 129,224 129,273 135,295 199,295 199,178 160,178 155,181Z","ur-back":"M200,178 200,295 265,295 270,272 270,224 247,223 247,181 239,178Z"}};
+const BM_W=400, BM_H=885;
+function bodySex(){ return b3Fem()? "f" : "m"; }
+function bmLayer(l){ return l==="bones"&&bodySex()==="m"? "bones" : "skin"; }
+/* metres on the body (x: +left of the person, y: up) <-> picture units */
+function bmToPx(x,y,view){ return [((view==="back"?-x:x)+0.4)/0.8*BM_W, (1.76-y)/1.77*BM_H]; }
+function bmFromPx(px,py,view){ let x=px/BM_W*0.8-0.4; if(view==="back") x=-x; return {x:+x.toFixed(3), y:+(1.76-py/BM_H*1.77).toFixed(3)}; }
+function bmZoneCentre(id, view){
+  const d=(BZ_PATH[bodySex()+(view==="back"?"b":"f")]||{})[id]; if(!d) return null;
+  let best=null;
+  for(const sp of d.split("M").filter(Boolean)){
+    const n=sp.match(/-?\d+(\.\d+)?/g).map(Number), pts=[]; for(let i=0;i+1<n.length;i+=2) pts.push([n[i],n[i+1]]);
+    let A=0,cx=0,cy=0; for(let i=0;i<pts.length;i++){ const [x0,y0]=pts[i],[x1,y1]=pts[(i+1)%pts.length], c=x0*y1-x1*y0; A+=c; cx+=(x0+x1)*c; cy+=(y0+y1)*c; }
+    if(Math.abs(A)>1&&(!best||Math.abs(A)>best.a)) best={a:Math.abs(A),x:cx/(3*A),y:cy/(3*A)};
+  }
+  return best? bmFromPx(best.x,best.y,view) : null;
+}
+function bodyMap(view, sel, hist, onTap, opt){
+  opt=opt||{}; const sx=bodySex(), v=view==="back"?"b":"f", layer=bmLayer(opt.layer);
+  const s=sv("svg",{viewBox:"0 0 "+BM_W+" 920",class:"bmap",role:"group","aria-label":(view==="back"?"Back":"Front")+" of body. "+(opt.label||"Tap where it hurts.")});
+  const im=sv("image",{href:"img/body-"+sx+"-"+layer+"-"+v+".webp",x:0,y:0,width:BM_W,height:BM_H,class:"bm-img","aria-hidden":"true"}); s.append(im);
+  const P=BZ_PATH[sx+v]||{};
   const zones=[...BZ_ALL,...(view==="back"?BZ_BACK:BZ_FRONT)];
-  for(const [id,name,shape,x,y,a,b] of zones){
-    const X= view==="back"? (shape==="c"? 120-x : 120-x-a) : x;
+  for(const [id,name] of zones){
+    const d=P[id]; if(!d) continue;
     const on=sel.includes(id), n=hist[id]||0;
-    const el= shape==="c"? sv("circle",{cx:X,cy:y,r:a}) : sv("rect",{x:X,y,width:a,height:b,rx:Math.min(6,a/2.4)});
+    const el=sv("path",{d});
     el.setAttribute("class","bz"+(on?" on":"")); el.setAttribute("data-z",id);
-    if(!on&&n) el.setAttribute("style","fill:var(--warn-ic);fill-opacity:"+Math.min(.45,.1+n*.07));
+    if(!on&&n) el.setAttribute("style","fill:var(--warn-ic);fill-opacity:"+Math.min(.5,.14+n*.07));
     el.setAttribute("tabindex","0"); el.setAttribute("role","button"); el.setAttribute("aria-pressed",String(on)); el.setAttribute("aria-label",name+(n?", logged "+n+" times recently":""));
     const t=sv("title",{}); t.textContent=name; el.append(t);
-    el.addEventListener("click",()=>onTap(id)); el.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); onTap(id); } });
+    el.addEventListener("click",ev=>onTap(id,ev,s)); el.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); onTap(id,null,s); } });
     s.append(el);
   }
-  const lab=(x,txt,anchor)=>{ const t=sv("text",{x,y:247,"text-anchor":anchor,class:"bz-lab"}); t.textContent=txt; s.append(t); };
-  if(view==="back"){ lab(4,"Your left","start"); lab(116,"Your right","end"); } else { lab(4,"Your right","start"); lab(116,"Your left","end"); }
+  for(const p of (opt.pins||[])){
+    if((p.v||"f")!==v) continue;
+    const [px,py]=bmToPx(p.x,p.y,view), r=p.r||19;
+    const g=sv("g",{class:"bm-pin"+(p.ghost?" ghost":"")+(p.hi?" hi":"")}); g.setAttribute("aria-hidden","true");
+    if(opt.onPin&&!p.ghost){ g.style.pointerEvents="auto"; g.style.cursor="pointer"; g.addEventListener("click",ev=>{ ev.stopPropagation(); opt.onPin(p); }); }
+    if(p.ghost){ g.append(sv("circle",{cx:px,cy:py,r,class:"bm-pin-g"})); }
+    else {
+      if(p.hi) g.append(sv("circle",{cx:px,cy:py,r:r+12,class:"bm-pin-halo",fill:p.col||"#2B5C8A"}));
+      g.append(sv("circle",{cx:px,cy:py,r,fill:p.col||"#2B5C8A",class:"bm-pin-c"}));
+      if(p.n!=null){ const t=sv("text",{x:px,y:py+7,"text-anchor":"middle",class:"bm-pin-t"}); t.textContent=String(p.n); g.append(t); }
+    }
+    s.append(g);
+  }
+  if(!opt.noLabels){
+    const lab=(x,txt,anchor)=>{ const t=sv("text",{x,y:914,"text-anchor":anchor,class:"bz-lab"}); t.textContent=txt; s.append(t); };
+    if(view==="back"){ lab(6,"Your left","start"); lab(394,"Your right","end"); } else { lab(6,"Your right","start"); lab(394,"Your left","end"); }
+  }
   return s;
+}
+/* where on the body a tap landed, in metres; keyboard taps use the middle of the zone */
+function bmPoint(svg, ev, view, zone){
+  if(ev&&ev.clientX!=null&&(ev.clientX||ev.clientY)&&svg.getScreenCTM){
+    const pt=svg.createSVGPoint(); pt.x=ev.clientX; pt.y=ev.clientY; const m=svg.getScreenCTM();
+    if(m){ const p=pt.matrixTransform(m.inverse()); return bmFromPx(p.x,p.y,view); }
+  }
+  return bmZoneCentre(zone,view);
+}
+/* ---------- body history: breaks, operations, metal, injuries and big illnesses, pinned where they happened ---------- */
+const HT=[["break","Break","#2B5C8A"],["op","Operation","#A84A22"],["metal","Metal or implant","#5A4A8A"],["injury","Injury or scar","#9A6A12"],["illness","Illness","#1E6B57"],["other","Other","#566A64"]];
+const HT_NAME=Object.fromEntries(HT.map(t=>[t[0],t[1]])), HT_COL=Object.fromEntries(HT.map(t=>[t[0],t[2]]));
+const HNOW=["Fully healed","Aches sometimes","Stiff","Weak","Numb or tingly","Scar","Metal still in","Still being treated"];
+const HPARTS={head:["Skull","Face or cheekbone","Jaw","Nose","Eye","Ear","Teeth","Brain"],neck:["Neck bones (spine)","Throat","Thyroid"],
+  shoulder:["Collarbone","Shoulder blade","Shoulder joint","Top of the arm bone"],arm:["Upper arm bone","Elbow","Biceps or triceps"],fore:["Forearm bones","Wrist","Hand","Thumb","Fingers"],
+  chest:["Ribs","Breastbone","Lung","Heart","Breast"],"ru-tum":["Liver","Gallbladder","Ribs","Kidney"],"upper-tum":["Stomach","Pancreas","Gullet"],"lu-tum":["Stomach","Spleen","Ribs","Kidney"],
+  ltum:["Appendix","Bowel","Hernia","Ovary","Ureter"],pelvis:["Hip bone (pelvis)","Bladder","Womb","Prostate","Groin hernia"],thigh:["Thigh bone","Hip joint","Thigh muscle"],
+  knee:["Kneecap","Knee ligament","Knee cartilage","Knee joint"],shin:["Shin bone","Ankle","Foot","Toes","Achilles tendon","Calf"],
+  uback:["Upper spine","Shoulder blade","Ribs"],mback:["Spine","Kidney","Ribs"],"low-back":["Lower spine","Disc","Tailbone"],buttocks:["Hip joint","Tailbone","Pelvis"]};
+function hPartsFor(z){ if(!z) return [];
+  const k= /shoulder$/.test(z)?"shoulder": /-arm$/.test(z)?"arm": /-fore$/.test(z)?"fore": /-chest$/.test(z)?"chest": /^(rl|ll)-tum$/.test(z)?"ltum": /-thigh$/.test(z)?"thigh": /-knee$/.test(z)?"knee": /-shin$/.test(z)?"shin": /^u[rl]-back$/.test(z)?"uback": /^m[rl]-back$/.test(z)?"mback": z;
+  return HPARTS[k]||[]; }
+const H_FLIP={"r-shoulder":"l-shoulder","r-arm":"l-arm","r-fore":"l-fore","r-chest":"l-chest","ru-tum":"lu-tum","rl-tum":"ll-tum","r-thigh":"l-thigh","r-knee":"l-knee","r-shin":"l-shin","ur-back":"ul-back","mr-back":"ml-back"};
+for(const [a,b] of Object.entries(H_FLIP)) H_FLIP[b]=a;
+function hSided(z){ return !!H_FLIP[z]; }
+function hSideOf(z){ return !z||!H_FLIP[z]? "" : /^(r-|ru|rl|ur|mr)/.test(z)? "right" : "left"; }
+function hZoneView(z){ return BZ_BACK.some(b=>b[0]===z)? "back" : "front"; }
+function hList(){ return ofKind("history").slice().sort((a,b)=>String(a.date||"9999").localeCompare(String(b.date||"9999"))||(a.createdAt||0)-(b.createdAt||0)); }
+function hNum(){ const m={}; hList().forEach((e,i)=>m[e.id]=i+1); return m; }
+function hYear(e){ return e.date? String(e.date).slice(0,4) : ""; }
+function hDob(){ const d=(S.profile||{}).dob; return d&&/^\d{4}/.test(d)? +String(d).slice(0,4) : null; }
+function hWhen(e){ const y=hYear(e), a= e.age!=null&&e.age!==""? +e.age : (y&&hDob()? +y-hDob() : null);
+  return [y? (String(e.date).length>4? fmtDate(e.date) : y) : "", a!=null&&a>=0? "age "+a : ""].filter(Boolean).join(" · ") || "Date not known"; }
+function hWhere(e){ const z=e.pin&&e.pin.z; return [e.part, z? BZ_NAME[z] : ""].filter(Boolean).join(" · "); }
+function hPins(sel){ const num=hNum(); return hList().filter(e=>e.pin&&typeof e.pin.x==="number").map(e=>({id:e.id,v:e.pin.v||"f",x:e.pin.x,y:e.pin.y,n:num[e.id],col:HT_COL[e.htype]||HT_COL.other,hi:sel===e.id})); }
+function hPainNear(z){ if(!z) return 0; const from=addDays(todayISO(),-89); return ofKind("symptom").filter(s=>s.date&&s.date>=from&&Array.isArray(s.areas)&&s.areas.includes(z)).length; }
+function hDot(e,n){ return h("span",{class:"hx-dot",style:"background:"+(HT_COL[e.htype]||HT_COL.other),"aria-hidden":"true"}, n!=null? String(n) : ""); }
+function hLinkable(){ const used=new Set(hList().map(e=>e.src).filter(Boolean));
+  return S.entries.filter(e=>(e.kind==="condition"||(e.kind==="event"&&e.etype==="hospital"))&&!used.has(e.id)&&e.title&&!e.histSkip); }
+function hContext(e){ const b=[HT_NAME[e.htype]||"event"]; const w=hWhere(e); if(w) b.push("where: "+w); if(e.age!=null&&e.age!=="") b.push("age "+e.age);
+  if(e.treat) b.push("treated: "+e.treat); if(e.place) b.push("at "+e.place); if(Array.isArray(e.now)&&e.now.length) b.push("now: "+e.now.join(", ").toLowerCase()); return b.join(" | "); }
+
+function openHistory(){
+  let layer=bodySex()==="m"? "bones" : "skin";
+  const maps=h("div",{class:"hx-maps"}), list=h("div",{class:"hx-list"}), sw=h("div",{class:"hx-sw"}), links=h("div",{});
+  const draw=()=>{
+    const L=hList(), num=hNum(), pins=hPins();
+    sw.hidden=bodySex()!=="m";
+    sw.replaceChildren(...(bodySex()==="m"? [["skin","Skin"],["bones","Bones"]].map(([v,l])=>h("button",{type:"button",class:"hx-sb","aria-pressed":String(layer===v),onclick:()=>{ layer=v; draw(); }},l)) : []));
+    const tapOpen=(id,ev,svg,view)=>{ const pt=bmPoint(svg,ev,view,id); let best=null,bd=1e9;
+      for(const e of L){ if(!e.pin||(e.pin.v||"f")!==(view==="back"?"b":"f")) continue; const d=Math.hypot(e.pin.x-pt.x,e.pin.y-pt.y); if(d<bd){ bd=d; best=e; } }
+      if(best&&bd<0.07) openHistItem(best); else if(S.canWrite) openHistEdit(null,{pin:{v:view==="back"?"b":"f",x:pt.x,y:pt.y,z:id}}); };
+    maps.replaceChildren(...["front","back"].map(view=>h("div",{class:"hx-map"}, bodyMap(view,[],{},(id,ev,svg)=>tapOpen(id,ev,svg,view),{layer,pins,label:"Tap a pin to open it, or tap the body to add something there.",noLabels:true,onPin:p=>{ const e=L.find(x=>x.id===p.id); if(e) openHistItem(e); }}), h("small",{}, view==="back"?"Back":"Front"))));
+    list.replaceChildren(...(L.length? L.slice().reverse().map(e=>h("button",{type:"button",class:"hx-row",onclick:()=>openHistItem(e)},
+        h("b",{class:"hx-yr"}, hYear(e)||"—"), hDot(e,num[e.id]),
+        h("span",{class:"hx-t"}, h("b",{}, e.title||"Untitled"), h("small",{}, [Array.isArray(e.now)&&e.now.length? e.now.join(", ") : "", !e.pin? "not pinned yet" : ""].filter(Boolean).join(" · ")||hWhere(e))),
+        h("span",{"aria-hidden":"true",class:"hx-chev"},"›"))) :
+      [h("div",{class:"hx-empty"}, h("p",{}, h("b",{},"Nothing here yet.")), h("p",{class:"none"},"Add the big things that have happened to your body: broken bones, operations, metal plates or implants, bad injuries and serious illnesses. A year is enough."))]));
+    const lk=hLinkable();
+    links.replaceChildren(lk.length&&S.canWrite? h("details",{class:"hx-links"}, h("summary",{}, "From your records ("+lk.length+")"),
+      h("p",{class:"none"},"Operations and conditions already in your logbook. Tap one to pin it to the body."),
+      ...lk.slice(0,30).map(r=>h("button",{type:"button",class:"hx-lk",onclick:()=>openHistEdit(null,{title:r.title,date:r.date?String(r.date).slice(0,4):"",details:r.details?String(r.details).slice(0,400):"",htype:/operat|surgery|removed|ectomy|bypass|sleeve|replacement|repair/i.test(r.title+" "+(r.details||""))?"op":r.kind==="event"?"other":"illness",src:r.id})},
+        h("span",{}, r.title), h("small",{}, r.date? fmtDate(r.date) : KINDS[r.kind].one)))) : "");
+  };
+  draw();
+  const hdr=h("div",{class:"hx-head"},
+    h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null,onclick:()=>openHistEdit()},"+ Add"),
+    h("button",{class:"btn",type:"button",disabled:!S.canWrite||!S.sample||S.aiOff||null,onclick:()=>openHistTell()}, h("span",{"aria-hidden":"true"},"✦ "),"Tell Dr Quackers"), sw);
+  openSheet("🦴 Body history",[h("p",{class:"none"},"The big things that have happened to your body, pinned where they happened. Dr Quackers uses them, and they help any new doctor."), hdr, maps,
+    h("div",{class:"hx-key"}, ...HT.slice(0,5).map(t=>h("span",{}, h("i",{style:"background:"+t[2]}), t[1]))), list, links]);
+  S.hxRedraw=()=>{ if(document.querySelector(".hx-maps")) draw(); };
+}
+function openHistItem(e){
+  const num=hNum()[e.id], view=e.pin&&e.pin.v==="b"? "back" : "front", z=e.pin&&e.pin.z, pn=hPainNear(z);
+  const sec=(t,v)=>v? h("div",{class:"hx-f"}, h("b",{},t), h("span",{},v)) : null;
+  openSheet(e.title||"Body history",[
+    h("button",{class:"linkbtn hx-back",type:"button",onclick:()=>openHistory()},"‹ Body history"),
+    h("p",{class:"hx-sub"}, hDot(e,num), h("b",{style:"color:"+(HT_COL[e.htype]||HT_COL.other)}, HT_NAME[e.htype]||"Other"), " · "+hWhen(e)),
+    e.pin? h("div",{class:"hx-one"}, bodyMap(view,[],{},()=>{},{layer:bodySex()==="m"?"bones":"skin",pins:hPins(e.id).filter(p=>p.hi),noLabels:true,label:"Where it happened."}), h("small",{}, view==="back"?"Back":"Front")) : h("p",{class:"hint"},"Not pinned to the body yet. Tap Edit to add where."),
+    h("div",{class:"hx-card"}, sec("Where",hWhere(e)), sec("What happened",e.details), sec("Treatment",e.treat), sec("Where treated",e.place)),
+    Array.isArray(e.now)&&e.now.length? h("div",{class:"chips wrapchips"}, ...e.now.map(n=>h("span",{class:"hx-chip"+(n==="Metal still in"?" metal":"")}, n))) : null,
+    (e.now||[]).includes("Metal still in")||e.htype==="metal"? h("p",{class:"hx-warn"},"⚠ Metal or an implant here: tell them before any MRI scan.") : null,
+    pn? h("div",{class:"hx-dq"}, h("span",{"aria-hidden":"true"},"🦆"), h("span",{}, "You've logged pain in this area "+pn+" time"+(pn>1?"s":"")+" in the last 3 months. Worth mentioning this old "+(HT_NAME[e.htype]||"event").toLowerCase()+" to your GP.")) : null,
+    h("div",{class:"row"}, h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>openHistEdit(e)},"Edit"), z? h("button",{class:"btn",type:"button",onclick:()=>openZone(z)},"What's under here?") : null)
+  ].filter(Boolean));
+}
+function openHistEdit(entry, preset){
+  const isNew=!entry;
+  const e=JSON.parse(JSON.stringify(entry||{kind:"history",htype:"break",...(preset||{})}));
+  e.now=Array.isArray(e.now)? e.now : [];
+  let view= e.pin&&e.pin.v==="b"? "back" : "front";
+  const title=h("input",{type:"text",id:"hx-title",value:e.title||"",autocomplete:"off",placeholder:"e.g. Broken right collarbone"});
+  const yr=h("input",{type:"text",id:"hx-year",inputmode:"numeric",maxlength:"4",value:hYear(e),placeholder:"e.g. 2009"});
+  const age=h("input",{type:"text",id:"hx-age",inputmode:"numeric",maxlength:"3",value:e.age!=null?e.age:"",placeholder:"e.g. 15"});
+  const dob=hDob();
+  yr.addEventListener("input",()=>{ if(dob&&/^\d{4}$/.test(yr.value)) age.value=String(+yr.value-dob); });
+  age.addEventListener("input",()=>{ if(dob&&/^\d{1,3}$/.test(age.value)) yr.value=String(dob+ +age.value); });
+  const det=h("textarea",{id:"hx-det",rows:"2",placeholder:"e.g. Fell off my bike"}); det.value=e.details||"";
+  const treat=h("input",{type:"text",id:"hx-treat",value:e.treat||"",placeholder:"e.g. Sling for 6 weeks, then physio"});
+  const place=h("input",{type:"text",id:"hx-place",value:e.place||"",placeholder:"Hospital (optional)"});
+  const tabs=h("div",{class:"pflow bz-tabs"}), mapBox=h("div",{class:"bmap-wrap"}), where=h("p",{class:"bz-where"}), parts=h("div",{});
+  function draw(){
+    tabs.replaceChildren(...[["front","Front"],["back","Back"]].map(([v,l])=>h("button",{type:"button",class:"pf","aria-pressed":String(view===v),onclick:()=>{ view=v; draw(); }}, l)));
+    const pins=e.pin? [{v:e.pin.v,x:e.pin.x,y:e.pin.y,col:HT_COL[e.htype]||HT_COL.other,hi:true}] : [];
+    mapBox.replaceChildren(bodyMap(view,[],{},(id,ev,svg)=>{ const p=bmPoint(svg,ev,view,id)||{x:0,y:1}; if(e.pin&&e.pin.z!==id) e.part=undefined; e.pin={v:view==="back"?"b":"f",x:p.x,y:p.y,z:id}; draw(); },{layer:bodySex()==="m"?"bones":"skin",pins,label:"Tap where it happened."}));
+    where.textContent= e.pin&&e.pin.z? "Where: "+BZ_NAME[e.pin.z] : "Tap the body where it happened.";
+    const P=hPartsFor(e.pin&&e.pin.z);
+    parts.replaceChildren(P.length? h("div",{}, h("p",{class:"flabel"},"Which part?"), oneChips(P,()=>e.part,v=>{ e.part=v||undefined; })) : "");
+  }
+  const save=h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null},"Save");
+  save.addEventListener("click", async ()=>{
+    const t=title.value.trim(); if(!t){ toast("Give it a name first, like Broken right collarbone."); title.focus(); return; }
+    const y=yr.value.trim(); if(y&&!/^\d{4}$/.test(y)){ toast("Use a 4-digit year, like 2009."); yr.focus(); return; }
+    save.disabled=true;
+    const keepDate= entry&&entry.date&&String(entry.date).slice(0,4)===y? entry.date : y;
+    const body={...e,kind:"history",title:t,date:keepDate||undefined,age:/^\d{1,3}$/.test(age.value.trim())? +age.value.trim() : undefined,
+      details:det.value.trim()||undefined,treat:treat.value.trim()||undefined,place:place.value.trim()||undefined,now:e.now.length?e.now:undefined,source:e.source||"manual"};
+    delete body.id;
+    const ok=await saveEntry(body, entry&&entry.id); save.disabled=false;
+    if(ok){ toast(isNew? "Added to your body history" : "Saved"); closeSheet(); openHistory(); }
+  });
+  draw();
+  openSheet(isNew?"Add to body history":"Edit",[
+    h("p",{class:"flabel"},"What was it?"), oneChips(HT.map(t=>t[1]),()=>HT_NAME[e.htype],v=>{ const t=HT.find(x=>x[1]===v); e.htype=t?t[0]:"other"; draw(); }),
+    field("hx-title","Name",title),
+    h("p",{class:"flabel"},"Where? Tap the body"), tabs, mapBox, where, parts,
+    h("div",{class:"fields2"}, field("hx-year","Year",yr), field("hx-age","Or my age then",age)),
+    !dob? h("p",{class:"hint"},"Add your date of birth in Settings and the year and age fill each other in.") : null,
+    field("hx-det","What happened",det), field("hx-treat","How it was treated",treat), field("hx-place","Where treated",place),
+    h("p",{class:"flabel"},"Does it still affect you?"), multiChips(HNOW,e.now),
+    entrySheetFoot(e,isNew,save)].filter(Boolean));
+}
+/* tell Dr Quackers in your own words; he fills in the details and asks which side if you didn't say */
+function hTellPrompt(text){
+  const zones=[...BZ_ALL,...BZ_FRONT,...BZ_BACK].map(z=>z[0]+" = "+z[1]).join("; ");
+  return "You turn what a person says about their past injuries, operations, implants and serious illnesses into body history items for their personal health logbook. UK English. Today is "+fmtDate(todayISO())+"."+(hDob()?" They were born in "+hDob()+".":"")+"\n"
+  +"Return JSON only: {\"items\":[{\"htype\":\"break|op|metal|injury|illness|other\",\"title\":\"short plain name including the side if known, e.g. Broken right collarbone\",\"year\":\"4-digit year or null\",\"age\":number or null,\"zone\":\"one zone id from the list\",\"side_known\":true or false,\"part\":\"short part name such as Collarbone, Wrist, Appendix, or null\",\"details\":\"what happened, in their words, tidied, or null\",\"treat\":\"how it was treated, or null\",\"place\":\"hospital or null\",\"now\":[zero or more of: "+HNOW.map(n=>JSON.stringify(n)).join(", ")+"]}]}\n"
+  +"RULES: one item per separate event. Never invent anything they didn't say. If they give an age but no year, give the age and leave year null. A break fixed with a plate, pins or screws is htype break, with \"Metal still in\" in now only if they say it's still in. An implant, joint replacement, pacemaker or plate on its own is htype metal. If they don't say which side, set side_known false and use the right-hand zone. Pick the zone where it is on the body, for example appendix = rl-tum, kidney stone = mr-back or ml-back, collarbone = r-shoulder or l-shoulder, wrist = r-fore or l-fore, gallbladder = ru-tum.\n"
+  +"Zones: "+zones+"\n\nWhat they said:\n"+String(text).slice(0,4000);
+}
+function openHistTell(){
+  const ta=h("textarea",{id:"hx-tell",rows:"4",placeholder:"e.g. Broke my collarbone when I was 15, fell off my bike. Sling for 6 weeks. Still aches when it's cold. Had my appendix out in 2015."});
+  const out=h("div",{class:"hx-found"}), go=h("button",{class:"btn primary",type:"button"},"Fill it in");
+  go.addEventListener("click", async()=>{
+    const text=ta.value.trim(); if(!text){ ta.focus(); return; }
+    go.disabled=true; out.replaceChildren(h("p",{class:"none"},"Dr Quackers is reading it…"));
+    let items=[];
+    try{ const r=await S.sample.json(hTellPrompt(text),{modelTier:"default"}); items=(r&&Array.isArray(r.items)? r.items : []).filter(i=>i&&i.title).slice(0,12); }
+    catch(err){ out.replaceChildren(h("p",{class:"st-warn"},"Dr Quackers couldn't read that just now. Try again, or tap + Add to fill it in yourself.")); go.disabled=false; return; }
+    go.disabled=false;
+    if(!items.length){ out.replaceChildren(h("p",{class:"none"},"I couldn't find a break, operation or illness in that. Try saying what happened, roughly when, and where on the body.")); return; }
+    const all=new Set([...BZ_ALL,...BZ_FRONT,...BZ_BACK].map(z=>z[0])), dob=hDob();
+    const cards=items.map(it=>{
+      const e={kind:"history",source:"dq",htype:HT_NAME[it.htype]? it.htype : "other",title:String(it.title).slice(0,120),part:it.part||undefined,details:it.details||undefined,treat:it.treat||undefined,place:it.place||undefined,
+        now:(Array.isArray(it.now)?it.now:[]).filter(n=>HNOW.includes(n))};
+      const y=/^\d{4}$/.test(String(it.year||""))? String(it.year) : (it.age!=null&&dob? String(dob+(+it.age)) : "");
+      if(y) e.date=y; if(it.age!=null&&!isNaN(+it.age)) e.age=+it.age; else if(y&&dob) e.age=+y-dob;
+      let z=all.has(it.zone)? it.zone : null; const askSide=!!z&&hSided(z)&&it.side_known===false;
+      const setZone=zz=>{ z=zz; if(!z){ delete e.pin; return; } const v=hZoneView(z), c=bmZoneCentre(z,v); e.pin=c? {v:v==="back"?"b":"f",x:c.x,y:c.y,z} : undefined; };
+      setZone(z);
+      let side= askSide? null : hSideOf(z), saved=false;
+      const card=h("div",{class:"hx-fc"}), body=h("div",{});
+      const fixTitle=s=>{ e.title=e.title.replace(/\b(right|left)\b/i,"").replace(/\s{2,}/g," ").trim(); e.title=e.title.replace(/^(Broken|Fractured|Sprained|Injured|Torn)\s/i,m=>m+s+" "); if(!/\b(right|left)\b/i.test(e.title)) e.title=e.title+" ("+s+")"; };
+      const drawCard=()=>{
+        const need= askSide&&!side;
+        body.replaceChildren(...[
+          h("div",{class:"hx-fh"}, h("span",{class:"hx-dot",style:"background:"+HT_COL[e.htype]}), h("b",{}, e.title)),
+          h("p",{class:"hx-fs"}, [HT_NAME[e.htype], hWhen(e), z? BZ_NAME[z] : "no place given"].join(" · ")),
+          e.treat? h("p",{class:"hx-fs"},"Treated: "+e.treat) : null, e.now.length? h("p",{class:"hx-fs"},"Now: "+e.now.join(", ")) : null,
+          need? h("div",{}, h("p",{class:"flabel"},"Which side?"), h("div",{class:"chips"}, ...["right","left"].map(sd=>h("button",{type:"button",class:"fchip",onclick:()=>{ side=sd; if((sd==="left")!==(hSideOf(z)==="left")) setZone(H_FLIP[z]); fixTitle(sd); drawCard(); }}, sd==="right"?"Right":"Left")))) : null,
+          saved? h("p",{class:"hx-ok"},"✓ Saved") : h("div",{class:"row"},
+            h("button",{class:"btn primary small",type:"button",disabled:need||null,onclick:async ev=>{ ev.currentTarget.disabled=true; const ok=await saveEntry({...e}); if(ok){ saved=true; drawCard(); toast("Added to your body history"); } else ev.currentTarget.disabled=false; }},"Save"),
+            h("button",{class:"btn small",type:"button",onclick:()=>openHistEdit(null,e)},"Change…"))].filter(Boolean));
+      };
+      drawCard(); card.append(body); return card;
+    });
+    out.replaceChildren(h("p",{class:"flabel"},"Here's what I found. Check each one, then save it."), ...cards, h("button",{class:"linkbtn hx-back",type:"button",onclick:()=>openHistory()},"Back to Body history ›"));
+  });
+  openSheet("✦ Tell Dr Quackers",[h("p",{class:"none"},"Say it in your own words: what happened, roughly when (a year or your age), and how it was treated. You can put several things in one go."), field("hx-tell","What happened",ta), go, out]);
 }
 /* the week view's little pain map: where it hurt on the chosen day, coloured by how bad */
 function wkPainMap(iso){
@@ -3714,6 +3954,7 @@ function renderThings(){
 }
 function svgIcon(d, size){ const s=sv("svg",{viewBox:"0 0 24 24",width:size||20,height:size||20,fill:"none",stroke:"currentColor","stroke-width":"2","stroke-linecap":"round","stroke-linejoin":"round","aria-hidden":"true"}); s.append(sv("path",{d})); return s; }
 const IC={
+  bone:"M8.6 8.6l6.8 6.8M8.6 8.6A2.2 2.2 0 1 0 5.8 5.4 2.2 2.2 0 1 0 8.6 8.6zM15.4 15.4a2.2 2.2 0 1 0 2.8 3.2 2.2 2.2 0 1 0-2.8-3.2z",
   diary:"M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6zM6 3v18M9.5 8h6M9.5 12h6",
   timeline:"M4 6h9M4 12h14M4 18h6",
   week:"M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z",
@@ -3757,6 +3998,7 @@ function renderTiles(){
     hp.pain? ["What's under here?","pain","p",()=>openZone()] : null,
     hp.pain||ofKind("symptom").some(e=>Array.isArray(e.areas)&&e.areas.length)? ["Pain in 3D","pain","k",()=>open3D()] : null,
     packsOn().includes("mental")||mindLogAll().length? ["My mind","mind","k",()=>openMindHistory()] : null,
+    ["Body history","bone","b",()=>openHistory()],
     ["My illnesses","case","r",()=>openCases(),casesBadge()],
     (trk().food||trk().log)? ["Food and symptoms","food","g",()=>openReactions()] : null,
     ["Blood tests","tests","a",()=>recFilter("result"),lowTests],
@@ -3793,6 +4035,7 @@ function openAddSheet(iso0){
     ["Note","note","a",()=>{ closeSheet(); if(t.log) openSimpleLog(iso,"note"); else openDay(iso); }],
     ["Photo of a letter","letter","a",()=>{ closeSheet(); openImport(); }],
     ["Big event","flag","r",()=>{ closeSheet(); openEntry(null,"event",{etype:"hospital"}); }],
+    ["Body history","bone","b",()=>{ closeSheet(); openHistory(); }],
     ["Something else","plus","a",()=>{ closeSheet(); openEntry(null,"symptom",{date:iso}); }]
   ].filter(Boolean);
   openSheet("What do you want to log?",[
@@ -5360,6 +5603,8 @@ function field(id,label,input,hint){ return h("div",{class:"field"}, h("label",{
 
 function openEntry(entry, presetKind, preset){
   if(entry&&entry.kind==="symptom"){ if(entry.ep) return openHeart(null,entry); if(Array.isArray(entry.areas)&&entry.areas.length) return openPain(null,entry); }
+  if(entry&&entry.kind==="history") return openHistItem(entry);
+  if(!entry&&presetKind==="history") return openHistEdit(null,preset);
   const e=entry||{kind:presetKind||"symptom", date: todayISO(), ...(preset||{})};
   const isNew=!entry;
   const body=[];
@@ -5524,6 +5769,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-08.3", items:[["🦴","New Body history. Pin the big things that have happened to your body where they happened: broken bones, operations, metal plates or implants, bad injuries and serious illnesses. A year or your age is enough."],["✦","Tell Dr Quackers in your own words, like \"broke my collarbone at 15\", and he fills it in and asks which side if you didn't say. He also uses your body history when he helps you."],["🧍","The body map now looks like a real body, drawn from the 3D model: a man's body for men and a woman's for women."]]},
  {v:"2026-11-08.2", items:[["🧍","New 3D body. When you log pain, tap Show exactly where on a 3D body: turn the body, tap the spot, and slide to say how deep it feels. The organs closest to it light up."],["📅","Pain in 3D lets you step back and forward through the days, with a pain calendar coloured by how bad each day was. Press Play to watch the last 60 days."],["🔎","Tap any organ to see its name, and turn skin, bones and organs on or off. Dr Quackers now knows how deep your pain feels and which organs are nearby."]]},
  {v:"2026-11-08.1", items:[["🧍","New What's under here? Tap anywhere on the body to see the organs there, what else can send pain to that spot (gallbladder pain in the right shoulder, for example), the nerve band shingles would follow, common causes to ask your GP about, and when to get help."],["🩺","It shows when you log pain, and from the pain map in Your week. Dr Quackers also uses it in your illness files and chats, so he can say which organs might be involved."]]},
  {v:"2026-11-07.5", items:[["🗂️","New My files in Records: keep the full photos, PDFs and short videos from tests, like a camera test, a scan or a procedure report. They're private to you, up to 50 MB each."],["✦","Dr Quackers can read a stored report and add the findings to your logbook. When you import letters, you can now keep the original files too."]]},
