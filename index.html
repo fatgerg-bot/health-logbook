@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-08.3">
+<meta name="app-version" content="2026-11-08.4">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -962,6 +962,8 @@ body.b3d-open{overflow:hidden}
 .hx-warn{background:var(--due-soft);border-radius:12px;padding:10px 12px;margin:0;font-weight:700}
 .hx-dq{display:flex;gap:10px;align-items:flex-start;background:var(--ai-soft);border-radius:14px;padding:10px 12px}
 .hx-back{align-self:flex-start;font-weight:700}
+.view-bar{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 8px);z-index:1000;display:flex;align-items:center;gap:10px;background:#16302A;color:#fff;border-radius:99px;padding:6px 6px 6px 14px;box-shadow:0 6px 20px rgba(0,0,0,.25);font-size:.88rem;max-width:calc(100vw - 24px)}
+.view-bar .btn{background:#fff;color:#16302A;border:0;white-space:nowrap}.view-bar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hx-found{display:flex;flex-direction:column;gap:10px}.hx-fc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}.hx-fh{display:flex;gap:8px;align-items:center}.hx-fs{margin:4px 0 0;color:var(--muted);font-size:.88rem}.hx-ok{color:var(--accent);font-weight:700;margin:6px 0 0}.hx-fc .row{margin-top:8px}
 .bz-where{font-weight:700;text-align:center;font-size:.92rem}
 .bz-tabs{grid-template-columns:repeat(2,minmax(0,1fr));max-width:240px;margin:0 auto;width:100%}
@@ -2137,6 +2139,7 @@ function savePill(state){
 }
 async function write(fn){
   if(!S.col){ toast("Sign in to save your records."); return false; }
+  if(S.viewing){ toast("You're only looking at "+S.viewing.name+"'s logbook, so nothing can be changed."); return false; }
   savePending++; savePill("busy");
   let ok=false;
   try{
@@ -5749,14 +5752,18 @@ function renderSettings(full){
   const nChips=symptomChips(40).length;
   $("#setCheckin").replaceChildren(
     setRow("🩺","Symptom buttons", nChips+" buttons. Add your own or hide ones you don't use.", null, ()=>openSymEdit()));
-  $("#setPin").replaceChildren(
-    setRow("🔒","Only you can see your records","Each person has their own login. Your logbook is never shared with other users.", h("span")),
+  $("#setPin").replaceChildren(...[
+    S.viewing? setRow("👀","You're looking at "+S.viewing.name+"'s logbook","Look only. Nothing here can be changed.", h("button",{type:"button",class:"btn small",onclick:stopViewing},"Back to mine")) :
+    S.isAdmin? setRow("🔒","Only you can see your records","Each person has their own login. Your logbook is never shared with other users.", h("span")) :
+    setRow("🔒","Only you can see your records","Each person has their own login. Nobody else can see your logbook unless you switch on the admin look below.", h("span")),
+    !S.isAdmin&&!S.viewing? setRow("👀","Let the admin look at my logbook","Look only, so they can check everything's working. They can't change anything. Switch it off any time.",
+      h("button",{type:"button",class:"set-pill"+(S.adminShare?" on":""),"aria-pressed":String(!!S.adminShare),"aria-label":"Let the admin look at my logbook",onclick:()=>setAdminShare(!S.adminShare)}, S.adminShare?"On":"Off")) : null,
     p.pinHash? setRow("🔢","PIN lock is on","Asked when the app opens and after 5 minutes away.", h("span",{class:"set-pill on"},"On")) : setRow("🔢","PIN lock","Ask for a 4-digit PIN whenever the app is opened.", h("span",{class:"set-pill"},"Off")),
     p.pinHash? h("div",{class:"row"},
         h("button",{class:"btn",type:"button",onclick:()=>pinVerify(()=>showLock("set",savePin))},"Change PIN"),
         h("button",{class:"btn danger",type:"button",onclick:()=>pinVerify(()=>savePin(null))},"Turn off PIN"),
         h("button",{class:"btn ghost",type:"button",onclick:()=>{ LOCK.unlocked=false; showLock("unlock"); }},"Lock now"))
-      : h("div",{}, h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>showLock("set",savePin)},"Set a PIN")));
+      : h("div",{}, h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>showLock("set",savePin)},"Set a PIN"))].filter(Boolean));
   const ib=installBox(); ib.querySelectorAll(":scope > .flabel").forEach(e=>e.remove());
   const upd=h("button",{class:"btn small",type:"button",onclick:async()=>{ upd.disabled=true; upd.textContent="Checking…"; const before=APP_VERSION; await checkForUpdate(); setTimeout(()=>{ upd.disabled=false; upd.textContent="Check for updates"; toast(before===APP_VERSION?"You're on the latest version":"Updating…"); },900); }},"Check for updates");
   $("#setApp").replaceChildren(setRow("🦆","Dr Quackers, your health helper","Dr Quackers is an AI powered by Claude, made by Anthropic. He's not a real doctor and can make mistakes, so check anything important with your GP or pharmacist."), ib, setRow("ℹ️","Version", APP_VERSION? fmtVersion(APP_VERSION) : "Development copy", upd),
@@ -5764,11 +5771,13 @@ function renderSettings(full){
   $("#setAcct").replaceChildren(...[
     setRow("🔑","Change password","", null, ()=>openPassword()),
     S.isAdmin? setRow("👥","People","Add or remove people who use the logbook.", null, ()=>openPeople()) : null,
+    S.isAdmin? setRow("👀","Look at someone's logbook","Look only, for people who've switched it on.", null, ()=>openViewList()) : null,
     setRow("↩️","Sign out","", h("span"), ()=>sb.auth.signOut())].filter(Boolean));
   $("#setFoot").textContent="Health Logbook "+(APP_VERSION?"· version "+APP_VERSION:"")+". This logbook helps you keep track and prepare for appointments. It isn't medical advice. In an emergency call 999; for urgent help that isn't an emergency, call NHS 111.";
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-08.4", items:[["👀","New in Settings → Privacy and security: Let the admin look at my logbook. Switch it on and the admin can look through your logbook to check everything's working. It's look only: they can't change anything, and you can switch it off any time."]]},
  {v:"2026-11-08.3", items:[["🦴","New Body history. Pin the big things that have happened to your body where they happened: broken bones, operations, metal plates or implants, bad injuries and serious illnesses. A year or your age is enough."],["✦","Tell Dr Quackers in your own words, like \"broke my collarbone at 15\", and he fills it in and asks which side if you didn't say. He also uses your body history when he helps you."],["🧍","The body map now looks like a real body, drawn from the 3D model: a man's body for men and a woman's for women."]]},
  {v:"2026-11-08.2", items:[["🧍","New 3D body. When you log pain, tap Show exactly where on a 3D body: turn the body, tap the spot, and slide to say how deep it feels. The organs closest to it light up."],["📅","Pain in 3D lets you step back and forward through the days, with a pain calendar coloured by how bad each day was. Press Play to watch the last 60 days."],["🔎","Tap any organ to see its name, and turn skin, bones and organs on or off. Dr Quackers now knows how deep your pain feels and which organs are nearby."]]},
  {v:"2026-11-08.1", items:[["🧍","New What's under here? Tap anywhere on the body to see the organs there, what else can send pain to that spot (gallbladder pain in the right shoulder, for example), the nerve band shingles would follow, common causes to ask your GP about, and when to get help."],["🩺","It shows when you log pain, and from the pain map in Your week. Dr Quackers also uses it in your illness files and chats, so he can say which organs might be involved."]]},
@@ -7141,25 +7150,69 @@ async function startSession(user){
   if(!mem){ showAuth("notmember"); return; }
   S.isAdmin=!!mem.is_admin; S.memberName=mem.name||"";
   if(hasPinHint() && !LOCK.unlocked) showLock("unlock");
-  S.store=makeStore(user.id); S.col=S.store.collection(); S.canWrite=true; $("#roNote").hidden=true;
-  status("Loading your records…");
-  const timer=setTimeout(()=>{ if(!S.loaded) status("Your records can't be reached yet. Check your connection; they'll appear when it's back."); },10000);
+  { const {data:av}=await sb.from("admin_view").select("user_id").eq("user_id",user.id).maybeSingle(); S.adminShare=!!av; }
+  S.viewing=null; renderViewBar();
+  S.canWrite=true; $("#roNote").hidden=true;
+  attachStore(user.id);
+}
+function attachStore(uid){
+  const looking=!!S.viewing;
   if(S.unsub) S.unsub();
+  S.store=makeStore(uid); S.col=S.store.collection(); S.loaded=false; S.entries=[]; S.days={}; S.files=[]; S.cases=null;
+  status(looking? "Loading "+S.viewing.name+"'s logbook…" : "Loading your records…");
+  const timer=setTimeout(()=>{ if(!S.loaded) status("Your records can't be reached yet. Check your connection; they'll appear when it's back."); },10000);
   S.unsub=S.col.onSnapshot(snap=>{
     const es=[], days={}, fl=[]; let prof={}; S.cases=null;
     for(const d of snap.docs){ const v=d.data(); if(!v) continue; if(d.id==="profile") prof=v; else if(v.kind==="illnesses") S.cases=v; else if(v.kind==="file"&&v.path) fl.push({...v,id:d.id}); else if(v.kind==="day"&&v.date) days[v.date]=v; else if(KINDS[v.kind]) es.push({...v,id:d.id}); }
     S.entries=es; S.profile=prof; S.days=days; S.files=fl;
-    if(!prof.name && S.memberName) S.profile={...prof,name:S.memberName};
-    checkLock();
-    S.loaded=true; clearTimeout(timer); status(""); setTimeout(maybeWhatsNew,800);
-    renderAll(); casesAutoCheck();
+    if(looking){ if(!prof.name) S.profile={...prof,name:S.viewing.name}; }
+    else { if(!prof.name && S.memberName) S.profile={...prof,name:S.memberName}; checkLock(); }
+    S.loaded=true; clearTimeout(timer); status("");
+    if(!looking) setTimeout(maybeWhatsNew,800);
+    renderAll(); if(!looking) casesAutoCheck();
   }, e=>{
     clearTimeout(timer); S.loaded=true;
-    status("Your records couldn't be loaded. Check your connection and reload the page.");
+    status(looking? "That logbook couldn't be opened. They may have switched off admin look-only." : "Your records couldn't be loaded. Check your connection and reload the page.");
     renderAll();
   });
 }
+/* ---------- admin look-only: a member switches it on in their Settings; the database then lets the admin read (never change) their logbook ---------- */
+function renderViewBar(){
+  let bar=$("#viewBar");
+  if(!S.viewing){ if(bar) bar.remove(); document.body.classList.remove("viewing"); return; }
+  if(!bar){ bar=h("div",{id:"viewBar",class:"view-bar",role:"status"}); document.body.append(bar); }
+  document.body.classList.add("viewing");
+  bar.replaceChildren(h("span",{}, "👀 Looking at ", h("b",{}, S.viewing.name+"'s"), " logbook · look only"), h("button",{type:"button",class:"btn small",onclick:stopViewing},"Back to mine"));
+}
+function viewAs(uid, name){
+  if(!S.isAdmin||!uid||uid===S.uid) return;
+  if(!S.viewing) S.viewAi=S.aiOff;
+  S.viewing={uid,name:String(name||"Their").trim().split(/\s+/)[0]}; S.aiOff=true; S.canWrite=false;
+  closeSheet(); renderViewBar(); attachStore(uid); show("overview");
+}
+function stopViewing(){
+  if(!S.viewing) return;
+  S.viewing=null; S.aiOff=!!S.viewAi; S.canWrite=true; $("#roNote").hidden=true;
+  renderViewBar(); closeSheet(); attachStore(S.uid); show("overview");
+}
+async function openViewList(){
+  openSheet("👀 Look at someone's logbook",[h("p",{class:"none"},"Loading…")]);
+  const [a,m]=await Promise.all([sb.from("admin_view").select("user_id,granted_at"), sb.from("members").select("user_id,name")]);
+  if(a.error||m.error){ $("#sheetBody").replaceChildren(h("p",{class:"st-warn"},"Couldn't load the list. Check your connection and try again.")); return; }
+  const names=Object.fromEntries((m.data||[]).map(x=>[x.user_id,x.name||"Someone"]));
+  const L=(a.data||[]).filter(x=>x.user_id!==S.uid);
+  $("#sheetBody").replaceChildren(
+    h("p",{class:"none"},"Only people who have switched on Let the admin look in their own Settings are listed. You can look at everything but can't change anything, and they can switch it off at any time."),
+    ...(L.length? L.map(x=>setRow("👤",names[x.user_id]||"Someone","Allowed since "+fmtDate(String(x.granted_at||"").slice(0,10)), null, ()=>viewAs(x.user_id,names[x.user_id]))) :
+      [h("p",{class:"hx-empty"},"Nobody has switched it on yet. They can do it in Settings → Privacy and security.")]));
+}
+async function setAdminShare(on){
+  const r= on? await sb.from("admin_view").insert({user_id:S.uid}) : await sb.from("admin_view").delete().eq("user_id",S.uid);
+  if(r.error&&!(on&&/duplicate/i.test(r.error.message||""))){ toast("Couldn't change that. Check your connection and try again."); return; }
+  S.adminShare=on; toast(on? "The admin can now look at your logbook (look only)" : "The admin can no longer look at your logbook"); renderSettings();
+}
 function onSignedOut(){
+  S.viewing=null; renderViewBar();
   if(S.unsub) S.unsub(); S.unsub=null; S.store=null; S.col=null; S.uid=null;
   S.entries=[]; S.days={}; S.profile={}; S.cases=null; S.loaded=false; S.chat=[]; $("#chatlog").replaceChildren(); if(S.mind){ S.mind=false; renderMindBar(); }
   LOCK.unlocked=false; hideLock(); renderAll(); showAuth("signin");
