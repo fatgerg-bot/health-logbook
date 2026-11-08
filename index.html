@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#162321" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex,nofollow">
-<meta name="app-version" content="2026-11-08.4">
+<meta name="app-version" content="2026-11-08.5">
 <meta http-equiv="Cache-Control" content="no-cache">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -962,6 +962,9 @@ body.b3d-open{overflow:hidden}
 .hx-warn{background:var(--due-soft);border-radius:12px;padding:10px 12px;margin:0;font-weight:700}
 .hx-dq{display:flex;gap:10px;align-items:flex-start;background:var(--ai-soft);border-radius:14px;padding:10px 12px}
 .hx-back{align-self:flex-start;font-weight:700}
+.hx-near{display:flex;flex-direction:column;gap:8px}.hx-near:empty{display:none}
+.b3d-hl{display:flex;flex-direction:column;gap:4px;max-height:220px;overflow:auto}.b3d-hr{display:flex;gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;border-radius:12px;padding:8px 10px;cursor:pointer}.b3d-hr.on{border-color:var(--accent);background:var(--soft)}.b3d-hr span{display:flex;flex-direction:column}.b3d-hr small{color:var(--muted)}
+.b3d-hsel p{margin:0 0 4px}
 .view-bar{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 8px);z-index:1000;display:flex;align-items:center;gap:10px;background:#16302A;color:#fff;border-radius:99px;padding:6px 6px 6px 14px;box-shadow:0 6px 20px rgba(0,0,0,.25);font-size:.88rem;max-width:calc(100vw - 24px)}
 .view-bar .btn{background:#fff;color:#16302A;border:0;white-space:nowrap}.view-bar span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hx-found{display:flex;flex-direction:column;gap:10px}.hx-fc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}.hx-fh{display:flex;gap:8px;align-items:center}.hx-fs{margin:4px 0 0;color:var(--muted);font-size:.88rem}.hx-ok{color:var(--accent);font-weight:700;margin:6px 0 0}.hx-fc .row{margin-top:8px}
@@ -2085,6 +2088,7 @@ function buildContext(opts){
       lines.push("- "+bits.join(" | "));
     }
   }
+  { const hc=histContext(); if(hc) lines.push(hc); }
   const dd=Object.values(S.days||{}).filter(d=>d.date).sort((a,b)=>a.date.localeCompare(b.date)).slice(-150);
   if(dd.length){
     lines.push("\nDAILY DIARY (feeling and energy out of 5, where 1 is worst; sleep; how much they ate; medicines ticked as taken; stress; period flow; weight):");
@@ -2931,7 +2935,7 @@ const BZ_BACK=[
 const BZ_NAME=Object.fromEntries([...BZ_ALL,...BZ_FRONT,...BZ_BACK].map(z=>[z[0],z[1]]));
 const CHEST_Z=new Set(["l-chest","r-chest","upper-tum"]);
 function heDesc(e){ const p=e.ep||{}; return [p.dur, (p.feel||[]).join(", ").toLowerCase(), (p.ctx||[]).join(", ").toLowerCase(), (p.with||[]).length?"with "+p.with.join(", ").toLowerCase():"", p.pulse?"pulse "+p.pulse+" bpm":""].filter(Boolean).join(" · "); }
-function pnDesc(e){ return [Array.isArray(e.p3)&&e.p3.length? "felt "+depthLabel(Math.max(...e.p3.map(p=>p.d||0)))+(e.near&&e.near.length? ", close to "+e.near.join(", ").toLowerCase() : "") : "",(e.areas||[]).map(a=>(BZ_NAME[a]||a).toLowerCase()).join(", "), (e.pkind||[]).join(", ").toLowerCase(), (e.pctx||[]).join(", ").toLowerCase()].filter(Boolean).join(" · "); }
+function pnDesc(e){ const hl=(e.hlink||[]).map(id=>S.entries.find(x=>x.id===id)).filter(Boolean); return [hl.length? "near old: "+hl.map(hLabel).join(", ") : "",Array.isArray(e.p3)&&e.p3.length? "felt "+depthLabel(Math.max(...e.p3.map(p=>p.d||0)))+(e.near&&e.near.length? ", close to "+e.near.join(", ").toLowerCase() : "") : "",(e.areas||[]).map(a=>(BZ_NAME[a]||a).toLowerCase()).join(", "), (e.pkind||[]).join(", ").toLowerCase(), (e.pctx||[]).join(", ").toLowerCase()].filter(Boolean).join(" · "); }
 function symDesc(e){ return e&&e.ep? heDesc(e) : e&&Array.isArray(e.areas)? pnDesc(e) : ""; }
 function isHeart(t){ return /palpitation|heart (flutter|tremor|racing)|racing heart/i.test(String(t||"")); }
 function isPain(t){ return /^pain\b/i.test(String(t||"").trim()); }
@@ -3087,6 +3091,28 @@ function hWhen(e){ const y=hYear(e), a= e.age!=null&&e.age!==""? +e.age : (y&&hD
   return [y? (String(e.date).length>4? fmtDate(e.date) : y) : "", a!=null&&a>=0? "age "+a : ""].filter(Boolean).join(" · ") || "Date not known"; }
 function hWhere(e){ const z=e.pin&&e.pin.z; return [e.part, z? BZ_NAME[z] : ""].filter(Boolean).join(" · "); }
 function hPins(sel){ const num=hNum(); return hList().filter(e=>e.pin&&typeof e.pin.x==="number").map(e=>({id:e.id,v:e.pin.v||"f",x:e.pin.x,y:e.pin.y,n:num[e.id],col:HT_COL[e.htype]||HT_COL.other,hi:sel===e.id})); }
+const H_NEAR=0.095;
+const HT_WORD={break:"break",op:"operation",metal:"implant",injury:"injury",illness:"illness",other:"event"};
+function hLabel(e){ return (e.title||"Untitled")+(hYear(e)?" ("+hYear(e)+")":""); }
+function hZonesNear(e){ if(!e||!e.pin) return []; const out=new Set(e.pin.z?[e.pin.z]:[]);
+  if(typeof e.pin.x==="number") for(const [id] of [...BZ_ALL,...BZ_FRONT,...BZ_BACK]){ const c=bmZoneCentre(id,hZoneView(id)); if(c&&Math.hypot(c.x-e.pin.x,c.y-e.pin.y)<H_NEAR) out.add(id); }
+  return [...out]; }
+function hNearAreas(areas){ const A=new Set(areas||[]); if(!A.size) return []; return hList().filter(e=>hZonesNear(e).some(z=>A.has(z))); }
+function hPainLogs(e, days){ const zs=new Set(hZonesNear(e)), from=addDays(todayISO(),-(days||89));
+  return ofKind("symptom").filter(s=>s.date&&s.date>=from&&!(s.hunlink||[]).includes(e.id)&&((s.hlink||[]).includes(e.id)||(Array.isArray(s.areas)&&s.areas.some(a=>zs.has(a))))); }
+function histContext(){
+  const L=hList(); if(!L.length) return "";
+  const out=["\nUSING BODY HISTORY: an organ that has been removed can't be the cause of new symptoms (for example no appendix rules out appendicitis, no gallbladder rules out gallstones in the gallbladder); metal plates, pins, joint replacements and other implants must be mentioned before any MRI scan; and new pain near an old break, operation or injury may be linked to it (scar tissue, arthritis, hernia at a scar, hardware), so say so when it fits."];
+  for(const e of L){ const n=hPainLogs(e,90).length; if(n) out.push("- Pain logged near an old "+(HT_WORD[e.htype]||"event")+", "+hLabel(e)+": "+n+" time"+(n>1?"s":"")+" in the last 90 days."); }
+  return out.join("\n");
+}
+function hxThings(){
+  let seen=[]; try{ seen=JSON.parse(localStorage.getItem("hl-hxseen")||"[]"); }catch(e){}
+  for(const e of hList()){ const n=hPainLogs(e,30).length; if(n<2) continue; const sid=e.id+":"+n; if(seen.includes(sid)) continue;
+    return [{kind:"hx", hx:e, sid, e:{id:"hx-"+sid}, text:"You've logged pain near an old "+(HT_WORD[e.htype]||"injury")+" "+n+" times this month: "+hLabel(e)+". Old "+(e.htype==="op"?"operations":e.htype==="metal"?"implants":"injuries")+" can leave the area next to them sore, so it's worth mentioning to your GP."}]; }
+  return [];
+}
+function hxSeen(sid){ try{ const L=JSON.parse(localStorage.getItem("hl-hxseen")||"[]"); L.push(sid); localStorage.setItem("hl-hxseen",JSON.stringify(L.slice(-50))); }catch(e){} }
 function hPainNear(z){ if(!z) return 0; const from=addDays(todayISO(),-89); return ofKind("symptom").filter(s=>s.date&&s.date>=from&&Array.isArray(s.areas)&&s.areas.includes(z)).length; }
 function hDot(e,n){ return h("span",{class:"hx-dot",style:"background:"+(HT_COL[e.htype]||HT_COL.other),"aria-hidden":"true"}, n!=null? String(n) : ""); }
 function hLinkable(){ const used=new Set(hList().map(e=>e.src).filter(Boolean));
@@ -3119,13 +3145,14 @@ function openHistory(){
   draw();
   const hdr=h("div",{class:"hx-head"},
     h("button",{class:"btn primary",type:"button",disabled:!S.canWrite||null,onclick:()=>openHistEdit()},"+ Add"),
-    h("button",{class:"btn",type:"button",disabled:!S.canWrite||!S.sample||S.aiOff||null,onclick:()=>openHistTell()}, h("span",{"aria-hidden":"true"},"✦ "),"Tell Dr Quackers"), sw);
+    h("button",{class:"btn",type:"button",disabled:!S.canWrite||!S.sample||S.aiOff||null,onclick:()=>openHistTell()}, h("span",{"aria-hidden":"true"},"✦ "),"Tell Dr Quackers"),
+    h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); open3D({hist:true}); }},"🧍 3D"), sw);
   openSheet("🦴 Body history",[h("p",{class:"none"},"The big things that have happened to your body, pinned where they happened. Dr Quackers uses them, and they help any new doctor."), hdr, maps,
     h("div",{class:"hx-key"}, ...HT.slice(0,5).map(t=>h("span",{}, h("i",{style:"background:"+t[2]}), t[1]))), list, links]);
   S.hxRedraw=()=>{ if(document.querySelector(".hx-maps")) draw(); };
 }
 function openHistItem(e){
-  const num=hNum()[e.id], view=e.pin&&e.pin.v==="b"? "back" : "front", z=e.pin&&e.pin.z, pn=hPainNear(z);
+  const num=hNum()[e.id], view=e.pin&&e.pin.v==="b"? "back" : "front", z=e.pin&&e.pin.z, pn=hPainLogs(e,90).length;
   const sec=(t,v)=>v? h("div",{class:"hx-f"}, h("b",{},t), h("span",{},v)) : null;
   openSheet(e.title||"Body history",[
     h("button",{class:"linkbtn hx-back",type:"button",onclick:()=>openHistory()},"‹ Body history"),
@@ -3134,8 +3161,9 @@ function openHistItem(e){
     h("div",{class:"hx-card"}, sec("Where",hWhere(e)), sec("What happened",e.details), sec("Treatment",e.treat), sec("Where treated",e.place)),
     Array.isArray(e.now)&&e.now.length? h("div",{class:"chips wrapchips"}, ...e.now.map(n=>h("span",{class:"hx-chip"+(n==="Metal still in"?" metal":"")}, n))) : null,
     (e.now||[]).includes("Metal still in")||e.htype==="metal"? h("p",{class:"hx-warn"},"⚠ Metal or an implant here: tell them before any MRI scan.") : null,
-    pn? h("div",{class:"hx-dq"}, h("span",{"aria-hidden":"true"},"🦆"), h("span",{}, "You've logged pain in this area "+pn+" time"+(pn>1?"s":"")+" in the last 3 months. Worth mentioning this old "+(HT_NAME[e.htype]||"event").toLowerCase()+" to your GP.")) : null,
-    h("div",{class:"row"}, h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>openHistEdit(e)},"Edit"), z? h("button",{class:"btn",type:"button",onclick:()=>openZone(z)},"What's under here?") : null)
+    pn? h("div",{class:"hx-dq"}, h("span",{"aria-hidden":"true"},"🦆"), h("span",{}, "You've logged pain near here "+pn+" time"+(pn>1?"s":"")+" in the last 3 months. Worth mentioning this old "+(HT_NAME[e.htype]||"event").toLowerCase()+" to your GP.")) : null,
+    Array.isArray(e.near)&&e.near.length? h("p",{class:"hint"},"On the 3D body it's close to: "+e.near.join(", ")+".") : null,
+    h("div",{class:"row"}, h("button",{class:"btn",type:"button",disabled:!S.canWrite||null,onclick:()=>openHistEdit(e)},"Edit"), (e.pin||e.p3)? h("button",{class:"btn",type:"button",onclick:()=>{ closeSheet(); open3D({hist:true,sel:e.id}); }},"See on 3D body") : null, z? h("button",{class:"btn",type:"button",onclick:()=>openZone(z)},"What's under here?") : null)
   ].filter(Boolean));
 }
 function openHistEdit(entry, preset){
@@ -3152,8 +3180,12 @@ function openHistEdit(entry, preset){
   const det=h("textarea",{id:"hx-det",rows:"2",placeholder:"e.g. Fell off my bike"}); det.value=e.details||"";
   const treat=h("input",{type:"text",id:"hx-treat",value:e.treat||"",placeholder:"e.g. Sling for 6 weeks, then physio"});
   const place=h("input",{type:"text",id:"hx-place",value:e.place||"",placeholder:"Hospital (optional)"});
-  const tabs=h("div",{class:"pflow bz-tabs"}), mapBox=h("div",{class:"bmap-wrap"}), where=h("p",{class:"bz-where"}), parts=h("div",{});
+  const tabs=h("div",{class:"pflow bz-tabs"}), mapBox=h("div",{class:"bmap-wrap"}), where=h("p",{class:"bz-where"}), parts=h("div",{}), fine=h("div",{class:"p3-box"});
   function draw(){
+    fine.replaceChildren(h("button",{class:"btn",type:"button",onclick:()=>open3D({place:true,single:true,title:"🦴 Where exactly?",col:HT_COL[e.htype]||HT_COL.other,points:e.p3?[e.p3]:[],zone:e.pin&&e.pin.z,
+        tip:n=>n? "Drag the slider to put it on the skin, under it, or deep on the bone or organ. Tap again to move it." : "Turn the body, then tap where it was.",
+        onDone:(pts,zones,near)=>{ e.p3=pts[0]; e.near=near&&near.length? near : undefined; if(!e.pin&&zones[0]){ const v=hZoneView(zones[0]), c=bmZoneCentre(zones[0],v); if(c) e.pin={v:v==="back"?"b":"f",x:c.x,y:c.y,z:zones[0]}; } draw(); }})}, e.p3? "📍 Change it on the 3D body" : "📍 Fine-tune on the 3D body"),
+      e.p3? h("p",{class:"hint"}, "Placed in 3D"+(e.near&&e.near.length? ", close to "+e.near.join(", ").toLowerCase() : "")+".") : h("p",{class:"hint"},"Optional: put it on the exact bone or organ."));
     tabs.replaceChildren(...[["front","Front"],["back","Back"]].map(([v,l])=>h("button",{type:"button",class:"pf","aria-pressed":String(view===v),onclick:()=>{ view=v; draw(); }}, l)));
     const pins=e.pin? [{v:e.pin.v,x:e.pin.x,y:e.pin.y,col:HT_COL[e.htype]||HT_COL.other,hi:true}] : [];
     mapBox.replaceChildren(bodyMap(view,[],{},(id,ev,svg)=>{ const p=bmPoint(svg,ev,view,id)||{x:0,y:1}; if(e.pin&&e.pin.z!==id) e.part=undefined; e.pin={v:view==="back"?"b":"f",x:p.x,y:p.y,z:id}; draw(); },{layer:bodySex()==="m"?"bones":"skin",pins,label:"Tap where it happened."}));
@@ -3177,7 +3209,7 @@ function openHistEdit(entry, preset){
   openSheet(isNew?"Add to body history":"Edit",[
     h("p",{class:"flabel"},"What was it?"), oneChips(HT.map(t=>t[1]),()=>HT_NAME[e.htype],v=>{ const t=HT.find(x=>x[1]===v); e.htype=t?t[0]:"other"; draw(); }),
     field("hx-title","Name",title),
-    h("p",{class:"flabel"},"Where? Tap the body"), tabs, mapBox, where, parts,
+    h("p",{class:"flabel"},"Where? Tap the body"), tabs, mapBox, where, parts, fine,
     h("div",{class:"fields2"}, field("hx-year","Year",yr), field("hx-age","Or my age then",age)),
     !dob? h("p",{class:"hint"},"Add your date of birth in Settings and the year and age fill each other in.") : null,
     field("hx-det","What happened",det), field("hx-treat","How it was treated",treat), field("hx-place","Where treated",place),
@@ -3358,7 +3390,8 @@ function open3D(opt){
   const place=!!opt.place, overlay=h("div",{class:"b3d",role:"dialog","aria-modal":"true","aria-label":"3D body"});
   const canvasBox=h("div",{class:"b3d-cv"}), status=h("p",{class:"b3d-st"},"Loading the 3D body…");
   const side=h("div",{class:"b3d-side"}), close=h("button",{class:"b3d-x",type:"button","aria-label":"Close"},"✕");
-  const title=h("h2",{class:"b3d-h"}, place? "📍 Where does it hurt?" : "🧍 Pain in 3D");
+  const hmode=!!opt.hist&&!place;
+  const title=h("h2",{class:"b3d-h"}, opt.title|| (place? "📍 Where does it hurt?" : hmode? "🦴 Body history in 3D" : "🧍 Pain in 3D"));
   overlay.append(h("div",{class:"b3d-top"}, title, close), canvasBox, status, side);
   document.body.append(overlay); document.body.classList.add("b3d-open");
   let alive=true, raf=0, ro=null;
@@ -3402,7 +3435,7 @@ function open3D(opt){
     /* pain markers */
     const mk=new T.Group(); scene.add(mk);
     const sphere=new T.SphereGeometry(1,20,14);
-    function marker(p,sev,big){ const c=sevCol(sev||5);
+    function marker(p,sev,big,col){ const c=col!=null? col : sevCol(sev||5);
       const core=new T.Mesh(sphere,new T.MeshBasicMaterial({color:c,depthTest:false,transparent:true,opacity:.95})); core.scale.setScalar(big?.011:.009); core.position.set(...p); core.renderOrder=5;
       const glow=new T.Mesh(sphere,new T.MeshBasicMaterial({color:c,transparent:true,opacity:.22,depthTest:false,depthWrite:false})); glow.scale.setScalar(.03); glow.position.set(...p); glow.renderOrder=4; glow.userData.pulse=true;
       mk.add(core,glow); }
@@ -3435,7 +3468,7 @@ function open3D(opt){
     function tap(e){
       const r=R.domElement.getBoundingClientRect(), v=new T.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
       ray.setFromCamera(v,cam);
-      if(place){ const hit=ray.intersectObject(skinObj,false)[0]; if(!hit){ return; } const sc=surfaceFromHit(hit); PL.push({s:sc.s.map(x=>+x.toFixed(4)),c:sc.c.map(x=>+x.toFixed(4)),d:PL.length? PL[PL.length-1].d : 0.35}); drawPlace(); return; }
+      if(place){ const hit=ray.intersectObject(skinObj,false)[0]; if(!hit){ return; } const sc=surfaceFromHit(hit); if(opt.single) PL.length=0; PL.push({s:sc.s.map(x=>+x.toFixed(4)),c:sc.c.map(x=>+x.toFixed(4)),d:PL.length? PL[PL.length-1].d : 0.35}); drawPlace(); return; }
       const vis=[...(groups.organ.visible?groups.organ.children:[]),...(groups.bone.visible?groups.bone.children:[])];
       const hit=ray.intersectObjects(vis,false)[0]; if(!hit){ info.replaceChildren(); return; }
       const m=hit.object.userData.m; lightOrgans([{m}]);
@@ -3447,15 +3480,15 @@ function open3D(opt){
     const dLab=h("span",{class:"b3d-dl"});
     function drawPlace(){
       mk.clear(); const near=[];
-      PL.forEach((p,i)=>{ const at=lerp(p.s,p.c,p.d); marker(at,opt.sev||5,i===PL.length-1); if(p.d>0.05) linePts(p.s,at); near.push(...b3Near(D.meshes,at,0.035,inside)); });
+      PL.forEach((p,i)=>{ const at=lerp(p.s,p.c,p.d); marker(at,opt.sev||5,i===PL.length-1,opt.col!=null?parseInt(String(opt.col).replace("#",""),16):null); if(p.d>0.05) linePts(p.s,at); near.push(...b3Near(D.meshes,at,0.035,inside)); });
       const seen=new Set(), uniq=near.sort((a,b)=>a.d-b.d).filter(x=>!seen.has(x.m.id)&&seen.add(x.m.id));
       lightOrgans(uniq.slice(0,4));
       const last=PL[PL.length-1]; if(last){ dSlider.value=String(last.d); dLab.textContent=depthLabel(last.d); }
       side.replaceChildren(
-        h("p",{class:"b3d-tip"}, PL.length? "Tap again to add another spot, or drag the slider to say how deep it feels." : "Turn the body, then tap where it hurts."),
-        h("label",{class:"b3d-depth"}, h("span",{},"How deep does it feel? ", dLab), dSlider, h("span",{class:"b3d-ticks"}, ...DEPTH_L.map(([v,l])=>h("small",{},l)))),
+        h("p",{class:"b3d-tip"}, opt.tip? opt.tip(PL.length) : PL.length? "Tap again to add another spot, or drag the slider to say how deep it feels." : "Turn the body, then tap where it hurts."),
+        h("label",{class:"b3d-depth"}, h("span",{}, opt.single? "How deep is it? " : "How deep does it feel? ", dLab), dSlider, h("span",{class:"b3d-ticks"}, ...DEPTH_L.map(([v,l])=>h("small",{},l)))),
         uniq.length? h("p",{class:"b3d-near"}, h("b",{},"Close to: "), uniq.slice(0,4).map(x=>x.m.name.replace(/ \(approximate shape\)/,"")).join(", ")) : PL.length? h("p",{class:"b3d-near"},"Not right next to any organ: likely skin, muscle or bone.") : null,
-        h("div",{class:"row"}, h("button",{class:"btn",type:"button",disabled:!PL.length||null,onclick:()=>{ PL.pop(); drawPlace(); }},"Undo last spot"), h("button",{class:"btn primary",type:"button",disabled:!PL.length||null,onclick:()=>{ const zones=[...new Set(PL.map(p=>nearestZone(p.s)).filter(Boolean))]; done(); opt.onDone&&opt.onDone(PL.map(p=>({s:p.s,c:p.c,d:+(+p.d).toFixed(2)})), zones, uniq.slice(0,4).map(x=>x.m.name.replace(/ \(approximate shape\)/,""))); }},"Use these spots")),
+        h("div",{class:"row"}, h("button",{class:"btn",type:"button",disabled:!PL.length||null,onclick:()=>{ PL.pop(); drawPlace(); }},"Undo last spot"), h("button",{class:"btn primary",type:"button",disabled:!PL.length||null,onclick:()=>{ const zones=[...new Set(PL.map(p=>nearestZone(p.s)).filter(Boolean))]; done(); opt.onDone&&opt.onDone(PL.map(p=>({s:p.s,c:p.c,d:+(+p.d).toFixed(2)})), zones, uniq.slice(0,4).map(x=>x.m.name.replace(/ \(approximate shape\)/,""))); }},opt.single?"Use this spot":"Use these spots")),
         layerRow, info);
     }
     dSlider.addEventListener("input",()=>{ const last=PL[PL.length-1]; if(!last) return; last.d=+dSlider.value; drawPlace(); });
@@ -3463,7 +3496,7 @@ function open3D(opt){
     const t0=todayISO(); let day=opt.date||t0, playing=null;
     const painDays=()=>{ const w={}; for(const e of ofKind("symptom")) if(e.date&&((Array.isArray(e.areas)&&e.areas.length)||(Array.isArray(e.p3)&&e.p3.length))) w[e.date]=Math.max(w[e.date]||0,+e.severity||1); return w; };
     function drawDay(){
-      mk.clear(); const W_=painDays();
+      mk.clear(); if(typeof showHist!=="undefined"&&showHist) drawHist(); const W_=painDays();
       const es=ofKind("symptom").filter(e=>e.date===day&&((Array.isArray(e.areas)&&e.areas.length)||(Array.isArray(e.p3)&&e.p3.length))).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
       const near=[], rows=[];
       for(const e of es){
@@ -3491,7 +3524,37 @@ function open3D(opt){
         layerRow, info,
         h("p",{class:"fineprint"},"Drag to turn the body, pinch or scroll to zoom, tap an organ to name it. Body data: BodyParts3D, © DBCLS, CC BY 4.0, simplified. Liver and lung outlines are approximate. A guide, not a diagnosis."));
     }
-    if(place) drawPlace(); else drawDay();
+    /* ===== body history pins: numbered labels on the bone or organ ===== */
+    const hk=new T.Group(); scene.add(hk); const hPos={};
+    function hSprite(n,col){ const c=document.createElement("canvas"); c.width=c.height=96; const g=c.getContext("2d");
+      g.beginPath(); g.arc(48,48,40,0,Math.PI*2); g.fillStyle=col; g.fill(); g.lineWidth=8; g.strokeStyle="#fff"; g.stroke();
+      g.fillStyle="#fff"; g.font="bold 46px system-ui,sans-serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(String(n),48,51);
+      const tx=new T.CanvasTexture(c); tx.colorSpace=T.SRGBColorSpace;
+      const sp=new T.Sprite(new T.SpriteMaterial({map:tx,depthTest:false,transparent:true})); sp.renderOrder=7; sp.scale.setScalar(.055); return sp; }
+    function hWhere3(e){
+      if(Array.isArray(e.p3)&&e.p3.length) return lerp(e.p3[0].s,e.p3[0].c,e.p3[0].d||0);
+      if(e.p3&&e.p3.s) return lerp(e.p3.s,e.p3.c,e.p3.d||0);
+      const pn=e.pin; if(!pn||typeof pn.x!=="number") return null;
+      const back=pn.v==="b", z0=back?-0.6:0.6, dir=[0,0,back?1:-1];
+      let hit=skinHit([pn.x,pn.y,z0],dir); if(!hit) return null; const s=hit.point.toArray();
+      if(e.htype==="break"||e.htype==="metal"||e.htype==="injury"){ ray.set(new T.Vector3(pn.x,pn.y,z0),new T.Vector3(...dir)); const b=ray.intersectObjects(groups.bone.children,false)[0]; if(b&&b.distance-hit.distance<0.12) return b.point.toArray(); return lerp(s,[pn.x,pn.y,0],.25); }
+      const opp=skinHit([pn.x,pn.y,-z0],[0,0,-dir[2]]); return lerp(s, opp? opp.point.toArray() : [pn.x,pn.y,0], .4);
+    }
+    function drawHist(sel){ hk.clear(); const num=hNum();
+      for(const e of hList()){ const p=hWhere3(e); if(!p) continue; hPos[e.id]=p; const sp=hSprite(num[e.id],HT_COL[e.htype]||HT_COL.other); sp.position.set(...p); if(sel&&sel!==e.id) sp.material.opacity=.45; hk.add(sp); } }
+    let showHist= !place && !hmode && hList().some(e=>e.pin||e.p3);
+    if(!place&&!hmode&&hList().length){ const hb=h("button",{type:"button",class:"fchip"+(showHist?" on":""),"aria-pressed":String(showHist)},"🦴 Old injuries"); hb.onclick=()=>{ showHist=!showHist; hb.classList.toggle("on",showHist); hb.setAttribute("aria-pressed",String(showHist)); if(showHist) drawHist(); else hk.clear(); }; layerRow.append(hb); }
+    function drawHistMode(sel){
+      mk.clear(); drawHist(sel); const num=hNum(), L=hList();
+      const cur=L.find(e=>e.id===sel);
+      side.replaceChildren(
+        cur? h("div",{class:"b3d-hsel"}, h("p",{}, hDot(cur,num[cur.id])," ",h("b",{},cur.title)), h("p",{class:"none"}, [HT_NAME[cur.htype],hWhen(cur),hWhere(cur)].filter(Boolean).join(" · ")), h("button",{class:"btn small ghost",type:"button",onclick:()=>{ done(); openHistItem(cur); }},"Open it ›")) :
+          h("p",{class:"b3d-tip"}, L.length? "Turn the body to see each pin on the bone or organ. Tap one in the list to zoom in." : "Nothing in your body history yet."),
+        L.length? h("div",{class:"b3d-hl"}, ...L.slice().reverse().map(e=>h("button",{type:"button",class:"b3d-hr"+(e.id===sel?" on":""),onclick:()=>{ const p=hPos[e.id]; if(p) focus(p,0.75); drawHistMode(e.id); }}, hDot(e,num[e.id]), h("span",{}, h("b",{}, e.title), h("small",{}, hYear(e)||""))))) : null,
+        layerRow, info,
+        h("p",{class:"fineprint"},"Breaks and metal sit on the nearest bone; operations and illnesses sit inside. Use Fine-tune in Edit to move one exactly. Body data: BodyParts3D, © DBCLS, CC BY 4.0."));
+    }
+    if(place) drawPlace(); else if(hmode){ drawHistMode(opt.sel); const p=opt.sel&&hPos[opt.sel]; if(p) focus(p,0.8); } else { drawDay(); if(showHist) drawHist(); }
     if(place&&opt.zone&&ZONE3D[opt.zone]){ const a=ZONE3D[opt.zone]; focus([a[0],a[1],0],1.0); if(a[2]==="b"){ az=Math.PI; setCam(); } }
     ro=new ResizeObserver(()=>{ R.setSize(W(),H()); cam.aspect=W()/H(); cam.updateProjectionMatrix(); }); ro.observe(canvasBox);
     const clock=performance.now();
@@ -3503,7 +3566,8 @@ function open3D(opt){
 function openPain(iso, entry){
   iso=(entry&&entry.date)||iso||todayISO();
   const isNew=!entry, e=JSON.parse(JSON.stringify(entry||{kind:"symptom",title:"Pain",date:iso}));
-  e.areas=e.areas||[]; e.pkind=e.pkind||[]; e.pctx=e.pctx||[];
+  e.areas=e.areas||[]; e.pkind=e.pkind||[]; e.pctx=e.pctx||[]; e.hunlink=e.hunlink||[];
+  const hxBox=h("div",{class:"hx-near"}), hxPins=hPins().map(p=>({...p,ghost:true}));
   let view= e.areas.some(a=>BZ_BACK.some(z=>z[0]===a))&&!e.areas.some(a=>BZ_FRONT.some(z=>z[0]===a))? "back" : "front";
   const hist=painHistory();
   const mapBox=h("div",{class:"bmap-wrap"}), where=h("p",{class:"bz-where"}), warn=warnBox(), zbox=h("div",{class:"za-list"}), p3box=h("div",{class:"p3-box"});
@@ -3512,8 +3576,12 @@ function openPain(iso, entry){
   const tabs=h("div",{class:"pflow bz-tabs"});
   function draw(){
     tabs.replaceChildren(...[["front","Front"],["back","Back"]].map(([v,l])=>h("button",{type:"button",class:"pf","aria-pressed":String(view===v),onclick:()=>{ view=v; draw(); }}, l)));
-    mapBox.replaceChildren(bodyMap(view,e.areas,hist,id=>{ const i=e.areas.indexOf(id); if(i>=0) e.areas.splice(i,1); else e.areas.push(id); draw(); }));
+    mapBox.replaceChildren(bodyMap(view,e.areas,hist,id=>{ const i=e.areas.indexOf(id); if(i>=0) e.areas.splice(i,1); else e.areas.push(id); draw(); },{pins:hxPins}));
     where.textContent= e.areas.length? "Where: "+e.areas.map(a=>BZ_NAME[a]).join(", ") : "Tap where it hurts. You can pick more than one place.";
+    const nh=hNearAreas(e.areas);
+    hxBox.replaceChildren(...nh.map(x=>{ const on=!e.hunlink.includes(x.id);
+      return h("div",{class:"hx-dq"}, h("span",{"aria-hidden":"true"},"🦴"), h("div",{}, h("p",{style:"margin:0"}, "That's near an old "+(HT_WORD[x.htype]||"injury")+": ", h("b",{}, hLabel(x)), ". "+(on? "I'll link them so your GP sees both." : "Not linked.")),
+        h("div",{class:"chips",style:"margin-top:6px"}, h("button",{type:"button",class:"fchip"+(on?" on":""),"aria-pressed":String(on),onclick:()=>{ e.hunlink=e.hunlink.filter(i=>i!==x.id); draw(); }},"✓ Linked"), h("button",{type:"button",class:"fchip"+(!on?" on":""),"aria-pressed":String(!on),onclick:()=>{ if(!e.hunlink.includes(x.id)) e.hunlink.push(x.id); draw(); }},"Not related")))); }));
     zbox.replaceChildren(...e.areas.map((a,i)=>zoneInfo(a,false)).filter(Boolean));
     const n3=Array.isArray(e.p3)? e.p3.length : 0;
     p3box.replaceChildren(h("button",{class:"btn",type:"button",onclick:()=>open3D({place:true,points:e.p3||[],sev:e.severity,zone:e.areas[0],onDone:(pts,zones,near)=>{ e.p3=pts; e.near=near.length?near:undefined; for(const z of zones) if(!e.areas.includes(z)) e.areas.push(z); draw(); }})}, n3? "📍 Change the spots on the 3D body" : "📍 Show exactly where on a 3D body"),
@@ -3529,13 +3597,14 @@ function openPain(iso, entry){
     save.disabled=true;
     const body={...e,kind:"symptom",title:"Pain",date:iso,time:tm.value||undefined,source:e.source||"manual",details:det.value.trim()||undefined,
       areas:e.areas, pkind:e.pkind.length?e.pkind:undefined, pctx:e.pctx.length?e.pctx:undefined};
+    { const nh=hNearAreas(e.areas); const lk=nh.filter(x=>!e.hunlink.includes(x.id)).map(x=>x.id), ul=e.hunlink.filter(i=>nh.some(x=>x.id===i)); body.hlink=lk.length?lk:undefined; body.hunlink=ul.length?ul:undefined; }
     delete body.id;
     const ok=await saveEntry(body, entry&&entry.id); save.disabled=false;
     if(ok){ closeSheet(); toast(isNew? "Pain logged · "+e.areas.map(a=>BZ_NAME[a].toLowerCase()).join(", ") : "Saved"); }
   });
   openSheet(isNew?"Where does it hurt?":"Edit pain",[
-    tabs, mapBox, where, p3box, zbox,
-    Object.keys(hist).length? h("p",{class:"hint"},"Shaded: where you've logged pain in the last 3 months.") : null,
+    tabs, mapBox, where, hxBox, p3box, zbox,
+    Object.keys(hist).length||hxPins.length? h("p",{class:"hint"}, [Object.keys(hist).length? "Shaded: where you've logged pain in the last 3 months." : "", hxPins.length? "Dotted circles: old injuries and operations from your body history." : ""].filter(Boolean).join(" ")) : null,
     warn,
     h("p",{class:"flabel"},"How bad is it?"), sevRow(()=>e.severity,v=>{ e.severity=v; }),
     h("p",{class:"flabel"},"What kind of pain?"), multiChips(PN_KIND,e.pkind),
@@ -3900,6 +3969,7 @@ function dqThingsList(){
   const t=todayISO(), soon=addDays(t,3), fort=addDays(t,14), out=[];
   for(const w of packWarnings()) out.push({kind:"pack "+w.level, pack:w.pack, q:w.q, e:{id:"pack-"+w.pack+"-"+w.level}, text:w.text});
   for(const x of reactThings()) out.push(x);
+  for(const x of hxThings()) out.push(x);
   for(const k of packSuggestions().slice(0,1)) out.push({kind:"pack suggest", pack:k, e:{id:"packsug-"+k}, text:"I've spotted "+PACKS[k].spot+" in your records. Want the care pack for it? It adds a few quick taps to your check-in, early warnings and a plan."});
   for(const d of ofKind("due").filter(e=>e.status!=="done"&&e.date&&e.date<=soon).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2))
     out.push({kind:"due", e:d, text: d.date<t? d.title+" is overdue." : d.title+" is due "+dqWhen(d.date)+"."});
@@ -3925,12 +3995,12 @@ function renderThings(){
   if(box._key!==key){
     box._key=key;
     const cards=items.map(x=>{
-      const icon= x.react? "M7 3v8a2 2 0 0 0 2 2v8M9 3v6M5 3v6M17 3c-2 2-2 6 0 8v10" : x.pack? "M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z" : x.kind==="due"? "M12 13m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0M12 9v4l2 2" : "M4 5h16v15H4zM8 3v4M16 3v4M4 10h16";
+      const icon= x.hx? IC.bone : x.react? "M7 3v8a2 2 0 0 0 2 2v8M9 3v6M5 3v6M17 3c-2 2-2 6 0 8v10" : x.pack? "M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z" : x.kind==="due"? "M12 13m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0M12 9v4l2 2" : "M4 5h16v15H4zM8 3v4M16 3v4M4 10h16";
       const txt=h("p",{class:"th-t"},x.text); if(!x.pack) quackify(txt);
       return h("article",{class:"th-card "+x.kind},
         h("div",{class:"th-row"}, h("span",{class:"th-ic","aria-hidden":"true"}, svgIcon(icon)), txt),
         h("div",{class:"row"},
-          ...(x.react? thingsReactBtns(x) : x.pack? thingsPackBtns(x) : [
+          ...(x.hx? [h("button",{class:"btn small primary",type:"button",onclick:()=>openHistItem(x.hx)},"See it"), h("button",{class:"btn small ghost",type:"button",onclick:()=>{ hxSeen(x.sid); renderThings(); }},"Got it")] : x.react? thingsReactBtns(x) : x.pack? thingsPackBtns(x) : [
           x.kind==="due"? h("button",{class:"btn small primary",type:"button",disabled:!S.canWrite||null,onclick:()=>markDone(x.e)},"Done") : h("button",{class:"btn small ai",type:"button",onclick:()=>{ $("#prepAppt").value=x.e.id; show("prepare"); }}, x.e.prep?"See my brief":"Get ready"),
           h("button",{class:"btn small ghost",type:"button",onclick:()=>openEntry(x.e)},"Details")])));
     });
@@ -5777,6 +5847,7 @@ function renderSettings(full){
 }
 /* ---------- what's new after an update ---------- */
 const CHANGES=[
+ {v:"2026-11-08.5", items:[["🦴","Your body history is now on the 3D body: breaks and metal sit on the bone, operations inside. Tap 3D in Body history, and use Fine-tune on the 3D body to place one exactly."],["📍","When you log pain, old injuries show as dotted circles. Pain next to one gets linked so your GP sees both, and Dr Quackers tells you if it keeps happening."],["📋","Get ready briefs now list your past operations, breaks and implants, flag metal before any scan, and say what an old operation rules out."]]},
  {v:"2026-11-08.4", items:[["👀","New in Settings → Privacy and security: Let the admin look at my logbook. Switch it on and the admin can look through your logbook to check everything's working. It's look only: they can't change anything, and you can switch it off any time."]]},
  {v:"2026-11-08.3", items:[["🦴","New Body history. Pin the big things that have happened to your body where they happened: broken bones, operations, metal plates or implants, bad injuries and serious illnesses. A year or your age is enough."],["✦","Tell Dr Quackers in your own words, like \"broke my collarbone at 15\", and he fills it in and asks which side if you didn't say. He also uses your body history when he helps you."],["🧍","The body map now looks like a real body, drawn from the 3D model: a man's body for men and a woman's for women."]]},
  {v:"2026-11-08.2", items:[["🧍","New 3D body. When you log pain, tap Show exactly where on a 3D body: turn the body, tap the spot, and slide to say how deep it feels. The organs closest to it light up."],["📅","Pain in 3D lets you step back and forward through the days, with a pain calendar coloured by how bad each day was. Press Play to watch the last 60 days."],["🔎","Tap any organ to see its name, and turn skin, bones and organs on or off. Dr Quackers now knows how deep your pain feels and which organs are nearby."]]},
@@ -6175,6 +6246,7 @@ $("#prepGo").addEventListener("click", async ()=>{
     + "## The short version\n(3 to 4 sentences they can say at the start: the main problem, how long it's been going on, what's been tried, and what they'd like from today.)\n"
     + "## Timeline\n(dated bullet points of the relevant history from the logbook, oldest first.)\n"
     + "## Medicines and allergies to mention\n"
+    + (hList().length? "## Past operations, breaks and implants\n(from BODY HISTORY, oldest first, one line each starting with the year. Mark any that sit near today's problem with '(near today's problem)'. If there is any metal plate, pin, screw, joint replacement or other implant, end the section with a line starting '⚠ Before any scan:' naming it, so they remember to say it before an MRI. If a removed organ rules something out, add a line starting 'Already ruled out:'.)\n" : "")
     + "## Questions to ask\n(5 to 8 specific questions as bullets.)\n"
     + "## Before you go\n(2 to 4 bullets: things to note down, bring or check.)\n"
     + "Use '- ' for bullets. Keep it under 400 words. Use only facts from the logbook and what they wrote; where something useful is missing, suggest noting it down rather than guessing.";
